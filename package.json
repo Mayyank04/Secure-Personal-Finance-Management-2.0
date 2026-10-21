@@ -12,6 +12,7 @@
     "db:migrate": "tsx server/db/runMigrations.ts",
     "db:test": "tsx server/test_database_connectivity.ts",
     "test:pg": "tsx server/production_postgres_integration_test.ts",
+    "test:vercel": "tsx server/test_vercel_registration_flow.ts",
     "test": "tsx server/acceptance_production_readiness.ts"
   },
   "dependencies": {

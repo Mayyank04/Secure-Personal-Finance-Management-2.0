@@ -73,9 +73,60 @@ import { kycRouter } from './server/routes/kycRoutes.js';
 export const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
 
+// Safe IP Normalization Middleware for Serverless & Proxies (prevents remoteAddress undefined errors)
+app.use((req, _res, next) => {
+  try {
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = typeof forwarded === 'string'
+      ? forwarded.split(',')[0].trim()
+      : (req.headers['x-real-ip'] as string) || req.socket?.remoteAddress || '127.0.0.1';
+    Object.defineProperty(req, 'ip', {
+      value: ip,
+      configurable: true,
+      writable: true,
+    });
+  } catch {}
+  next();
+});
+
 // Security & Parsing Middlewares
+// In serverless environments (e.g. Vercel), req.body may already be parsed by @vercel/node.
+// If req.body is already an object, mark req._body = true so express.json() doesn't
+// attempt to re-read the already-consumed request stream and throw BadRequestError.
+app.use((req, _res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    (req as any)._body = true;
+  } else if (typeof req.body === 'string' && req.body.trim().startsWith('{')) {
+    try {
+      req.body = JSON.parse(req.body);
+      (req as any)._body = true;
+    } catch {}
+  }
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+
+// Fallback route for serverless /api/index rewrite delegations
+app.all(['/api/index', '/api/index.js'], (req, res, next) => {
+  if (req.query && req.query.__path) {
+    const rawPath = Array.isArray(req.query.__path)
+      ? req.query.__path.join('/')
+      : String(req.query.__path);
+    const cleanPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+    req.url = cleanPath.startsWith('/api') ? cleanPath : `/api${cleanPath}`;
+    return (app as any).handle(req, res, next);
+  }
+  return res.json({
+    status: 'ok',
+    service: 'aegis-finance-api',
+    message: 'AegisFinance API serverless entrypoint active.',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+
 
 const defaultAllowedOrigins = [
   'http://localhost:3000',
@@ -306,7 +357,7 @@ const revokedTokens = new Set<string>();
    STATELESS HMAC SESSION & MFA HELPERS (MULTI-INSTANCE SERVERLESS SUPPORT)
    ========================================================================== */
 
-function resolveSessionSecret(): string {
+export function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET || process.env.AUTH_SECRET;
   const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
   const insecureFallback = 'aegis_fintech_session_hmac_secret_2026';
@@ -314,28 +365,24 @@ function resolveSessionSecret(): string {
   if (isProd) {
     if (!secret || secret.trim() === '' || secret === insecureFallback || secret.length < 32) {
       throw new Error(
-        '[SECURITY ERROR] Production deployment requires a secure, high-entropy SESSION_SECRET (or AUTH_SECRET) of at least 32 characters configured in environment variables. Silently falling back to insecure hardcoded secrets is prohibited.'
+        'Missing or invalid SESSION_SECRET in production environment. A cryptographically strong secret of at least 32 characters is required in Vercel environment variables.'
       );
     }
     return secret;
   }
 
   if (!secret) {
-    console.warn(
-      '[SECURITY WARNING] SESSION_SECRET / AUTH_SECRET not configured. Using development fallback secret. Set SESSION_SECRET in .env for production.'
-    );
     return insecureFallback;
   }
   return secret;
 }
 
-const SESSION_SECRET = resolveSessionSecret();
-
 function createSignedSessionToken(userId: string): { sessionId: string; token: string; expiresAt: number } {
+  const secret = getSessionSecret();
   const sessionId = 'sess-' + crypto.randomBytes(8).toString('hex');
   const expiresAt = Date.now() + 24 * 3600 * 1000;
   const payload = `${userId}.${expiresAt}`;
-  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  const sig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
   const token = `tok.${payload}.${sig}`;
   return { sessionId, token, expiresAt };
 }
@@ -347,7 +394,13 @@ function verifySignedSessionToken(token: string): { valid: boolean; userId?: str
   if (parts.length !== 4) return { valid: false };
   const [, userId, expiresAtStr, sig] = parts;
   const payload = `${userId}.${expiresAtStr}`;
-  const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  let secret: string;
+  try {
+    secret = getSessionSecret();
+  } catch {
+    return { valid: false };
+  }
+  const expectedSig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
   if (sig !== expectedSig) return { valid: false };
   const expiresAt = parseInt(expiresAtStr, 10);
   if (isNaN(expiresAt) || Date.now() > expiresAt) return { valid: false };
@@ -355,9 +408,10 @@ function verifySignedSessionToken(token: string): { valid: boolean; userId?: str
 }
 
 function createSignedMfaTicket(userId: string): string {
+  const secret = getSessionSecret();
   const expiresAt = Date.now() + 5 * 60 * 1000;
   const payload = `${userId}.${expiresAt}`;
-  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(`mfa:${payload}`).digest('hex');
+  const sig = crypto.createHmac('sha256', secret).update(`mfa:${payload}`).digest('hex');
   return `mfa-tkt.${payload}.${sig}`;
 }
 
@@ -374,12 +428,19 @@ function verifySignedMfaTicket(ticket: string): { valid: boolean; userId?: strin
   if (parts.length !== 4) return { valid: false };
   const [, userId, expiresAtStr, sig] = parts;
   const payload = `${userId}.${expiresAtStr}`;
-  const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(`mfa:${payload}`).digest('hex');
+  let secret: string;
+  try {
+    secret = getSessionSecret();
+  } catch {
+    return { valid: false };
+  }
+  const expectedSig = crypto.createHmac('sha256', secret).update(`mfa:${payload}`).digest('hex');
   if (sig !== expectedSig) return { valid: false };
   const expiresAt = parseInt(expiresAtStr, 10);
   if (isNaN(expiresAt) || Date.now() > expiresAt) return { valid: false };
   return { valid: true, userId };
 }
+
 
 /* ==========================================================================
    AUTHENTICATION & SESSION VALIDATION MIDDLEWARE
@@ -532,9 +593,13 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
       });
     }
 
-    const { email, password, name, currency = 'INR' } = req.body;
+    const { email, password, name, currency = 'INR' } = req.body || {};
     if (!email || !password || !name) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
+    }
+
+    if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Invalid input format.' });
     }
 
     const strength = validatePasswordStrength(password);
@@ -544,7 +609,21 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
 
     const normalizedEmail = email.toLowerCase().trim();
     const adapter = getDatabaseAdapter();
-    const existingInDb = await adapter.getUserByEmail(normalizedEmail);
+
+    let existingInDb: User | null = null;
+    try {
+      existingInDb = await adapter.getUserByEmail(normalizedEmail);
+    } catch (dbErr: any) {
+      console.error('[Register API] Database connection/query error while checking user by email:', {
+        message: dbErr.message,
+        code: dbErr.code,
+      });
+      return res.status(503).json({
+        error: 'Database service is temporarily unavailable. Please verify DATABASE_URL connectivity.',
+        code: 'DATABASE_QUERY_ERROR',
+      });
+    }
+
     const existingInMemory = Array.from(db.users.values()).find(u => u.email.toLowerCase() === normalizedEmail);
     if (existingInDb || existingInMemory) {
       return res.status(409).json({ error: 'An account with this email address already exists.' });
@@ -585,18 +664,41 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
     };
 
     // Persist immediately into durable database adapter
-    await adapter.createUser(newUser);
-    await adapter.createProfile(newProfile);
+    try {
+      await adapter.createUser(newUser);
+      await adapter.createProfile(newProfile);
+    } catch (saveErr: any) {
+      console.error('[Register API] Database persist error while creating user/profile:', {
+        message: saveErr.message,
+        code: saveErr.code,
+      });
+      if (saveErr.code === '23505') {
+        return res.status(409).json({ error: 'An account with this email address already exists.' });
+      }
+      return res.status(503).json({
+        error: 'Failed to write user account to persistent storage.',
+        code: 'DATABASE_WRITE_ERROR',
+      });
+    }
+
     db.users.set(userId, newUser);
     db.profiles.set(userId, newProfile);
 
     // Anchor user registration to permissioned audit ledger
-    blockchainAdapter.registerUserIdentity(userId);
+    try {
+      blockchainAdapter.registerUserIdentity(userId);
+    } catch (bcErr: any) {
+      console.warn('[Register API] Blockchain ledger anchor warning:', bcErr.message);
+    }
 
     // Generate Email Verification Token
     const verifyToken = generateSecureToken(24);
     const verifyExpiresAt = Date.now() + 24 * 3600 * 1000;
-    await adapter.saveEmailVerificationToken(verifyToken, userId, verifyExpiresAt);
+    try {
+      await adapter.saveEmailVerificationToken(verifyToken, userId, verifyExpiresAt);
+    } catch (tokenErr: any) {
+      console.warn('[Register API] Non-critical verification token save warning:', tokenErr.message);
+    }
     emailVerificationTokens.set(verifyToken, {
       userId,
       expiresAt: verifyExpiresAt,
@@ -604,7 +706,18 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
     });
 
     // Create Authenticated Session with Stateless HMAC Token
-    const { sessionId, token: sessionToken, expiresAt: sessionExpiresAt } = createSignedSessionToken(userId);
+    let sessionTokenData;
+    try {
+      sessionTokenData = createSignedSessionToken(userId);
+    } catch (secErr: any) {
+      console.error('[Register API] Session secret configuration error:', secErr.message);
+      return res.status(503).json({
+        error: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+        code: 'MISSING_SESSION_SECRET',
+      });
+    }
+
+    const { sessionId, token: sessionToken, expiresAt: sessionExpiresAt } = sessionTokenData;
     const newSession: UserSession = {
       id: sessionId,
       token: sessionToken,
@@ -619,16 +732,25 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
       isCurrent: true,
     };
 
-    await adapter.createSession(newSession);
+    try {
+      await adapter.createSession(newSession);
+    } catch (sessErr: any) {
+      console.error('[Register API] Database session persist error:', sessErr.message);
+    }
     db.sessions.set(sessionId, newSession);
-    persistentSqlite.syncFromMemoryDb(db);
 
-    db.recordAuditEvent({
-      userId,
-      eventType: 'USER_REGISTERED',
-      description: `Account created for ${newUser.email} with PBKDF2 cryptography.`,
-      ipAddress: ip,
-    });
+    try {
+      persistentSqlite.syncFromMemoryDb(db);
+    } catch {}
+
+    try {
+      db.recordAuditEvent({
+        userId,
+        eventType: 'USER_REGISTERED',
+        description: `Account created for ${newUser.email} with PBKDF2 cryptography.`,
+        ipAddress: ip,
+      });
+    } catch {}
 
     return res.status(201).json({
       message: 'Registration successful. Verification token generated.',
@@ -645,10 +767,15 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
       profile: newProfile,
     });
   } catch (err: any) {
-    console.error('[Register API] Error:', err);
+    console.error('[Register API] Registration error:', {
+      message: err.message,
+      code: err.code,
+      name: err.name,
+    });
     return res.status(500).json({ error: 'We could not complete your registration. Please try again.' });
   }
 });
+
 
 // POST /api/auth/login (and aliases: /api/login, /auth/login, /login)
 app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req, res) => {

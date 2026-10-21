@@ -44,12 +44,30 @@ class ApiClient {
       let errMessage = 'A network or server error occurred.';
       let errCode: string | undefined;
       try {
-        const errorData = await res.json();
-        if (errorData.error) errMessage = errorData.error;
-        if (errorData.code) errCode = errorData.code;
+        const text = await res.text();
+        try {
+          const errorData = JSON.parse(text);
+          if (errorData.error) {
+            errMessage = typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData.error);
+          } else if (errorData.message) {
+            errMessage = errorData.message;
+          }
+          if (errorData.code) errCode = errorData.code;
+        } catch {
+          if (text && !text.includes('<!DOCTYPE') && !text.includes('<html') && text.trim().length > 0 && text.length < 300) {
+            errMessage = text.trim();
+          } else if (res.status === 404) {
+            errMessage = 'The requested endpoint was not found (404). Please check serverless routing.';
+          } else if (res.status === 503) {
+            errMessage = 'Service unavailable (503). Database initialization is in progress or unreachable.';
+          } else if (res.status === 500) {
+            errMessage = 'An internal server error occurred (500). Please check server logs and try again.';
+          }
+        }
       } catch {
-        // ignore json parse error
+        // ignore read error
       }
+
 
       if (res.status === 401) {
         const isAuthAttempt =

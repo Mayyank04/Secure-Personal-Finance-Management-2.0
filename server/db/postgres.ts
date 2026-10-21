@@ -73,6 +73,7 @@ export class PostgresAdapter implements IDatabaseAdapter {
     // Test connection
     const client = await this.pool.connect();
     try {
+      await client.query('SET search_path TO public;');
       await client.query('SELECT 1');
       // Run migrations
       const { currentVersion } = await runPostgresMigrations(client);
@@ -82,6 +83,7 @@ export class PostgresAdapter implements IDatabaseAdapter {
     } finally {
       client.release();
     }
+
   }
 
   public async close(): Promise<void> {

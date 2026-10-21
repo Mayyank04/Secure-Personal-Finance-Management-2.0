@@ -25,9 +25,11 @@ export const AuthModal: React.FC = () => {
     register,
   } = useAuth();
 
-  const [name, setName] = useState<string>('Alex Morgan');
-  const [email, setEmail] = useState<string>('alex.morgan@fintech-demo.com');
-  const [password, setPassword] = useState<string>('DemoPassword@2026');
+  const isDevOrDemo = (import.meta as any).env?.DEV || (import.meta as any).env?.VITE_DEMO_MODE === 'true';
+  const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>(authModalMode === 'login' && isDevOrDemo ? 'alex.morgan@fintech-demo.com' : '');
+  const [password, setPassword] = useState<string>(authModalMode === 'login' && isDevOrDemo ? 'DemoPassword@2026' : '');
+
   const [currency, setCurrency] = useState<string>('INR');
   const [mfaCode, setMfaCode] = useState<string>('');
   const [mfaTicket, setMfaTicket] = useState<string>('');
@@ -36,6 +38,22 @@ export const AuthModal: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState<boolean>(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
+
+  const switchToSignup = () => {
+    setAuthModalMode('signup');
+    setShowMfaStep(false);
+    setError(null);
+    setName('');
+    setEmail('');
+    setPassword('');
+  };
+
+  const switchToLogin = () => {
+    setAuthModalMode('login');
+    setShowMfaStep(false);
+    setError(null);
+  };
+
 
   if (!isAuthModalOpen) return null;
 
@@ -178,7 +196,7 @@ export const AuthModal: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
-                        placeholder="alex.morgan@fintech-demo.com"
+                        placeholder="name@example.com"
                       />
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     </div>
@@ -303,10 +321,8 @@ export const AuthModal: React.FC = () => {
             <p>
               Don't have an account?{' '}
               <button
-                onClick={() => {
-                  setAuthModalMode('signup');
-                  setShowMfaStep(false);
-                }}
+                type="button"
+                onClick={switchToSignup}
                 className="text-indigo-600 font-semibold hover:underline"
               >
                 Create one now
@@ -316,10 +332,8 @@ export const AuthModal: React.FC = () => {
             <p>
               Already registered?{' '}
               <button
-                onClick={() => {
-                  setAuthModalMode('login');
-                  setShowMfaStep(false);
-                }}
+                type="button"
+                onClick={switchToLogin}
                 className="text-indigo-600 font-semibold hover:underline"
               >
                 Sign in to your vault
@@ -327,6 +341,7 @@ export const AuthModal: React.FC = () => {
             </p>
           )}
         </div>
+
       </div>
     </div>
   );
