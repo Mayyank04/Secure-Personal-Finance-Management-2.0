@@ -28,7 +28,6 @@ export const StatementImportView: React.FC = () => {
   const [isPreviewing, setIsPreviewing] = useState<boolean>(false);
   const [previewResult, setPreviewResult] = useState<any | null>(null);
 
-  // Column Mapping
   const [mapping, setMapping] = useState({
     date: 'date',
     description: 'description',
@@ -89,7 +88,6 @@ export const StatementImportView: React.FC = () => {
       });
       setPreviewResult(res);
 
-      // Preselect non-duplicate rows
       const nonDupKeys = (res.rows || [])
         .filter((r: any) => !r.isDuplicate)
         .map((_: any, idx: number) => `row-${idx}`);
@@ -140,7 +138,6 @@ export const StatementImportView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -173,7 +170,6 @@ export const StatementImportView: React.FC = () => {
         </div>
       )}
 
-      {/* Upload Dropzone */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div
@@ -202,7 +198,6 @@ export const StatementImportView: React.FC = () => {
             </div>
           </div>
 
-          {/* Or Paste Raw CSV */}
           <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
             <label className="block text-xs font-semibold text-slate-700">
               Or Paste Raw CSV Data
@@ -236,7 +231,6 @@ export const StatementImportView: React.FC = () => {
           </div>
         </div>
 
-        {/* Account Selector & Instructions */}
         <div className="space-y-4">
           <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
@@ -273,7 +267,6 @@ export const StatementImportView: React.FC = () => {
         </div>
       </div>
 
-      {/* CSV Preview Table */}
       {previewResult && (
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">

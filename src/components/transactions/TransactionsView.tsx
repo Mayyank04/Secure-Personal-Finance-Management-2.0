@@ -33,7 +33,6 @@ export const TransactionsView: React.FC = () => {
   const [pagination, setPagination] = useState({ page: 1, limit: 12, totalCount: 0, totalPages: 1 });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Filters & Search
   const [search, setSearch] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedType, setSelectedType] = useState<string>('ALL');
@@ -43,14 +42,12 @@ export const TransactionsView: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
   const [accounts, setAccounts] = useState<FinancialAccount[]>([]);
 
-  // Add / Edit Form State
   const [formData, setFormData] = useState<{
     description: string;
     amount: string;
@@ -75,7 +72,6 @@ export const TransactionsView: React.FC = () => {
     accountId: '',
   });
 
-  // AI Real-time Live Categorization Preview
   const [aiPreview, setAiPreview] = useState<{
     predictedCategory: string;
     confidence: number;
@@ -84,7 +80,6 @@ export const TransactionsView: React.FC = () => {
   } | null>(null);
   const [isPreviewingAi, setIsPreviewingAi] = useState<boolean>(false);
 
-  // Import State
   const [importText, setImportText] = useState<string>('');
   const [isImporting, setIsImporting] = useState<boolean>(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -130,7 +125,6 @@ export const TransactionsView: React.FC = () => {
     endDate,
   ]);
 
-  // Debounced Search
   useEffect(() => {
     const timer = setTimeout(() => {
       setPagination((p) => ({ ...p, page: 1 }));
@@ -139,7 +133,6 @@ export const TransactionsView: React.FC = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Live AI Categorization Preview as user types description
   useEffect(() => {
     if (!formData.description || formData.description.length < 3) {
       setAiPreview(null);
@@ -249,7 +242,6 @@ export const TransactionsView: React.FC = () => {
         const parsed = JSON.parse(importText);
         items = Array.isArray(parsed) ? parsed : [parsed];
       } else {
-        // Simple CSV parser
         const lines = importText.trim().split('\n');
         for (let i = 1; i < lines.length; i++) {
           const cols = lines[i].split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
@@ -303,7 +295,6 @@ export const TransactionsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Header with Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Financial Transactions Ledger</h1>
@@ -346,10 +337,8 @@ export const TransactionsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {/* Search Input */}
           <div className="relative lg:col-span-2">
             <input
               type="text"
@@ -361,7 +350,6 @@ export const TransactionsView: React.FC = () => {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
 
-          {/* Category Filter */}
           <div>
             <select
               value={selectedCategory}
@@ -380,7 +368,6 @@ export const TransactionsView: React.FC = () => {
             </select>
           </div>
 
-          {/* Type Filter */}
           <div>
             <select
               value={selectedType}
@@ -396,7 +383,6 @@ export const TransactionsView: React.FC = () => {
             </select>
           </div>
 
-          {/* Payment Method Filter */}
           <div>
             <select
               value={selectedPaymentMethod}
@@ -416,7 +402,6 @@ export const TransactionsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Date Filter & Clear Controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-slate-500 font-medium">Date Range:</span>
@@ -457,7 +442,6 @@ export const TransactionsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Transactions Table */}
       <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs">
         {isLoading ? (
           <div className="py-16 text-center space-y-3">
@@ -581,7 +565,6 @@ export const TransactionsView: React.FC = () => {
               </table>
             </div>
 
-            {/* Pagination Controls */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-4 text-xs">
               <span className="text-slate-500">
                 Page <strong className="text-slate-800">{pagination.page}</strong> of{' '}
@@ -611,11 +594,9 @@ export const TransactionsView: React.FC = () => {
         )}
       </div>
 
-      {/* Add / Edit Transaction Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
-            {/* Header */}
             <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -635,7 +616,6 @@ export const TransactionsView: React.FC = () => {
               </button>
             </div>
 
-            {/* Form Body */}
             <form onSubmit={handleSaveTransaction} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">Transaction Description</label>
@@ -649,7 +629,6 @@ export const TransactionsView: React.FC = () => {
                 />
               </div>
 
-              {/* Real-time AI Categorization Preview Box */}
               {aiPreview && (
                 <div
                   className={`p-4 rounded-2xl border space-y-2.5 animate-in fade-in transition-all ${
@@ -884,7 +863,6 @@ export const TransactionsView: React.FC = () => {
         </div>
       )}
 
-      {/* CSV / JSON Batch Import Modal */}
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="relative w-full max-w-xl bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">

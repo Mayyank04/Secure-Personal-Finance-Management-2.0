@@ -1,12 +1,3 @@
-/**
- * Dedicated Full-Screen AI Financial Assistant & Copilot View
- * Features:
- * - Direct conversational query engine with real-time financial context grounding
- * - Multi-category suggested prompts (Spending, Anomalies, Budgets, Goals, Subscriptions, Forecasts)
- * - Evidence citations linking to cryptographic ledger states
- * - Export transcript capability
- * - Clear AI / XAI regulatory and audit disclaimers
- */
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -176,7 +167,6 @@ export const AiAssistantView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -208,11 +198,8 @@ export const AiAssistantView: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Chat Interface Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chat Feed Column (2 cols) */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[650px] overflow-hidden">
-          {/* Feed Header */}
           <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
@@ -230,7 +217,6 @@ export const AiAssistantView: React.FC = () => {
             </div>
           </div>
 
-          {/* Messages Scroll Area */}
           <div className="flex-1 p-5 overflow-y-auto space-y-4">
             {messages.map((msg) => (
               <div
@@ -252,7 +238,6 @@ export const AiAssistantView: React.FC = () => {
                 >
                   <p className="whitespace-pre-line">{msg.text}</p>
 
-                  {/* Citations & Evidence Pill List */}
                   {msg.citations && msg.citations.length > 0 && (
                     <div className="mt-3 pt-2.5 border-t border-slate-200/80 space-y-1.5">
                       <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
@@ -304,7 +289,6 @@ export const AiAssistantView: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Box */}
           <div className="p-4 border-t border-slate-100 bg-white">
             <form
               onSubmit={(e) => {
@@ -333,9 +317,7 @@ export const AiAssistantView: React.FC = () => {
           </div>
         </div>
 
-        {/* Suggested Prompts & Privacy Controls Column (1 col) */}
         <div className="space-y-4">
-          {/* Quick Prompts Panel */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-indigo-600" />
@@ -367,7 +349,6 @@ export const AiAssistantView: React.FC = () => {
             </div>
           </div>
 
-          {/* AI Grounding & Privacy Notice */}
           <div className="bg-slate-50/80 rounded-2xl border border-slate-200 p-4 space-y-2.5 text-xs text-slate-600">
             <div className="flex items-center gap-2 text-slate-900 font-semibold">
               <ShieldCheck className="w-4 h-4 text-indigo-600" />

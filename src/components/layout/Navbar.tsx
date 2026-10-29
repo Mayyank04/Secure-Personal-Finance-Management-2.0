@@ -58,7 +58,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
   const notifRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
@@ -75,7 +74,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200">
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
-        {/* Left Side: Mobile Menu Button & Brand */}
         <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={onToggleSidebar}
@@ -105,7 +103,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
           </button>
         </div>
 
-        {/* Center: Command Menu & Search Bar */}
         <div className="hidden md:flex items-center gap-3">
           <button
             onClick={() => setIsCommandMenuOpen(true)}
@@ -150,9 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
           </div>
         </div>
 
-        {/* Right Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Currency Selector */}
           <div className="relative">
             <select
               value={currency}
@@ -167,7 +162,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             <ChevronDown className="w-3 h-3 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
-          {/* AI Financial Assistant Button */}
           <button
             onClick={() => setIsChatOpen(!isChatOpen)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -181,7 +175,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             <span className="sm:hidden">AI</span>
           </button>
 
-          {/* Notifications Popover */}
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setShowNotifs(!showNotifs)}
@@ -197,7 +190,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               )}
             </button>
 
-            {/* Notifications Dropdown Panel */}
             {showNotifs && (
               <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 z-50">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
@@ -266,7 +258,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             )}
           </div>
 
-          {/* User Account Menu */}
           <div className="relative" ref={userMenuRef}>
             {user ? (
               <button
@@ -305,7 +296,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               </div>
             )}
 
-            {/* User Dropdown */}
             {showUserMenu && user && (
               <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white border border-slate-200 shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
                 <div className="p-3 border-b border-slate-100 mb-1">
@@ -372,7 +362,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      {/* Global Currency Converter Modal */}
       <CurrencyConverterModal
         isOpen={isCurrencyModalOpen}
         onClose={() => setIsCurrencyModalOpen(false)}

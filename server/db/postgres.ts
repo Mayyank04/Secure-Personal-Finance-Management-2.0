@@ -25,7 +25,7 @@ const { Pool } = pg;
 export class PostgresAdapter implements IDatabaseAdapter {
   public readonly provider = 'postgresql' as const;
   private pool: pg.Pool | null = null;
-  private client: pg.PoolClient | null = null; // Used when wrapped in withTransaction
+  private client: pg.PoolClient | null = null;
   private connectionString: string;
   private initialized: boolean = false;
   private latestMigrationVersion: string = '000';
@@ -70,12 +70,10 @@ export class PostgresAdapter implements IDatabaseAdapter {
       connectionTimeoutMillis: 10000,
     });
 
-    // Test connection
     const client = await this.pool.connect();
     try {
       await client.query('SET search_path TO public;');
       await client.query('SELECT 1');
-      // Run migrations
       const { currentVersion } = await runPostgresMigrations(client);
       this.latestMigrationVersion = currentVersion;
       this.initialized = true;
@@ -135,7 +133,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
 
   public async withTransaction<T>(callback: (client: IDatabaseAdapter) => Promise<T>): Promise<T> {
     if (this.client) {
-      // Already inside a transaction
       return callback(this);
     }
     if (!this.pool) throw new Error('[PostgresAdapter] Database not initialized');
@@ -153,10 +150,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
       client.release();
     }
   }
-
-  /* ==========================================================================
-     IDOR & Centralized Authorization Helpers
-     ========================================================================== */
 
   public async getAccountForUser(accountId: string, userId: string): Promise<FinancialAccount | null> {
     const rows = await this.query(`SELECT * FROM accounts WHERE id = $1 AND user_id = $2`, [accountId, userId]);
@@ -630,10 +623,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
     await this.saveKycRecord(merged);
   }
 
-  /* ==========================================================================
-     Atomic Financial Mutations with Rollback Support
-     ========================================================================== */
-
   public async createTransactionAtomic(data: {
     transaction: Transaction;
     account: FinancialAccount;
@@ -643,7 +632,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
   }): Promise<{ success: boolean; transaction: Transaction }> {
     return this.withTransaction(async tx => {
       const t = data.transaction;
-      // 1. Insert transaction
       await tx.execute(
         `INSERT INTO transactions (id, user_id, account_id, receipt_id, bill_id, source, date, description, clean_description, amount, type, category, payment_method, merchant, notes, is_recurring, recurring_frequency, ai_confidence, ai_predicted_category, user_corrected, blockchain_hash, block_number, blockchain_verified, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25);`,
@@ -676,13 +664,11 @@ export class PostgresAdapter implements IDatabaseAdapter {
         ]
       );
 
-      // 2. Update account balance
       await tx.execute(
         `UPDATE accounts SET current_balance = $1, available_balance = $2, updated_at = $3 WHERE id = $4 AND user_id = $5;`,
         [data.newBalance, data.newBalance, new Date().toISOString(), data.account.id, data.account.userId]
       );
 
-      // 3. Create audit event if provided
       if (data.auditEvent) {
         const a = data.auditEvent;
         await tx.execute(
@@ -692,7 +678,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // 4. Create ledger record anchor if provided
       if (data.ledgerRecord) {
         await tx.saveBlockchainRecord(data.ledgerRecord);
       }
@@ -798,7 +783,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
     ledgerRecord?: BlockchainRecord;
   }): Promise<{ success: boolean }> {
     return this.withTransaction(async tx => {
-      // 1. Insert transaction
       const t = data.transaction;
       await tx.execute(
         `INSERT INTO transactions (id, user_id, account_id, receipt_id, bill_id, source, date, description, clean_description, amount, type, category, payment_method, merchant, notes, is_recurring, recurring_frequency, ai_confidence, ai_predicted_category, user_corrected, blockchain_hash, block_number, blockchain_verified, created_at, updated_at)
@@ -832,13 +816,11 @@ export class PostgresAdapter implements IDatabaseAdapter {
         ]
       );
 
-      // 2. Update Bill status
       await tx.execute(
         `UPDATE bills SET status = 'PAID', linked_transaction_id = $1, updated_at = $2 WHERE id = $3 AND user_id = $4;`,
         [t.id, new Date().toISOString(), data.bill.id, data.bill.userId]
       );
 
-      // 3. Update account balance
       await tx.execute(
         `UPDATE accounts SET current_balance = $1, available_balance = $2, updated_at = $3 WHERE id = $4 AND user_id = $5;`,
         [data.newBalance, data.newBalance, new Date().toISOString(), data.account.id, data.account.userId]
@@ -871,7 +853,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
   }): Promise<{ success: boolean }> {
     return this.withTransaction(async tx => {
       const t = data.transaction;
-      // 1. Insert transaction
       await tx.execute(
         `INSERT INTO transactions (id, user_id, account_id, receipt_id, bill_id, source, date, description, clean_description, amount, type, category, payment_method, merchant, notes, is_recurring, recurring_frequency, ai_confidence, ai_predicted_category, user_corrected, blockchain_hash, block_number, blockchain_verified, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25);`,
@@ -904,13 +885,11 @@ export class PostgresAdapter implements IDatabaseAdapter {
         ]
       );
 
-      // 2. Update loan
       await tx.execute(
         `UPDATE loans SET outstanding_balance = $1, remaining_tenure_months = $2, updated_at = $3 WHERE id = $4 AND user_id = $5;`,
         [data.loan.outstandingBalance, data.loan.remainingMonths, new Date().toISOString(), data.loan.id, data.loan.userId]
       );
 
-      // 3. Update account balance
       await tx.execute(
         `UPDATE accounts SET current_balance = $1, available_balance = $2, updated_at = $3 WHERE id = $4 AND user_id = $5;`,
         [data.newBalance, data.newBalance, new Date().toISOString(), data.account.id, data.account.userId]
@@ -932,10 +911,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
       return { success: true };
     });
   }
-
-  /* ==========================================================================
-     Deletion Helpers
-     ========================================================================== */
 
   public async deleteTransaction(id: string): Promise<void> {
     await this.execute(`DELETE FROM transactions WHERE id = $1;`, [id]);
@@ -973,7 +948,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
     }
   }
 
-  // Security Token Persistence (Email, Password Reset, MFA Tickets, Rate Limits)
   public async saveEmailVerificationToken(token: string, userId: string, expiresAt: number): Promise<void> {
     await this.execute(
       `INSERT INTO email_verification_tokens (token, user_id, expires_at, used, created_at)
@@ -1311,10 +1285,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
     });
   }
 
-  /* ==========================================================================
-     Memory Cache Sync & Hydration
-     ========================================================================== */
-
   public async hasExistingData(): Promise<boolean> {
     try {
       const rows = await this.query(`SELECT COUNT(*) as cnt FROM users;`);
@@ -1328,7 +1298,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
     if (!dbInstance) return;
 
     await this.withTransaction(async tx => {
-      // Users
       for (const [, user] of dbInstance.users || []) {
         await tx.execute(
           `INSERT INTO users (id, email, name, password_hash, salt, role, mfa_enabled, mfa_secret, mfa_recovery_codes_json, is_email_verified, session_timeout_minutes, created_at, updated_at, last_login_at)
@@ -1358,7 +1327,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Profiles
       for (const [, prof] of dbInstance.profiles || []) {
         await tx.execute(
           `INSERT INTO profiles (user_id, preferred_currency, monthly_income_range, major_categories_json, budget_thresholds_json, privacy_settings_json, onboarding_completed)
@@ -1379,7 +1347,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sessions
       for (const [, sess] of dbInstance.sessions || []) {
         await tx.execute(
           `INSERT INTO sessions (id, token, user_id, device, browser, ip, location, created_at, last_active_at, expires_at, is_current)
@@ -1402,7 +1369,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Accounts
       for (const [, acc] of dbInstance.accounts || []) {
         await tx.execute(
           `INSERT INTO accounts (id, user_id, name, institution, account_type, masked_identifier, currency, opening_balance, current_balance, available_balance, credit_limit, status, is_demo, created_at, updated_at)
@@ -1432,7 +1398,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Transactions
       for (const [, txData] of dbInstance.transactions || []) {
         await tx.execute(
           `INSERT INTO transactions (id, user_id, account_id, source, date, description, clean_description, amount, type, category, payment_method, merchant, notes, is_recurring, recurring_frequency, ai_confidence, ai_predicted_category, user_corrected, blockchain_hash, block_number, blockchain_verified, created_at, updated_at)
@@ -1474,7 +1439,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Bills
       for (const [, bill] of dbInstance.bills || []) {
         await tx.execute(
           `INSERT INTO bills (id, user_id, account_id, name, merchant, amount, category, due_date, frequency, auto_paid, status, linked_transaction_id, notes, created_at, updated_at)
@@ -1504,7 +1468,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Subscriptions
       for (const [, sub] of dbInstance.subscriptions || []) {
         await tx.execute(
           `INSERT INTO subscriptions (id, user_id, account_id, name, merchant, amount, frequency, category, next_renewal_date, previous_amount, price_change_detected, status, notes, created_at, updated_at)
@@ -1534,7 +1497,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Loans
       for (const [, loan] of dbInstance.loans || []) {
         await tx.execute(
           `INSERT INTO loans (id, user_id, name, lender, principal, outstanding_balance, interest_rate, emi_amount, due_date, tenure_months, remaining_tenure_months, status, created_at, updated_at)
@@ -1563,7 +1525,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Budgets
       for (const [, bud] of dbInstance.budgets || []) {
         await tx.execute(
           `INSERT INTO budgets (id, user_id, month, total_budget, category_budgets_json, rollover_enabled, alert_thresholds_json, created_at, updated_at)
@@ -1585,7 +1546,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Goals
       for (const [, goal] of dbInstance.goals || []) {
         await tx.execute(
           `INSERT INTO goals (id, user_id, title, target_amount, current_amount, target_date, monthly_contribution, priority, category, estimated_completion_date, created_at, updated_at)
@@ -1612,7 +1572,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Receipts
       for (const [, rcpt] of dbInstance.receipts || []) {
         await tx.execute(
           `INSERT INTO receipts (id, user_id, merchant, date, amount, tax_amount, currency, category, payment_method, ocr_confidence, raw_text, line_items_json, processing_status, linked_transaction_id, created_at, updated_at)
@@ -1643,7 +1602,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Notifications
       for (const [, notif] of dbInstance.notifications || []) {
         await tx.execute(
           `INSERT INTO notifications (id, user_id, type, title, message, severity, is_read, related_record_id, action_url, timestamp)
@@ -1666,7 +1624,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         );
       }
 
-      // KYC Records
       for (const [, kyc] of dbInstance.kycRecords || []) {
         await tx.execute(
           `INSERT INTO kyc_records (id, user_id, full_name, date_of_birth, address, country, document_type, document_number, masked_document_number, status, document_image_uri, ocr_extracted_json, reviewer_notes, submitted_at, verified_at, rejection_reason, created_at, updated_at)
@@ -1707,19 +1664,16 @@ export class PostgresAdapter implements IDatabaseAdapter {
     if (!dbInstance || !userId) return;
 
     try {
-      // 1. User
       const user = await this.getUserById(userId);
       if (user) {
         dbInstance.users.set(user.id, user);
       }
 
-      // 2. Profile
       const profile = await this.getProfileForUser(userId);
       if (profile) {
         dbInstance.profiles.set(profile.userId, profile);
       }
 
-      // 3. Accounts for User
       const accRows = await this.query(`SELECT * FROM accounts WHERE user_id = $1;`, [userId]);
       for (const row of accRows) {
         dbInstance.accounts.set(row.id, {
@@ -1741,7 +1695,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 4. Transactions for User
       const txRows = await this.query(`SELECT * FROM transactions WHERE user_id = $1;`, [userId]);
       for (const row of txRows) {
         dbInstance.transactions.set(row.id, {
@@ -1773,7 +1726,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 5. Budgets for User
       const budRows = await this.query(`SELECT * FROM budgets WHERE user_id = $1;`, [userId]);
       for (const row of budRows) {
         dbInstance.budgets.set(row.id, {
@@ -1791,7 +1743,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 6. Goals for User
       const goalRows = await this.query(`SELECT * FROM goals WHERE user_id = $1;`, [userId]);
       for (const row of goalRows) {
         dbInstance.goals.set(row.id, {
@@ -1810,7 +1761,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 7. Bills for User
       const billRows = await this.query(`SELECT * FROM bills WHERE user_id = $1;`, [userId]);
       for (const row of billRows) {
         dbInstance.bills.set(row.id, {
@@ -1832,7 +1782,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 8. Subscriptions for User
       const subRows = await this.query(`SELECT * FROM subscriptions WHERE user_id = $1;`, [userId]);
       for (const row of subRows) {
         dbInstance.subscriptions.set(row.id, {
@@ -1858,7 +1807,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 9. Loans for User
       const loanRows = await this.query(`SELECT * FROM loans WHERE user_id = $1;`, [userId]);
       for (const row of loanRows) {
         dbInstance.loans.set(row.id, {
@@ -1882,7 +1830,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 10. Receipts for User
       const rcptRows = await this.query(`SELECT * FROM receipts WHERE user_id = $1;`, [userId]);
       for (const row of rcptRows) {
         dbInstance.receipts.set(row.id, {
@@ -1906,7 +1853,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 11. Notifications for User
       const notifRows = await this.query(`SELECT * FROM notifications WHERE user_id = $1;`, [userId]);
       for (const row of notifRows) {
         dbInstance.notifications.set(row.id, {
@@ -1923,7 +1869,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 12. KYC for User
       const kycRows = await this.query(`SELECT * FROM kyc_records WHERE user_id = $1;`, [userId]);
       if (kycRows.length > 0) {
         const row = kycRows[0];
@@ -1957,7 +1902,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
     if (!dbInstance) return;
 
     try {
-      // 1. Users
       const userRows = await this.query(`SELECT * FROM users;`);
       for (const row of userRows) {
         dbInstance.users.set(row.id, {
@@ -1979,7 +1923,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 2. Profiles
       const profRows = await this.query(`SELECT * FROM profiles;`);
       for (const row of profRows) {
         dbInstance.profiles.set(row.user_id, {
@@ -1995,7 +1938,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 3. Sessions
       const sessRows = await this.query(`SELECT * FROM sessions;`);
       for (const row of sessRows) {
         dbInstance.sessions.set(row.id, {
@@ -2013,7 +1955,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 4. Accounts
       const accRows = await this.query(`SELECT * FROM accounts;`);
       for (const row of accRows) {
         dbInstance.accounts.set(row.id, {
@@ -2035,7 +1976,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 5. Transactions
       const txRows = await this.query(`SELECT * FROM transactions;`);
       for (const row of txRows) {
         dbInstance.transactions.set(row.id, {
@@ -2067,7 +2007,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 6. Budgets
       const budRows = await this.query(`SELECT * FROM budgets;`);
       for (const row of budRows) {
         dbInstance.budgets.set(row.id, {
@@ -2085,7 +2024,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 7. Goals
       const goalRows = await this.query(`SELECT * FROM goals;`);
       for (const row of goalRows) {
         dbInstance.goals.set(row.id, {
@@ -2104,7 +2042,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 8. Bills
       const billRows = await this.query(`SELECT * FROM bills;`);
       for (const row of billRows) {
         dbInstance.bills.set(row.id, {
@@ -2126,7 +2063,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 9. Subscriptions
       const subRows = await this.query(`SELECT * FROM subscriptions;`);
       for (const row of subRows) {
         dbInstance.subscriptions.set(row.id, {
@@ -2152,7 +2088,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 10. Loans
       const loanRows = await this.query(`SELECT * FROM loans;`);
       for (const row of loanRows) {
         dbInstance.loans.set(row.id, {
@@ -2176,7 +2111,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 11. Receipts
       const rcptRows = await this.query(`SELECT * FROM receipts;`);
       for (const row of rcptRows) {
         dbInstance.receipts.set(row.id, {
@@ -2199,7 +2133,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 12. Notifications
       const notifRows = await this.query(`SELECT * FROM notifications;`);
       for (const row of notifRows) {
         dbInstance.notifications.set(row.id, {
@@ -2216,7 +2149,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 13. Audit Events
       const audRows = await this.query(`SELECT * FROM audit_events;`);
       for (const row of audRows) {
         dbInstance.auditEvents.set(row.id, {
@@ -2231,7 +2163,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 14. KYC Records
       const kycRows = await this.query(`SELECT * FROM kyc_records;`);
       for (const row of kycRows) {
         dbInstance.kycRecords.set(row.user_id, {
@@ -2263,10 +2194,6 @@ export class PostgresAdapter implements IDatabaseAdapter {
       console.error('[PostgresAdapter] Hydration from PostgreSQL failed:', err);
     }
   }
-
-  /* ==========================================================================
-     Blockchain Ledger Persistence
-     ========================================================================== */
 
   public async saveBlockchainBlock(block: BlockchainBlock): Promise<void> {
     await this.execute(

@@ -1,17 +1,3 @@
-/**
- * Financial Source Adapters & Synthetic Sandbox Connector
- * 
- * Provides:
- * - FinancialSourceAdapter extensible base architecture
- * - DemoBankAdapter (HDFC, Chase, SBI synthetic sandbox feeds)
- * - DemoUPIAdapter (Google Pay, PhonePe, Paytm synthetic sandbox feeds)
- * - FutureRealProviderAdapter (Plaid / Setu / Account Aggregator specification)
- * - Duplicate detection engine
- * - AI categorizer integration
- * 
- * ALL DATA PRODUCED IS CLEARLY LABELED: SYNTHETIC / DEMO
- */
-
 import crypto from 'crypto';
 import { TransactionCategory, PaymentMethod, AccountType } from './types.js';
 import { cleanTransactionDescription, predictTransactionCategory } from './ai_ml.js';
@@ -75,17 +61,11 @@ export interface SyncSessionResult {
   isSyntheticDemo: true;
 }
 
-/**
- * Base Abstract Financial Source Adapter
- */
 export abstract class FinancialSourceAdapter {
   public abstract readonly providerId: string;
   public abstract readonly institutionName: string;
   public abstract readonly adapterType: 'BANK' | 'UPI' | 'AGGREGATOR';
 
-  /**
-   * Generates or fetches synthetic transactions
-   */
   public abstract fetchTransactions(
     startDate: string,
     endDate: string,
@@ -93,9 +73,6 @@ export abstract class FinancialSourceAdapter {
   ): Promise<SyncSessionResult>;
 }
 
-/**
- * Demo Bank Adapter (HDFC / Chase / SBI Synthetic Feed)
- */
 export class DemoBankAdapter extends FinancialSourceAdapter {
   public readonly providerId: string;
   public readonly institutionName: string;
@@ -253,9 +230,6 @@ export class DemoBankAdapter extends FinancialSourceAdapter {
   }
 }
 
-/**
- * Demo UPI Adapter (Google Pay / PhonePe Synthetic Sandbox Feed)
- */
 export class DemoUPIAdapter extends FinancialSourceAdapter {
   public readonly providerId: string;
   public readonly institutionName: string;
@@ -399,10 +373,6 @@ export class DemoUPIAdapter extends FinancialSourceAdapter {
   }
 }
 
-/**
- * Future Real Provider Adapter Architecture Placeholder
- * (Ready for Plaid, Setu, Salt Edge, Open Banking APIs)
- */
 export class FutureRealProviderAdapter extends FinancialSourceAdapter {
   public readonly providerId: string;
   public readonly institutionName: string;
@@ -425,9 +395,6 @@ export class FutureRealProviderAdapter extends FinancialSourceAdapter {
   }
 }
 
-/**
- * Available Sandbox Providers Registry
- */
 export const AVAILABLE_SANDBOX_PROVIDERS: SandboxProviderConfig[] = [
   {
     id: 'demo-bank-hdfc',

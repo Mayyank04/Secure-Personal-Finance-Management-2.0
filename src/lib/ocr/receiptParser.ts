@@ -1,10 +1,3 @@
-/**
- * Zero-Cost Local Deterministic Receipt Parser
- * 
- * Extracts structured financial fields (Merchant, Date, Total, Tax, Currency, Line Items, Category, Payment Method)
- * completely locally using deterministic regex and pattern heuristics on raw OCR text.
- * No external API, no paid services, 100% private.
- */
 
 import { TransactionCategory, PaymentMethod, ReceiptItem } from '../../types';
 
@@ -25,7 +18,6 @@ export interface ParsedReceiptData {
   warnings: string[];
 }
 
-// Common generic words that should NOT be treated as merchant names
 const GENERIC_HEADER_TERMS = [
   'tax invoice',
   'invoice',
@@ -88,7 +80,6 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     };
   }
 
-  // 1. Detect Currency
   let detectedCurrency = preferredCurrency;
   let currencySymbol = preferredCurrency === 'INR' ? '₹' : '$';
 
@@ -106,20 +97,17 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     currencySymbol = '£';
   }
 
-  // 2. Extract Merchant Name
   let merchant = '';
   for (let i = 0; i < Math.min(6, lines.length); i++) {
     const line = lines[i];
     const lower = line.toLowerCase();
 
-    // Check if line is purely symbols, dates, numbers, or generic headers
     if (/^[=\-_*#.~:/\s\d]+$/.test(line)) continue;
     if (line.length < 3) continue;
 
     const isGeneric = GENERIC_HEADER_TERMS.some((term) => lower.startsWith(term) || lower === term);
     if (isGeneric) continue;
 
-    // Remove leading "Welcome to" if present
     const cleaned = line.replace(/^(?:welcome\s+to|store\s*#?\d*:?)\s*/i, '').replace(/[^\w\s&',.-]/g, '').trim();
     if (cleaned.length >= 3 && !/^(date|time|gstin|phone|tel|email|fax)/i.test(cleaned)) {
       merchant = cleaned;
@@ -132,18 +120,12 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     warnings.push('Merchant name could not be reliably identified.');
   }
 
-  // 3. Extract Date
   let date = '';
   const datePatterns = [
-    // YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD
     /\b(20\d\d)[-/.](0?[1-9]|1[0-2])[-/.](0?[1-9]|[12]\d|3[01])\b/,
-    // DD-MM-YYYY or DD/MM/YYYY or DD.MM.YYYY
     /\b(0?[1-9]|[12]\d|3[01])[-/.](0?[1-9]|1[0-2])[-/.](20\d\d)\b/,
-    // MM-DD-YYYY or MM/DD/YYYY
     /\b(0?[1-9]|1[0-2])[-/.](0?[1-9]|[12]\d|3[01])[-/.](20\d\d)\b/,
-    // DD Mon YYYY (e.g. 18 Aug 2026, 18-Aug-2026)
     /\b(0?[1-9]|[12]\d|3[01])[\s-](Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[\s,-]+(20\d\d)\b/i,
-    // Mon DD, YYYY (e.g. Aug 18, 2026)
     /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[\s.-]+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s,-]+(20\d\d)\b/i,
   ];
 
@@ -167,20 +149,15 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
       const match = line.match(pattern);
       if (match) {
         if (pattern === datePatterns[0]) {
-          // YYYY-MM-DD
           date = `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}`;
         } else if (pattern === datePatterns[1]) {
-          // DD-MM-YYYY
           date = `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
         } else if (pattern === datePatterns[2]) {
-          // MM-DD-YYYY
           date = `${match[3]}-${match[1].padStart(2, '0')}-${match[2].padStart(2, '0')}`;
         } else if (pattern === datePatterns[3]) {
-          // DD Mon YYYY
           const m = monthMap[match[2].toLowerCase()] || '01';
           date = `${match[3]}-${m}-${match[1].padStart(2, '0')}`;
         } else if (pattern === datePatterns[4]) {
-          // Mon DD, YYYY
           const m = monthMap[match[1].toLowerCase()] || '01';
           date = `${match[3]}-${m}-${match[2].padStart(2, '0')}`;
         }
@@ -195,7 +172,6 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     warnings.push('Date could not be detected. Defaulted to today.');
   }
 
-  // 4. Extract Total Amount
   let totalAmount = 0;
   const totalKeywordsRegex = /(?:grand\s*total|total\s*amount|total\s*due|total\s*fare|net\s*payable|amount\s*due|amount\s*paid|balance\s*due|charge|total)\s*[:=\-]?\s*(?:[^\d\n]*)\s*([\d,]+\.?\d*)/i;
 
@@ -212,7 +188,6 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     }
   }
 
-  // Fallback: If no explicit keyword, find the maximum numeric currency value in the bottom half of receipt
   if (totalAmount <= 0) {
     const bottomLines = lines.slice(Math.floor(lines.length * 0.35));
     let maxVal = 0;
@@ -236,7 +211,6 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     }
   }
 
-  // 5. Extract Tax Amount
   let taxAmount = 0;
   const taxKeywordsRegex = /(?:cgst|sgst|igst|gst|vat|sales\s*tax|service\s*tax|tax\s*amount|tax)\s*(?:@\s*[\d.]+%|\(\d+%\))?\s*[:=\-]?\s*(?:[^\d\n]*)\s*([\d,]+\.?\d*)/i;
 
@@ -267,15 +241,13 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
   } else if (singleTaxVal > 0) {
     taxAmount = singleTaxVal;
   } else {
-    taxAmount = 0; // Never invent fake tax numbers
+    taxAmount = 0;
   }
 
-  // 6. Extract Line Items (Reliable extraction)
   const items: ReceiptItem[] = [];
   const lineItemRegex = /^(.+?)\s+(\d+)?\s*(?:[xX@]\s*)?(?:[₹$€£]|rs\.?)?\s*([\d,]+\.\d{2})$/;
 
   for (const line of lines) {
-    // Skip headers, totals, tax, footer
     if (/(total|subtotal|cgst|sgst|gst|tax|payment|paid|change|balance|gstin|date|time|thank|welcome|items?:|cashier)/i.test(line)) {
       continue;
     }
@@ -296,7 +268,6 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     }
   }
 
-  // 7. Predict Category using deterministic keyword classification
   const fullTextLower = `${merchant} ${text}`.toLowerCase();
   let category: TransactionCategory = 'Shopping';
 
@@ -356,7 +327,6 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     category = 'Shopping';
   }
 
-  // 8. Predict Payment Method
   let paymentMethod: PaymentMethod = 'Credit Card';
   if (/(upi|qr\s*scan|gpay|phonepe|paytm|bhim|vpa|instant\s*transfer)/i.test(fullTextLower)) {
     paymentMethod = 'UPI / Instant Transfer';
@@ -370,8 +340,7 @@ export function parseReceiptText(rawText: string, preferredCurrency: string = 'I
     paymentMethod = 'Credit Card';
   }
 
-  // 9. Calculate OCR Confidence Score (0-100)
-  let score = 20; // base for having text
+  let score = 20;
   if (merchant && merchant !== 'Store / Merchant') score += 20;
   if (totalAmount > 0) score += 35;
   if (date) score += 10;

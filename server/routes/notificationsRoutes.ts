@@ -1,15 +1,3 @@
-/**
- * Persistent Notification REST API Routes & Event Engine (Phase 4 / Phase 8)
- * 
- * Provides:
- * - GET /api/notifications (List user notifications with unread count)
- * - PATCH /api/notifications/:id/read (Mark single notification as read)
- * - POST /api/notifications/mark-all-read (Mark all notifications as read)
- * - DELETE /api/notifications/:id (Delete notification)
- * - POST /api/notifications/dispatch-simulated (Development Email / Push notification simulation)
- * - Event trigger helpers (budget thresholds, upcoming bills, renewals, anomalies, security events)
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -18,9 +6,6 @@ import { NotificationItem, NotificationType } from '../types.js';
 
 export const notificationsRouter = Router();
 
-/**
- * Dispatches and persists a database-backed notification with duplicate suppression
- */
 export function triggerNotification(
   userId: string,
   type: NotificationType,
@@ -28,7 +13,6 @@ export function triggerNotification(
   message: string,
   actionUrl?: string
 ): NotificationItem | null {
-  // Duplicate check: avoid repeating the exact same message to the same user within 24 hours
   const oneDayAgo = Date.now() - 24 * 3600 * 1000;
   for (const n of db.notifications.values()) {
     if (
@@ -37,7 +21,7 @@ export function triggerNotification(
       n.title === title &&
       new Date(n.timestamp).getTime() > oneDayAgo
     ) {
-      return null; // Suppress duplicate notification
+      return null;
     }
   }
 
@@ -57,7 +41,6 @@ export function triggerNotification(
   return newNotif;
 }
 
-// GET /api/notifications - List notifications
 notificationsRouter.get('/', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -72,12 +55,11 @@ notificationsRouter.get('/', (req: Request, res: Response) => {
       unreadCount,
       totalCount: list.length,
     });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to retrieve notifications.' });
   }
 });
 
-// PATCH /api/notifications/:id/read - Mark notification as read
 notificationsRouter.patch('/:id/read', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -90,12 +72,11 @@ notificationsRouter.patch('/:id/read', (req: Request, res: Response) => {
 
     notif.isRead = true;
     return res.json({ message: 'Notification marked as read.', notification: notif });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to update notification status.' });
   }
 });
 
-// POST /api/notifications/mark-all-read - Mark all read
 notificationsRouter.post('/mark-all-read', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -107,12 +88,11 @@ notificationsRouter.post('/mark-all-read', (req: Request, res: Response) => {
       }
     }
     return res.json({ message: `Marked ${count} notifications as read.`, updatedCount: count });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to mark notifications as read.' });
   }
 });
 
-// DELETE /api/notifications/:id - Delete single notification
 notificationsRouter.delete('/:id', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -126,12 +106,11 @@ notificationsRouter.delete('/:id', (req: Request, res: Response) => {
     db.notifications.delete(notifId);
     persistentSqlite.deleteNotification(notifId);
     return res.json({ message: 'Notification deleted successfully.' });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to delete notification.' });
   }
 });
 
-// POST /api/notifications/dispatch-simulated - Simulated notification / email dispatcher
 notificationsRouter.post('/dispatch-simulated', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -148,7 +127,7 @@ notificationsRouter.post('/dispatch-simulated', (req: Request, res: Response) =>
       provider: 'Development Email Simulation (SimulatedEmailProvider)',
       notification: notif,
     });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to dispatch simulated notification.' });
   }
 });

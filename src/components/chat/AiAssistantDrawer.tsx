@@ -100,7 +100,6 @@ export const AiAssistantDrawer: React.FC = () => {
 
   return (
     <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[440px] bg-white border-l border-slate-200 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-      {/* Header */}
       <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -124,7 +123,6 @@ export const AiAssistantDrawer: React.FC = () => {
         </button>
       </div>
 
-      {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg) => (
           <div
@@ -183,7 +181,6 @@ export const AiAssistantDrawer: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggested Prompt Pills */}
       <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
         <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
           Suggested Financial Inquiries
@@ -201,7 +198,6 @@ export const AiAssistantDrawer: React.FC = () => {
         </div>
       </div>
 
-      {/* Input Form */}
       <div className="p-4 border-t border-slate-100 bg-white">
         <form
           onSubmit={(e) => {

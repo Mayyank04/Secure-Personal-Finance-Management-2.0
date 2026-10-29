@@ -5,7 +5,6 @@ import {
   Transaction,
   Budget,
   SavingsGoal,
-  GoalContribution,
   Bill,
   Subscription,
   Loan,
@@ -31,14 +30,11 @@ export interface IDatabaseAdapter {
     error?: string;
   }>;
 
-  // Generic query execution
   query<T = any>(sql: string, params?: any[]): Promise<T[]>;
   execute(sql: string, params?: any[]): Promise<number>;
 
-  // Transaction support
   withTransaction<T>(callback: (client: IDatabaseAdapter) => Promise<T>): Promise<T>;
 
-  // IDOR & Centralized Authorization Helpers
   getAccountForUser(accountId: string, userId: string): Promise<FinancialAccount | null>;
   getTransactionForUser(transactionId: string, userId: string): Promise<Transaction | null>;
   getBudgetForUser(budgetId: string, userId: string): Promise<Budget | null>;
@@ -49,7 +45,6 @@ export interface IDatabaseAdapter {
   getReceiptForUser(receiptId: string, userId: string): Promise<ReceiptRecord | null>;
   getKycRecordForUser(userId: string): Promise<KycRecord | null>;
 
-  // Direct Resource Persistence Methods
   saveAccount(account: FinancialAccount): Promise<void>;
   updateAccount(account: Partial<FinancialAccount> & { id: string; userId: string }): Promise<void>;
   getAccountTransactionsCount(accountId: string, userId: string): Promise<number>;
@@ -72,7 +67,6 @@ export interface IDatabaseAdapter {
   saveKycRecord(kyc: KycRecord): Promise<void>;
   updateKycRecord(kyc: Partial<KycRecord> & { id: string; userId: string }): Promise<void>;
 
-  // Financial Atomic Transactions
   createTransactionAtomic(data: {
     transaction: Transaction;
     account: FinancialAccount;
@@ -115,7 +109,6 @@ export interface IDatabaseAdapter {
     ledgerRecord?: BlockchainRecord;
   }): Promise<{ success: boolean }>;
 
-  // Deletion Helpers
   deleteTransaction(id: string): Promise<void>;
   deleteSession(id: string): Promise<void>;
   deleteSessionByToken(token: string): Promise<void>;
@@ -129,7 +122,6 @@ export interface IDatabaseAdapter {
   deleteNotification(id: string): Promise<void>;
   deleteUserAccountPermanently(userId: string): Promise<{ success: boolean; deletedEntitiesCount: number }>;
 
-  // Repository Layer: Users, Profiles, Sessions & Token Revocation
   getUserById(userId: string): Promise<User | null>;
   getUserByEmail(email: string): Promise<User | null>;
   createUser(user: User): Promise<void>;
@@ -143,7 +135,6 @@ export interface IDatabaseAdapter {
   isTokenRevoked(token: string): Promise<boolean>;
   revokeToken(token: string, userId?: string, reason?: string): Promise<void>;
 
-  // Security Token Persistence (Email, Password Reset, MFA Tickets, Rate Limits)
   saveEmailVerificationToken(token: string, userId: string, expiresAt: number): Promise<void>;
   getEmailVerificationToken(token: string): Promise<{ token: string; userId: string; expiresAt: number; used: boolean } | null>;
   consumeEmailVerificationToken(token: string): Promise<void>;
@@ -158,13 +149,11 @@ export interface IDatabaseAdapter {
 
   checkRateLimit(key: string, limit: number, windowMs: number): Promise<{ allowed: boolean; retryAfterSeconds?: number }>;
 
-  // Tenant Hydration & Memory Sync
   hydrateUserTenantData(userId: string, dbInstance: any): Promise<void>;
   syncFromMemoryDb(dbInstance: any): Promise<void>;
   hydrateMemoryDb(dbInstance: any): Promise<void>;
   hasExistingData(): Promise<boolean>;
 
-  // Blockchain Ledger Persistence
   saveBlockchainBlock(block: BlockchainBlock): Promise<void>;
   saveBlockchainRecord(record: BlockchainRecord): Promise<void>;
   loadBlockchainState(): Promise<{ blocks: BlockchainBlock[]; records: BlockchainRecord[] }>;

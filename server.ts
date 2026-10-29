@@ -1,10 +1,3 @@
-/**
- * Express Server for Secure Personal Finance System (SecureFinance AI / AegisFinance)
- * 
- * Full-stack Express backend with REST API routes, AI/ML engine,
- * Hyperledger Fabric permissioned blockchain adapter, SQLite persistent storage,
- * RFC 6238 TOTP Multi-Factor Authentication, and Vite middleware.
- */
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -58,7 +51,6 @@ import {
 import { currencyService } from './server/currencyService.js';
 import { Transaction, TransactionCategory, User, UserProfile, UserSession } from './server/types.js';
 
-// Routers
 import { accountsRouter } from './server/routes/accountsRoutes.js';
 import { transactionsRouter } from './server/routes/transactionsRoutes.js';
 import { budgetsRouter } from './server/routes/budgetsRoutes.js';
@@ -77,7 +69,6 @@ import { openapiRouter } from './server/openapi.js';
 export const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
 
-// Safe IP Normalization Middleware for Serverless & Proxies (prevents remoteAddress undefined errors)
 app.use((req, _res, next) => {
   try {
     const forwarded = req.headers['x-forwarded-for'];
@@ -93,10 +84,6 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Security & Parsing Middlewares
-// In serverless environments (e.g. Vercel), req.body may already be parsed by @vercel/node.
-// If req.body is already an object, mark req._body = true so express.json() doesn't
-// attempt to re-read the already-consumed request stream and throw BadRequestError.
 app.use((req, _res, next) => {
   if (req.body && typeof req.body === 'object') {
     (req as any)._body = true;
@@ -111,8 +98,6 @@ app.use((req, _res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-
-// Fallback route for serverless /api/index rewrite delegations
 app.all(['/api/index', '/api/index.js'], (req, res, next) => {
   if (req.query && req.query.__path) {
     const rawPath = Array.isArray(req.query.__path)
@@ -129,8 +114,6 @@ app.all(['/api/index', '/api/index.js'], (req, res, next) => {
     timestamp: new Date().toISOString(),
   });
 });
-
-
 
 const defaultAllowedOrigins = [
   'http://localhost:3000',
@@ -165,7 +148,6 @@ function isOriginAllowed(origin: string): boolean {
   });
 }
 
-// Strict CORS Middleware - check origin allowlist and prevent insecure reflection with credentials
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && isOriginAllowed(origin)) {
@@ -182,7 +164,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Standard Security Headers with camera and microphone access enabled for voice expense and receipt scanner
 app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -192,7 +173,6 @@ app.use((_req, res, next) => {
   next();
 });
 
-// Liveness Endpoint (process responsiveness)
 app.get(['/api/live', '/api/health/live', '/live'], (_req, res) => {
   return res.json({
     status: 'ok',
@@ -203,7 +183,6 @@ app.get(['/api/live', '/api/health/live', '/live'], (_req, res) => {
   });
 });
 
-// Readiness Endpoint (strictly verifies database connectivity and schema migrations)
 app.get(['/api/ready', '/api/health/ready', '/ready'], async (_req, res) => {
   const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
   const adapter = getDatabaseAdapter();
@@ -261,13 +240,11 @@ app.get(['/api/ready', '/api/health/ready', '/ready'], async (_req, res) => {
   }
 });
 
-// Production Health & Diagnostic Endpoints (Backward Compatible)
 app.get(['/api/health', '/health'], async (_req, res) => {
   const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
   const adapter = getDatabaseAdapter();
   const provider = adapter.provider;
 
-  // In production, PostgreSQL DATABASE_URL is strictly required
   if (isProd && (!process.env.DATABASE_URL || provider !== 'postgresql')) {
     return res.status(503).json({
       status: 'error',
@@ -316,7 +293,6 @@ app.get(['/api/health', '/health'], async (_req, res) => {
   }
 });
 
-// Real-Time & Cached Exchange Rates Endpoints
 app.get(['/api/exchange-rates', '/exchange-rates'], async (req, res) => {
   try {
     const base = (req.query.base as string) || 'USD';
@@ -344,22 +320,13 @@ app.all(['/api/currency/convert', '/currency/convert'], async (req, res) => {
   }
 });
 
-// Temporary MFA Challenge Tickets Store (ticket -> { userId, expiresAt })
-// Temporary MFA Challenge Tickets Store (ticket -> { userId, expiresAt })
 const mfaChallengeTickets = new Map<string, { userId: string; expiresAt: number }>();
 
-// Temporary Password Reset Tokens Store (token -> { userId, expiresAt, used: boolean })
 const passwordResetTokens = new Map<string, { userId: string; expiresAt: number; used: boolean }>();
 
-// Temporary Email Verification Tokens Store (token -> { userId, expiresAt, used: boolean })
 const emailVerificationTokens = new Map<string, { userId: string; expiresAt: number; used: boolean }>();
 
-// Revoked Session Tokens Blocklist
 const revokedTokens = new Set<string>();
-
-/* ==========================================================================
-   STATELESS HMAC SESSION & MFA HELPERS (MULTI-INSTANCE SERVERLESS SUPPORT)
-   ========================================================================== */
 
 export function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET || process.env.AUTH_SECRET;
@@ -445,16 +412,6 @@ function verifySignedMfaTicket(ticket: string): { valid: boolean; userId?: strin
   return { valid: true, userId };
 }
 
-
-/* ==========================================================================
-   AUTHENTICATION & SESSION VALIDATION MIDDLEWARE
-   ========================================================================== */
-
-/**
- * Strict Session Authentication Middleware
- * Supports both persistent relational sessions and stateless HMAC cryptographic tokens.
- * Guaranteed to pull authoritative user & session state from durable PostgreSQL or SQLite.
- */
 async function authenticate(req: express.Request, res: express.Response, next: express.NextFunction) {
   try {
     const authHeader = req.headers.authorization;
@@ -472,14 +429,12 @@ async function authenticate(req: express.Request, res: express.Response, next: e
 
     const adapter = getDatabaseAdapter();
 
-    // Check token revocation in durable database
     const isRevoked = await adapter.isTokenRevoked(token);
     if (isRevoked) {
       revokedTokens.add(token);
       return res.status(401).json({ error: 'Unauthorized: Session authentication token has been revoked.' });
     }
 
-    // 1. Look up session in durable database or in-memory cache
     let session = await adapter.getSessionByToken(token);
     if (!session) {
       const sessions = Array.from(db.sessions.values());
@@ -488,7 +443,6 @@ async function authenticate(req: express.Request, res: express.Response, next: e
 
     let userId = session?.userId;
 
-    // 2. Stateless HMAC token validation fallback (for multi-instance serverless across cold starts)
     if (!session) {
       const verified = verifySignedSessionToken(token);
       if (verified.valid && verified.userId) {
@@ -515,14 +469,12 @@ async function authenticate(req: express.Request, res: express.Response, next: e
       return res.status(401).json({ error: 'Unauthorized: Invalid or expired session token. Please sign in.' });
     }
 
-    // 3. Look up user from durable database or in-memory cache
     let user = await adapter.getUserById(userId);
     if (!user) {
       user = db.users.get(userId) || null;
     }
 
     if (!user) {
-      // If demo account requested on cold start worker, seed and retrieve
       if (userId === 'usr-demo-fintech-01') {
         db.seedDemoAccount();
         user = db.users.get(userId) || null;
@@ -539,7 +491,6 @@ async function authenticate(req: express.Request, res: express.Response, next: e
     const timeoutMs = (user.sessionTimeoutMinutes || 30) * 60 * 1000;
     const lastActiveTime = new Date(session.lastActiveAt).getTime();
 
-    // Inactivity timeout check
     if (now - lastActiveTime > timeoutMs) {
       db.sessions.delete(session.id);
       await adapter.deleteSession(session.id).catch(() => {});
@@ -549,12 +500,10 @@ async function authenticate(req: express.Request, res: express.Response, next: e
       });
     }
 
-    // Update session activity timestamp in durable store
     const updatedActiveAt = new Date().toISOString();
     session.lastActiveAt = updatedActiveAt;
     await adapter.updateSessionActivity(session.id, updatedActiveAt).catch(() => {});
 
-    // Hydrate user tenant data into in-memory store so all routes have latest user data
     await adapter.hydrateUserTenantData(session.userId, db);
 
     (req as any).userId = session.userId;
@@ -562,7 +511,6 @@ async function authenticate(req: express.Request, res: express.Response, next: e
     next();
   } catch (err: any) {
     console.error('[Authentication Middleware] Internal validation error:', err);
-    // Transient backend/database error must return 503, NOT 401
     return res.status(503).json({
       error: 'Service Unavailable: Unable to complete authentication check due to a database service error.',
       code: 'DATABASE_UNAVAILABLE',
@@ -570,10 +518,8 @@ async function authenticate(req: express.Request, res: express.Response, next: e
   }
 }
 
-// Register Routers
 app.use('/api/docs', openapiRouter);
 
-// Unauthenticated helper preview for categorization input typing
 app.post('/api/transactions/categorize-preview', (req, res) => {
   const { description = '', amount = 0, type = 'EXPENSE' } = req.body || {};
   const { cleaned, extractedMerchant } = cleanTransactionDescription(description);
@@ -605,11 +551,6 @@ app.use('/api/calendar', authenticate, calendarRouter);
 app.use('/api/notifications', authenticate, notificationsRouter);
 app.use('/api/kyc', authenticate, kycRouter);
 
-/* ==========================================================================
-   1. AUTHENTICATION & SECURITY ENDPOINTS (PHASE 1)
-   ========================================================================== */
-
-// POST /api/auth/register (and aliases: /api/register, /auth/register, /register)
 app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'], async (req, res) => {
   try {
     const ip = req.ip || '127.0.0.1';
@@ -690,7 +631,6 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
       onboardingCompleted: false,
     };
 
-    // Persist immediately into durable database adapter
     try {
       await adapter.createUser(newUser);
       await adapter.createProfile(newProfile);
@@ -711,14 +651,12 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
     db.users.set(userId, newUser);
     db.profiles.set(userId, newProfile);
 
-    // Anchor user registration to permissioned audit ledger
     try {
       blockchainAdapter.registerUserIdentity(userId);
     } catch (bcErr: any) {
       console.warn('[Register API] Blockchain ledger anchor warning:', bcErr.message);
     }
 
-    // Generate Email Verification Token
     const verifyToken = generateSecureToken(24);
     const verifyExpiresAt = Date.now() + 24 * 3600 * 1000;
     try {
@@ -732,7 +670,6 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
       used: false,
     });
 
-    // Create Authenticated Session with Stateless HMAC Token
     let sessionTokenData;
     try {
       sessionTokenData = createSignedSessionToken(userId);
@@ -782,7 +719,7 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
     return res.status(201).json({
       message: 'Registration successful. Verification token generated.',
       token: sessionToken,
-      verificationToken: verifyToken, // For simulated dev/demo workflow
+      verificationToken: verifyToken,
       user: {
         id: newUser.id,
         email: newUser.email,
@@ -803,8 +740,6 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
   }
 });
 
-
-// POST /api/auth/login (and aliases: /api/login, /auth/login, /login)
 app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req, res) => {
   try {
     const ip = req.ip || '127.0.0.1';
@@ -831,7 +766,6 @@ app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req,
       return res.status(401).json({ error: 'Invalid email or password credentials.' });
     }
 
-    // Handle MFA Requirement
     if (user.mfaEnabled) {
       const mfaTicket = createSignedMfaTicket(user.id);
       const mfaExpiresAt = Date.now() + 5 * 60 * 1000;
@@ -919,7 +853,6 @@ app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req,
   }
 });
 
-// POST /api/auth/mfa/challenge - Verify MFA Challenge (TOTP or Recovery Code)
 app.post('/api/auth/mfa/challenge', async (req, res) => {
   try {
     const ip = req.ip || '127.0.0.1';
@@ -964,12 +897,10 @@ app.post('/api/auth/mfa/challenge', async (req, res) => {
     const inputCode = String(code).trim();
     let isTotpValid = false;
 
-    // Check if code is 6-digit TOTP
     if (/^\d{6}$/.test(inputCode)) {
       isTotpValid = verifyTOTP(inputCode, user.mfaSecret, 1, 30);
     }
 
-    // Check if code is single-use recovery code
     let isRecoveryValid = false;
     if (!isTotpValid && user.mfaRecoveryCodes && user.mfaRecoveryCodes.length > 0) {
       const recoveryCheck = verifyAndConsumeRecoveryCode(inputCode, user.mfaRecoveryCodes);
@@ -990,7 +921,6 @@ app.post('/api/auth/mfa/challenge', async (req, res) => {
       return res.status(401).json({ error: 'Invalid MFA verification code or recovery key.' });
     }
 
-    // MFA Verified: Invalidate challenge ticket and create full session
     mfaChallengeTickets.delete(mfaTicket);
     await adapter.consumeMfaChallengeTicket(mfaTicket).catch(() => {});
 
@@ -1065,7 +995,6 @@ app.post('/api/auth/mfa/challenge', async (req, res) => {
   }
 });
 
-// POST /api/auth/demo-session - Explicit Demo Mode Entry
 app.post('/api/auth/demo-session', (req, res) => {
   try {
     const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
@@ -1139,7 +1068,6 @@ app.post('/api/auth/demo-session', (req, res) => {
   }
 });
 
-// POST /api/auth/logout (and aliases: /api/logout, /auth/logout, /logout)
 app.post(['/api/auth/logout', '/api/logout', '/auth/logout', '/logout'], async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ')
@@ -1170,7 +1098,6 @@ app.post(['/api/auth/logout', '/api/logout', '/auth/logout', '/logout'], async (
   return res.json({ message: 'Logged out successfully.' });
 });
 
-// GET /api/auth/me (and aliases: /api/me, /auth/me, /me)
 app.get(['/api/auth/me', '/api/me', '/auth/me', '/me'], authenticate, async (req, res) => {
   const userId = (req as any).userId;
   const adapter = getDatabaseAdapter();
@@ -1201,7 +1128,6 @@ app.get(['/api/auth/me', '/api/me', '/auth/me', '/me'], authenticate, async (req
   });
 });
 
-// POST /api/auth/password/change - Change password with current password verification
 app.post('/api/auth/password/change', authenticate, (req, res) => {
   try {
     const userId = (req as any).userId;
@@ -1227,7 +1153,6 @@ app.post('/api/auth/password/change', authenticate, (req, res) => {
     user.salt = salt;
     user.updatedAt = new Date().toISOString();
 
-    // Invalidate all other sessions for security
     const currentSessionId = (req as any).sessionId;
     for (const s of db.sessions.values()) {
       if (s.userId === userId && s.id !== currentSessionId) {
@@ -1248,7 +1173,6 @@ app.post('/api/auth/password/change', authenticate, (req, res) => {
   }
 });
 
-// POST /api/auth/forgot-password - One-Time Password Reset Token Generation
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const ip = req.ip || '127.0.0.1';
@@ -1274,7 +1198,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     let resetToken = '';
     if (user) {
       resetToken = generateSecureToken(32);
-      const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minute validity
+      const expiresAt = Date.now() + 15 * 60 * 1000;
       await adapter.savePasswordResetToken(resetToken, user.id, expiresAt);
       passwordResetTokens.set(resetToken, {
         userId: user.id,
@@ -1290,17 +1214,15 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       });
     }
 
-    // Always return safe success message to prevent user enumeration
     return res.json({
       message: 'If an account exists with this email, password reset instructions have been dispatched.',
-      resetToken: resetToken || undefined, // Provided in development for testbench
+      resetToken: resetToken || undefined,
     });
   } catch (err: any) {
     return res.status(500).json({ error: 'Failed to process password reset request.' });
   }
 });
 
-// POST /api/auth/reset-password - Redeem Reset Token and Update Password
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -1339,14 +1261,12 @@ app.post('/api/auth/reset-password', async (req, res) => {
     user.salt = salt;
     user.updatedAt = new Date().toISOString();
 
-    // Mark token used
     record.used = true;
     passwordResetTokens.delete(token);
     await adapter.consumePasswordResetToken(token);
     await adapter.updateUser({ id: user.id, passwordHash: hash, salt, updatedAt: user.updatedAt });
     db.users.set(user.id, user);
 
-    // Invalidate all active sessions for this user in db & adapter
     for (const s of db.sessions.values()) {
       if (s.userId === user.id) {
         db.sessions.delete(s.id);
@@ -1367,7 +1287,6 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 });
 
-// POST /api/auth/verify-email - Email Verification Token Redemption
 app.post('/api/auth/verify-email', async (req, res) => {
   try {
     const { token } = req.body;
@@ -1417,7 +1336,6 @@ app.post('/api/auth/verify-email', async (req, res) => {
   }
 });
 
-// POST /api/auth/resend-verification - Resend Email Verification Token
 app.post('/api/auth/resend-verification', authenticate, async (req, res) => {
   try {
     const userId = (req as any).userId;
@@ -1448,11 +1366,6 @@ app.post('/api/auth/resend-verification', authenticate, async (req, res) => {
   }
 });
 
-/* ==========================================================================
-   MFA SETUP, VERIFICATION & DISABLE ENDPOINTS
-   ========================================================================== */
-
-// POST /api/security/mfa/setup - Generate Secret, Recovery Codes & Offline QR
 app.post('/api/security/mfa/setup', authenticate, async (req, res) => {
   try {
     const userId = (req as any).userId;
@@ -1464,7 +1377,6 @@ app.post('/api/security/mfa/setup', authenticate, async (req, res) => {
     const otpAuthUrl = `otpauth://totp/AegisFinance:${encodeURIComponent(user.email)}?secret=${secret}&issuer=AegisFinance&period=30&digits=6`;
     const localQrDataUri = await generateLocalQrDataUri(otpAuthUrl);
 
-    // Stash pending MFA setup state temporarily on user object
     (user as any).pendingMfaSecret = secret;
     (user as any).pendingRecoveryCodes = hashedCodes;
 
@@ -1472,14 +1384,13 @@ app.post('/api/security/mfa/setup', authenticate, async (req, res) => {
       secret,
       otpAuthUrl,
       recoveryCodes: rawCodes,
-      qrCodeUri: localQrDataUri, // Standards-compliant RFC 6238 QR Code Data URI
+      qrCodeUri: localQrDataUri,
     });
   } catch (err: any) {
     return res.status(500).json({ error: 'Failed to initiate MFA setup.' });
   }
 });
 
-// POST /api/security/mfa/verify - Verify code against secret and activate MFA
 app.post('/api/security/mfa/verify', authenticate, (req, res) => {
   try {
     const ip = req.ip || '127.0.0.1';
@@ -1543,7 +1454,6 @@ app.post('/api/security/mfa/verify', authenticate, (req, res) => {
   }
 });
 
-// POST /api/security/mfa/disable - Disable MFA with password re-authentication
 app.post('/api/security/mfa/disable', authenticate, (req, res) => {
   try {
     const userId = (req as any).userId;
@@ -1583,10 +1493,6 @@ app.post('/api/security/mfa/disable', authenticate, (req, res) => {
   }
 });
 
-/* ==========================================================================
-   2. ONBOARDING & PROFILE SETTINGS
-   ========================================================================== */
-
 app.patch('/api/profile/onboarding', authenticate, (req, res) => {
   const userId = (req as any).userId;
   const profile = db.profiles.get(userId);
@@ -1604,10 +1510,6 @@ app.patch('/api/profile/onboarding', authenticate, (req, res) => {
   return res.json({ message: 'Onboarding preferences saved successfully.', profile });
 });
 
-/* ==========================================================================
-   3. DASHBOARD ENDPOINT
-   ========================================================================== */
-
 app.get('/api/dashboard', authenticate, (req, res) => {
   try {
     const userId = (req as any).userId;
@@ -1617,15 +1519,6 @@ app.get('/api/dashboard', authenticate, (req, res) => {
     return res.status(500).json({ error: 'We could not load your financial dashboard. Please try again.' });
   }
 });
-
-/* ==========================================================================
-   4, 5, 6. TRANSACTIONS, BUDGETS & SAVINGS GOALS
-   (Handled via modular routers: transactionsRouter, budgetsRouter, goalsRouter)
-   ========================================================================== */
-
-/* ==========================================================================
-   7. AI INSIGHTS, ANOMALIES, FORECASTS & WHAT-IF SIMULATOR
-   ========================================================================== */
 
 app.get('/api/insights', authenticate, (req, res) => {
   const userId = (req as any).userId;
@@ -1759,7 +1652,6 @@ app.post('/api/chat', authenticate, async (req, res) => {
   }
 });
 
-// OCR & Voice Entry
 app.post('/api/receipt/scan', authenticate, async (req, res) => {
   try {
     const rateCheck = uploadRateLimiter.check(`receipt-scan:${(req as any).userId}`);
@@ -1795,7 +1687,6 @@ app.post('/api/voice/parse', authenticate, async (req, res) => {
   }
 });
 
-// Cash Flow & Recurring
 app.get('/api/cashflow/forecast', authenticate, (req, res) => {
   try {
     const userId = (req as any).userId;
@@ -1869,7 +1760,6 @@ app.get('/api/ai/model-metrics', authenticate, (req, res) => {
   return res.json(metrics);
 });
 
-// POST /api/ai/feedback/category - Persist user category correction
 app.post('/api/ai/feedback/category', authenticate, (req, res) => {
   const { description, originalPrediction, userCategory } = req.body;
   if (!description || !userCategory) {
@@ -1879,7 +1769,6 @@ app.post('/api/ai/feedback/category', authenticate, (req, res) => {
   return res.json({ success: true, message: 'Category feedback recorded successfully.' });
 });
 
-// POST /api/ai/feedback/anomaly - Persist anomaly review decision
 app.post('/api/ai/feedback/anomaly', authenticate, (req, res) => {
   const { anomalyId, transactionId, decision, notes } = req.body;
   if (!anomalyId || !decision) {
@@ -1888,10 +1777,6 @@ app.post('/api/ai/feedback/anomaly', authenticate, (req, res) => {
   recordAnomalyFeedback(anomalyId, decision, notes);
   return res.json({ success: true, message: 'Anomaly feedback recorded successfully.' });
 });
-
-/* ==========================================================================
-   8. SESSIONS & SECURITY MANAGEMENT (PHASE 1 & 11)
-   ========================================================================== */
 
 app.get('/api/security/sessions', authenticate, (req, res) => {
   const userId = (req as any).userId;
@@ -1967,10 +1852,6 @@ app.patch('/api/security/session-timeout', authenticate, (req, res) => {
   return res.json({ message: `Session timeout updated to ${timeoutMinutes} minutes.`, timeoutMinutes });
 });
 
-/* ==========================================================================
-   9. FINANCIAL REPORTING & STATEMENTS (PHASE 18)
-   ========================================================================== */
-
 app.get('/api/reports/monthly', authenticate, (req, res) => {
   const userId = (req as any).userId;
   const month = (req.query.month as string) || '2026-08';
@@ -1987,7 +1868,6 @@ app.get('/api/reports/monthly', authenticate, (req, res) => {
     categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
   }
 
-  // Canonical Attestation Digest
   const canonicalStatement = JSON.stringify({
     userId,
     month,
@@ -2031,10 +1911,6 @@ app.get('/api/reports/monthly', authenticate, (req, res) => {
     },
   });
 });
-
-/* ==========================================================================
-   10. BLOCKCHAIN AUDIT & VERIFICATION SYSTEM (PHASE 9)
-   ========================================================================== */
 
 app.get('/api/blockchain/audit', authenticate, (req, res) => {
   const telemetry = blockchainAdapter.getLedgerStatus();
@@ -2259,10 +2135,6 @@ app.get('/api/blockchain/verify-block/:blockNumber', (req, res) => {
   return res.json(result);
 });
 
-/* ==========================================================================
-   11. BACKUP, RESTORE & DATA PORTABILITY (PHASE 10)
-   ========================================================================== */
-
 app.get('/api/privacy', authenticate, (req, res) => {
   const userId = (req as any).userId;
   const profile = db.profiles.get(userId);
@@ -2320,7 +2192,6 @@ app.get('/api/security', authenticate, (req, res) => {
   });
 });
 
-// Real AES-256-GCM & Ed25519 Cryptographic Backup & Restore (Phase 1 / Phase 10)
 app.post('/api/security/backup/export', authenticate, (req, res) => {
   const userId = (req as any).userId;
   const passphrase = req.body?.passphrase;
@@ -2429,7 +2300,6 @@ app.post('/api/security/backup/validate', (req, res) => {
       });
     }
 
-    // Verify Ed25519 signature if present
     let signatureVerified = false;
     if (backupContainer.signature && backupContainer.header.publicKeyPem) {
       signatureVerified = verifyEd25519(decodedPayload, backupContainer.signature, backupContainer.header.publicKeyPem);
@@ -2484,12 +2354,10 @@ app.post('/api/security/backup/restore', authenticate, (req, res) => {
 
     const parsed = JSON.parse(decodedPayload);
 
-    // Cross-tenant protection: Check user ownership
     if (parsed.userId && parsed.userId !== userId) {
       return res.status(403).json({ error: 'Access Denied: You cannot restore another user’s backup archive.' });
     }
 
-    // Atomic Restore across all supported entities
     if (Array.isArray(parsed.transactions)) {
       for (const tx of parsed.transactions) {
         tx.userId = userId;
@@ -2584,7 +2452,6 @@ app.get('/api/export/data', authenticate, (req, res) => {
   return res.json(exportPayload);
 });
 
-// Delete User Account (Phase 11: Requires password re-authentication and MFA confirmation)
 app.delete('/api/account/delete', authenticate, (req, res) => {
   try {
     const userId = (req as any).userId;
@@ -2606,7 +2473,6 @@ app.delete('/api/account/delete', authenticate, (req, res) => {
       }
     }
 
-    // Delete off-chain user resources from persistent SQLite and in-memory cache
     persistentSqlite.deleteUserAccountPermanently(userId);
 
     for (const [id, tx] of db.transactions) {
@@ -2635,7 +2501,6 @@ app.delete('/api/account/delete', authenticate, (req, res) => {
   }
 });
 
-// Reset synthetic demo dataset
 app.post('/api/demo/reset', (req, res) => {
   if (process.env.DEMO_MODE === 'false' || process.env.NODE_ENV === 'production') {
     return res.status(403).json({ error: 'Demo reset operations are disabled in production environment.' });
@@ -2644,10 +2509,6 @@ app.post('/api/demo/reset', (req, res) => {
   persistentSqlite.syncFromMemoryDb(db);
   return res.json({ message: 'Synthetic demo dataset re-initialized successfully with 6 months of verified transactions and accounts (March – August 2026).' });
 });
-
-/* ==========================================================================
-   12. VITE MIDDLEWARE & SERVER STARTUP
-   ========================================================================== */
 
 export async function initDb() {
   const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
@@ -2681,7 +2542,6 @@ export async function initDb() {
       if (shouldSeedDemo) {
         await adapter.syncFromMemoryDb(db);
       } else {
-        // In production without DEMO_MODE, start clean without synthetic demo users
         db.clearAll();
       }
     }

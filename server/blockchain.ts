@@ -1,15 +1,3 @@
-/**
- * Hyperledger Fabric Compatible In-Memory Blockchain Adapter & Audit Engine
- * 
- * Technical Transparency & Architectural Notice:
- * - This ledger is an in-memory simulation / Fabric-compatible adapter designed for
- *   auditable personal finance and university/enterprise demonstrability.
- * - Transactions are canonicalized and SHA-256 hashed.
- * - Blocks are cryptographically linked via previousHash -> currentHash (Merkle tree root).
- * - All personal identifiable information (PII) remains in the private database;
- *   only cryptographic hashes, timestamps, block numbers, and MSP identifiers are anchored.
- */
-
 import crypto from 'crypto';
 import { BlockchainBlock, BlockchainRecord } from './types.js';
 import { calculateTransactionHash, CanonicalTransactionInput, createCanonicalTransactionPayload } from './canonicalHash.js';
@@ -61,7 +49,7 @@ export class BlockchainAdapter {
   private orgMspId: string = 'FintechOrg1MSP';
   private chaincodeId: string = 'finance-audit-contract-v2.4';
   private blocks: BlockchainBlock[] = [];
-  private records: Map<string, BlockchainRecord> = new Map(); // key: recordId
+  private records: Map<string, BlockchainRecord> = new Map();
 
   constructor() {
     this.initGenesisBlock();
@@ -96,23 +84,14 @@ export class BlockchainAdapter {
     this.records.set(genesisRecord.recordId, genesisRecord);
   }
 
-  /**
-   * Generates a deterministic canonical SHA-256 hash for a transaction
-   */
   public computeCanonicalTransactionHash(data: CanonicalTransactionInput): string {
     return calculateTransactionHash(data).sha256Hash;
   }
 
-  /**
-   * Generates the canonical JSON payload string for transparency in audit views
-   */
   public getCanonicalPayloadString(data: CanonicalTransactionInput): string {
     return createCanonicalTransactionPayload(data);
   }
 
-  /**
-   * Generates a deterministic SHA-256 hash for consent/audit records
-   */
   public computeConsentHash(userId: string, consentType: string, status: boolean, timestamp: string): string {
     const payload = JSON.stringify({
       consentType: consentType.trim().toUpperCase(),
@@ -123,9 +102,6 @@ export class BlockchainAdapter {
     return crypto.createHash('sha256').update(payload).digest('hex');
   }
 
-  /**
-   * Smart Contract Chaincode: registerUserIdentity
-   */
   public registerUserIdentity(userId: string): BlockchainRecord {
     const hash = crypto.createHash('sha256').update(`USER_IDENTITY_REGISTERED:${userId}`).digest('hex');
     return this.commitRecord({
@@ -135,9 +111,6 @@ export class BlockchainAdapter {
     });
   }
 
-  /**
-   * Smart Contract Chaincode: recordTransactionHash
-   */
   public recordTransactionHash(recordId: string, canonicalHash: string): BlockchainRecord {
     return this.commitRecord({
       eventType: 'TRANSACTION_RECORDED',
@@ -146,9 +119,6 @@ export class BlockchainAdapter {
     });
   }
 
-  /**
-   * Smart Contract Chaincode: recordAuditEvent
-   */
   public recordAuditEvent(recordId: string, eventHash: string): BlockchainRecord {
     return this.commitRecord({
       eventType: 'SECURITY_EVENT',
@@ -157,9 +127,6 @@ export class BlockchainAdapter {
     });
   }
 
-  /**
-   * Smart Contract Chaincode: recordConsentChange
-   */
   public recordConsentChange(userId: string, consentType: string, granted: boolean): BlockchainRecord {
     const timestamp = new Date().toISOString();
     const hash = this.computeConsentHash(userId, consentType, granted, timestamp);
@@ -170,9 +137,6 @@ export class BlockchainAdapter {
     });
   }
 
-  /**
-   * Verify individual transaction integrity against blockchain anchor
-   */
   public verifyTransactionHash(recordId: string, currentOffchainData: CanonicalTransactionInput): VerificationResult {
     const { sha256Hash: recalculatedHash, canonicalPayload } = calculateTransactionHash(currentOffchainData);
     const onChainRecord = this.records.get(recordId);
@@ -220,9 +184,6 @@ export class BlockchainAdapter {
     };
   }
 
-  /**
-   * Verify an individual block: validates previous block linkage and recalculated Merkle root
-   */
   public verifyBlock(blockNumber: number): BlockVerificationResult {
     const blockIndex = this.blocks.findIndex(b => b.blockNumber === blockNumber);
     if (blockIndex === -1) {
@@ -244,7 +205,6 @@ export class BlockchainAdapter {
     const details: string[] = [];
     let isValid = true;
 
-    // Check previous hash linkage
     let expectedPreviousHash = '0000000000000000000000000000000000000000000000000000000000000000';
     if (blockIndex > 0) {
       expectedPreviousHash = this.blocks[blockIndex - 1].merkleRoot;
@@ -257,7 +217,6 @@ export class BlockchainAdapter {
       details.push(`Parent link verified: Previous hash matches Block #${blockIndex > 0 ? blockIndex - 1 : 0}`);
     }
 
-    // Recompute block Merkle root
     let computedMerkleRoot = '';
     if (blockIndex === 0) {
       computedMerkleRoot = block.records[0]?.sha256Hash || block.merkleRoot;
@@ -292,9 +251,6 @@ export class BlockchainAdapter {
     };
   }
 
-  /**
-   * Commits a new record into a new Hyperledger block
-   */
   private commitRecord(payload: {
     eventType: BlockchainRecord['eventType'];
     recordId: string;
@@ -318,7 +274,6 @@ export class BlockchainAdapter {
       txId,
     };
 
-    // Calculate Merkle root from previous block merkleRoot + newRecord hash
     const merkleRoot = crypto
       .createHash('sha256')
       .update(previousBlock.merkleRoot + newRecord.sha256Hash)
@@ -349,9 +304,6 @@ export class BlockchainAdapter {
     return newRecord;
   }
 
-  /**
-   * Returns current ledger telemetry
-   */
   public getLedgerStatus() {
     return {
       channelId: this.channelId,
@@ -371,9 +323,6 @@ export class BlockchainAdapter {
     };
   }
 
-  /**
-   * Returns audit history ledger records
-   */
   public getAuditHistory(limit: number = 50): BlockchainRecord[] {
     const list = Array.from(this.records.values());
     return list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, limit);
@@ -391,16 +340,12 @@ export class BlockchainAdapter {
     return this.records.get(recordId);
   }
 
-  /**
-   * Evaluates whole chain cryptographic continuity and merkle roots
-   */
   public verifyChainIntegrity(): ChainVerificationResult {
     const logs: string[] = [];
     const failedBlocks: number[] = [];
     let isValid = true;
     let totalRecordsAudited = this.blocks.reduce((acc, b) => acc + (b.records?.length || 0), 0);
 
-    // Genesis Block check
     const genesis = this.blocks[0];
     const genesisValid = genesis && genesis.blockNumber === 0 && genesis.previousHash === '0000000000000000000000000000000000000000000000000000000000000000';
     if (!genesisValid) {
@@ -415,13 +360,11 @@ export class BlockchainAdapter {
       const prevBlock = this.blocks[i - 1];
       const currBlock = this.blocks[i];
 
-      // 1. Check parent link
       if (currBlock.previousHash !== prevBlock.merkleRoot) {
         isValid = false;
         failedBlocks.push(currBlock.blockNumber);
         logs.push(`Integrity Broken at Block #${currBlock.blockNumber}: previousHash (${currBlock.previousHash.slice(0, 10)}...) does not match Block #${prevBlock.blockNumber} merkleRoot (${prevBlock.merkleRoot.slice(0, 10)}...)`);
       } else {
-        // 2. Check recalculated merkle root
         const recordsConcat = (currBlock.records || []).map(r => r.sha256Hash).join('');
         const computedRoot = crypto
           .createHash('sha256')
@@ -449,9 +392,6 @@ export class BlockchainAdapter {
     };
   }
 
-  /**
-   * Resets ledger to initial state (used on demo reset)
-   */
   public resetLedger() {
     this.blocks = [];
     this.records.clear();
@@ -467,9 +407,6 @@ export class BlockchainAdapter {
     } catch {}
   }
 
-  /**
-   * Persists all current blocks and records to the database
-   */
   public async persistAllBlocks(): Promise<void> {
     try {
       const adapter = getDatabaseAdapter();
@@ -487,9 +424,6 @@ export class BlockchainAdapter {
     }
   }
 
-  /**
-   * Restores blockchain state from database (PostgreSQL or SQLite)
-   */
   public async loadFromDatabase(): Promise<void> {
     try {
       const adapter = getDatabaseAdapter();
@@ -503,7 +437,6 @@ export class BlockchainAdapter {
         }
         console.log(`[BlockchainAdapter] Restored ledger from database: ${this.blocks.length} blocks, ${this.records.size} records.`);
       } else {
-        // If DB has fewer blocks than in-memory ledger (e.g. from initial seed), persist all in-memory blocks!
         await this.persistAllBlocks();
       }
     } catch (err) {

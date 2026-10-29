@@ -1,7 +1,3 @@
-/**
- * Server-side Types and Interfaces for Secure Personal Finance System
- */
-
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
 export type TransactionCategory =
@@ -40,7 +36,7 @@ export interface FinancialAccount {
   name: string;
   institution: string;
   accountType: AccountType;
-  maskedIdentifier: string; // e.g. "•••• 4829" or "user@okaxis"
+  maskedIdentifier: string;
   currency: 'INR' | 'USD' | 'EUR' | 'GBP';
   openingBalance: number;
   currentBalance: number;
@@ -62,7 +58,7 @@ export interface Bill {
   merchant: string;
   amount: number;
   category: TransactionCategory;
-  dueDate: string; // YYYY-MM-DD
+  dueDate: string;
   frequency: BillFrequency;
   accountId?: string;
   status: BillStatus;
@@ -109,9 +105,9 @@ export interface Loan {
   loanType: LoanType;
   principal: number;
   outstandingBalance: number;
-  interestRate: number; // percentage p.a.
-  emi: number; // monthly installment
-  dueDate: string; // e.g. "5th of month" or YYYY-MM-DD
+  interestRate: number;
+  emi: number;
+  dueDate: string;
   startDate: string;
   maturityDate: string;
   status: LoanStatus;
@@ -168,9 +164,9 @@ export interface UserProfile {
   monthlyIncomeRange: string;
   majorCategories: TransactionCategory[];
   budgetThresholds: {
-    normalWarning: number; // e.g. 70
-    highWarning: number;   // e.g. 90
-    critical: number;      // e.g. 100
+    normalWarning: number;
+    highWarning: number;
+    critical: number;
   };
   privacySettings: {
     aiPersonalizationConsent: boolean;
@@ -200,7 +196,7 @@ export interface Transaction {
   receiptId?: string;
   billId?: string;
   source?: 'MANUAL' | 'CSV_IMPORT' | 'SANDBOX_BANK' | 'SANDBOX_UPI' | 'RECEIPT_SCAN' | 'VOICE_ENTRY' | 'VOICE_ASSISTANT';
-  aiConfidence: number; // 0 - 100
+  aiConfidence: number;
   aiPredictedCategory?: TransactionCategory;
   userCorrected?: boolean;
   blockchainHash: string;
@@ -213,7 +209,7 @@ export interface Transaction {
 export interface Budget {
   id: string;
   userId: string;
-  month: string; // YYYY-MM
+  month: string;
   monthYear?: string;
   totalBudget: number;
   categoryBudgets: {
@@ -269,10 +265,10 @@ export interface Anomaly {
   transactionAmount: number;
   transactionDate: string;
   category: TransactionCategory;
-  deviationMultiplier: number; // e.g. 2.4x
+  deviationMultiplier: number;
   categoryHistoricalAverage: number;
   zScore: number;
-  confidenceScore: number; // 0 - 100
+  confidenceScore: number;
   status: 'PENDING_REVIEW' | 'CONFIRMED_NORMAL' | 'REPORTED';
   flaggedReasons: string[];
   shapAttributions: {
@@ -336,9 +332,9 @@ export interface BlockchainRecord {
   blockNumber: number;
   channelId: string;
   eventType: 'TRANSACTION_RECORDED' | 'USER_IDENTITY_REGISTERED' | 'CONSENT_GRANTED' | 'CONSENT_REVOKED' | 'BUDGET_COMMITTED' | 'SECURITY_EVENT';
-  recordId: string; // ID of off-chain record
-  sha256Hash: string; // Hash of private canonical payload
-  mspId: string; // Hyperledger Org MSP ID
+  recordId: string;
+  sha256Hash: string;
+  mspId: string;
   timestamp: string;
   verificationStatus: 'VERIFIED' | 'REVOKED' | 'PENDING';
   txId: string;

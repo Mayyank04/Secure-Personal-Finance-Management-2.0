@@ -1,14 +1,3 @@
-/**
- * Debt & Loans REST API Routes
- * 
- * Provides:
- * - Full CRUD endpoints: GET, POST, GET /:id, PATCH /:id, PUT /:id, DELETE /:id
- * - Direct database persistence to PostgreSQL/SQLite
- * - Loan registry (Personal, Education, Home, Vehicle, Credit Card, Other)
- * - Debt payoff calculator (Outstanding balance, EMI obligations, Interest totals, DTI)
- * - EMI Payment settlement with automatic transaction recording
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -19,7 +8,6 @@ import { Loan, LoanType, LoanStatus, Transaction } from '../types.js';
 
 export const loansRouter = Router();
 
-// GET /api/loans - List loans with full debt analytics
 loansRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -84,7 +72,6 @@ loansRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/loans/:id - Retrieve single loan
 loansRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -109,7 +96,6 @@ loansRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/loans - Create new loan / debt
 loansRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -143,11 +129,10 @@ loansRouter.post('/', async (req: Request, res: Response) => {
     const parsedRate = parseNonNegativeAmount(interestRate, 'Interest rate');
     if (parsedRate.error) return sendError(res, 400, 'VALIDATION_ERROR', parsedRate.error);
 
-    // Auto calculate EMI if not provided using Standard Amortization Formula: P * r * (1+r)^n / ((1+r)^n - 1)
     let numEmi = Number(emi);
     if (!numEmi || isNaN(numEmi) || numEmi <= 0) {
       const monthlyRate = parsedRate.value / 100 / 12;
-      const tenureMonths = 60; // default 5 years
+      const tenureMonths = 60;
       numEmi = Math.round(
         (parsedBalance.value * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) /
           (Math.pow(1 + monthlyRate, tenureMonths) - 1)
@@ -178,11 +163,9 @@ loansRouter.post('/', async (req: Request, res: Response) => {
       updatedAt: now,
     };
 
-    // Direct database persistence
     const adapter = getDatabaseAdapter();
     await adapter.saveLoan(newLoan);
 
-    // Keep memory cache updated
     db.loans.set(loanId, newLoan);
 
     db.recordAuditEvent({
@@ -197,7 +180,6 @@ loansRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH & PUT /api/loans/:id - Update loan
 async function handleUpdateLoan(req: Request, res: Response) {
   try {
     const userId = (req as any).userId;
@@ -273,10 +255,8 @@ async function handleUpdateLoan(req: Request, res: Response) {
 
     loan.updatedAt = new Date().toISOString();
 
-    // Persist to database
     await adapter.saveLoan(loan);
 
-    // Keep memory cache updated
     db.loans.set(loanId, loan);
 
     db.recordAuditEvent({
@@ -294,7 +274,6 @@ async function handleUpdateLoan(req: Request, res: Response) {
 loansRouter.put('/:id', handleUpdateLoan);
 loansRouter.patch('/:id', handleUpdateLoan);
 
-// POST /api/loans/:id/payment - Record EMI payment & atomic ledger transaction
 loansRouter.post('/:id/payment', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -415,7 +394,6 @@ loansRouter.post('/:id/payment', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/loans/:id - Delete loan
 loansRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

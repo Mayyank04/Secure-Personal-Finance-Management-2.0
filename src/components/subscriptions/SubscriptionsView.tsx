@@ -40,7 +40,6 @@ export const SubscriptionsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
   const [formState, setFormState] = useState({
@@ -169,7 +168,6 @@ export const SubscriptionsView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -190,7 +188,6 @@ export const SubscriptionsView: React.FC = () => {
         </button>
       </div>
 
-      {/* Burn Analytics Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
@@ -243,7 +240,6 @@ export const SubscriptionsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Duplicate & Waste Detection Banners */}
       {summary.duplicateFlags.length > 0 && (
         <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
           <div className="font-bold flex items-center gap-2">
@@ -258,7 +254,6 @@ export const SubscriptionsView: React.FC = () => {
         </div>
       )}
 
-      {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {[
           { id: 'ALL', label: 'All Subscriptions' },
@@ -280,7 +275,6 @@ export const SubscriptionsView: React.FC = () => {
         ))}
       </div>
 
-      {/* Subscriptions Grid */}
       {isLoading ? (
         <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
@@ -344,7 +338,6 @@ export const SubscriptionsView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Cost Details */}
                   <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                     <div>
                       <div className="text-[11px] text-slate-500 font-medium">Recurring Cost</div>
@@ -388,7 +381,6 @@ export const SubscriptionsView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Status Toggle Actions */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {isActive ? (
@@ -430,7 +422,6 @@ export const SubscriptionsView: React.FC = () => {
         </div>
       )}
 
-      {/* Subscription Add / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">

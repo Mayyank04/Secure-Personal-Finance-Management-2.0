@@ -23,9 +23,6 @@ import {
   UserPreferences,
 } from './types.js';
 
-/**
- * Storage Schema Interface representing all persistent tables
- */
 export interface DatabaseSchema {
   version: number;
   users: Record<string, User>;
@@ -49,23 +46,20 @@ export interface DatabaseSchema {
   blockchainRecords: Record<string, BlockchainRecord>;
 }
 
-/**
- * Inverted Index Store for sub-millisecond querying by key fields
- */
 export class IndexStore {
-  public userTransactionsIndex: Map<string, Set<string>> = new Map(); // userId -> Set<txId>
-  public transactionDateIndex: Map<string, Set<string>> = new Map(); // date -> Set<txId>
-  public transactionCategoryIndex: Map<string, Set<string>> = new Map(); // category -> Set<txId>
-  public transactionMerchantIndex: Map<string, Set<string>> = new Map(); // merchant -> Set<txId>
+  public userTransactionsIndex: Map<string, Set<string>> = new Map();
+  public transactionDateIndex: Map<string, Set<string>> = new Map();
+  public transactionCategoryIndex: Map<string, Set<string>> = new Map();
+  public transactionMerchantIndex: Map<string, Set<string>> = new Map();
 
-  public userBudgetsIndex: Map<string, Set<string>> = new Map(); // userId -> Set<budgetId>
-  public budgetPeriodIndex: Map<string, Set<string>> = new Map(); // monthYear -> Set<budgetId>
+  public userBudgetsIndex: Map<string, Set<string>> = new Map();
+  public budgetPeriodIndex: Map<string, Set<string>> = new Map();
 
-  public userGoalsIndex: Map<string, Set<string>> = new Map(); // userId -> Set<goalId>
-  public userRecurringIndex: Map<string, Set<string>> = new Map(); // userId -> Set<recurringId>
-  public userNotificationsIndex: Map<string, Set<string>> = new Map(); // userId -> Set<notificationId>
-  public userAuditEventsIndex: Map<string, Set<string>> = new Map(); // userId -> Set<auditId>
-  public userSessionsIndex: Map<string, Set<string>> = new Map(); // userId -> Set<sessionId>
+  public userGoalsIndex: Map<string, Set<string>> = new Map();
+  public userRecurringIndex: Map<string, Set<string>> = new Map();
+  public userNotificationsIndex: Map<string, Set<string>> = new Map();
+  public userAuditEventsIndex: Map<string, Set<string>> = new Map();
+  public userSessionsIndex: Map<string, Set<string>> = new Map();
 
   public clear() {
     this.userTransactionsIndex.clear();
@@ -84,10 +78,12 @@ export class IndexStore {
   private addIndexEntry(map: Map<string, Set<string>>, key: string, id: string) {
     if (!key) return;
     const normalizedKey = String(key).trim().toLowerCase();
-    if (!map.has(normalizedKey)) {
-      map.set(normalizedKey, new Set());
+    let set = map.get(normalizedKey);
+    if (!set) {
+      set = new Set();
+      map.set(normalizedKey, set);
     }
-    map.get(normalizedKey)!.add(id);
+    set.add(id);
   }
 
   private removeIndexEntry(map: Map<string, Set<string>>, key: string, id: string) {
@@ -165,9 +161,6 @@ export class IndexStore {
   }
 }
 
-/**
- * Enterprise Persistent Storage Engine with Write-Ahead Logging & Atomic Flushes
- */
 export class PersistentStorageEngine {
   private dataFilePath: string;
   private walFilePath: string;
@@ -208,9 +201,6 @@ export class PersistentStorageEngine {
     this.loadFromDisk();
   }
 
-  /**
-   * Load existing database from disk or initialize fresh state
-   */
   private loadFromDisk() {
     try {
       if (fs.existsSync(this.dataFilePath)) {
@@ -245,13 +235,9 @@ export class PersistentStorageEngine {
       console.error('[PersistentStorageEngine] Error loading database file:', err);
     }
 
-    // Default empty initialization
     this.rebuildAllIndexes();
   }
 
-  /**
-   * Rebuilds all search & query indexes in memory
-   */
   public rebuildAllIndexes() {
     this.indexes.clear();
     for (const tx of Object.values(this.data.transactions)) {
@@ -277,9 +263,6 @@ export class PersistentStorageEngine {
     }
   }
 
-  /**
-   * Schedule debounced asynchronous disk flush
-   */
   public schedulePersist() {
     if (this.pendingFlushTimeout) {
       clearTimeout(this.pendingFlushTimeout);
@@ -289,9 +272,6 @@ export class PersistentStorageEngine {
     }, 150);
   }
 
-  /**
-   * Performs an atomic write using a temporary file rename strategy to prevent data corruption
-   */
   public flushToDisk(): boolean {
     try {
       this.isFlushing = true;
@@ -308,9 +288,6 @@ export class PersistentStorageEngine {
     }
   }
 
-  /**
-   * Resets all tables to empty state
-   */
   public wipeDatabase() {
     this.data = {
       version: 2,

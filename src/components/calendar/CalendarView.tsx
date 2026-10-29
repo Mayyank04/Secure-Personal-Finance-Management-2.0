@@ -94,7 +94,6 @@ export const CalendarView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -123,7 +122,6 @@ export const CalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Summary KPI Ribbon */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <span className="text-[10px] font-medium uppercase text-slate-500 tracking-wider">Payable in Month</span>
@@ -151,7 +149,6 @@ export const CalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter and View Toggles */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
         <div className="flex items-center gap-1.5">
           <button
@@ -188,11 +185,9 @@ export const CalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Calendar View Content */}
       {isLoading ? (
         <div className="p-12 text-center text-xs text-slate-500 font-mono">Synchronizing financial events...</div>
       ) : activeView === 'month' ? (
-        /* Calendar 30-Day Grid */
         <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900">August 2026 Accounting & Commitment Schedule</h3>
@@ -255,7 +250,6 @@ export const CalendarView: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Detailed Chronological Timeline List */
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
           {filteredEvents.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-500">No events matched the selected filter.</div>

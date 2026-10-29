@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import initSqlJs from 'sql.js';
 import pg from 'pg';
-import { PostgresAdapter } from './postgres.js';
 import { runPostgresMigrations } from './migrations/index.js';
 
 const { Pool } = pg;
@@ -44,12 +43,10 @@ export async function migrateSqliteToPostgres(options?: {
   console.log(`  Target: ${postgresUrl.replace(/:[^:@]+@/, ':****@')}`);
   console.log(`================================================================\n`);
 
-  // 1. Load SQLite Database
   const SQL = await initSqlJs();
   const fileBuffer = fs.readFileSync(sqlitePath);
   const sqliteDb = new SQL.Database(fileBuffer);
 
-  // 2. Connect to PostgreSQL
   const isLocalhost = postgresUrl.includes('localhost') || postgresUrl.includes('127.0.0.1');
   const pool = new Pool({
     connectionString: postgresUrl,
@@ -61,10 +58,8 @@ export async function migrateSqliteToPostgres(options?: {
   let totalMigratedRows = 0;
 
   try {
-    // Run schema migrations on PostgreSQL first
     await runPostgresMigrations(pgClient);
 
-    // List of tables ordered by foreign key dependencies
     const tablesInOrder = [
       'users',
       'profiles',
@@ -91,7 +86,6 @@ export async function migrateSqliteToPostgres(options?: {
     await pgClient.query('BEGIN;');
 
     for (const table of tablesInOrder) {
-      // Check if table exists in SQLite
       const checkStmt = sqliteDb.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name = ?;`);
       checkStmt.bind([table]);
       const existsInSqlite = checkStmt.step();
@@ -101,7 +95,6 @@ export async function migrateSqliteToPostgres(options?: {
         continue;
       }
 
-      // Read rows from SQLite
       const selectStmt = sqliteDb.prepare(`SELECT * FROM ${table};`);
       const rows: any[] = [];
       while (selectStmt.step()) {
@@ -136,7 +129,6 @@ export async function migrateSqliteToPostgres(options?: {
         }
       }
 
-      // Count in PostgreSQL
       const pgCountRes = await pgClient.query(`SELECT COUNT(*) as count FROM ${table};`);
       const pgCount = parseInt(pgCountRes.rows[0].count, 10);
 
@@ -171,7 +163,6 @@ export async function migrateSqliteToPostgres(options?: {
   }
 }
 
-// Allow CLI execution: tsx server/db/migrateSqliteToPg.ts
 if (process.argv[1]?.includes('migrateSqliteToPg')) {
   migrateSqliteToPostgres()
     .then(result => {

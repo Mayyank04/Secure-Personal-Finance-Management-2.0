@@ -40,7 +40,6 @@ export const AccountsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filterType, setFilterType] = useState<string>('ALL');
 
-  // Account creation / edit modal
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingAccount, setEditingAccount] = useState<FinancialAccount | null>(null);
   const [formState, setFormState] = useState({
@@ -52,7 +51,6 @@ export const AccountsView: React.FC = () => {
     creditLimit: '',
   });
 
-  // Sandbox Connector State
   const [isSandboxOpen, setIsSandboxOpen] = useState<boolean>(false);
   const [providers, setProviders] = useState<any[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<any | null>(null);
@@ -62,7 +60,6 @@ export const AccountsView: React.FC = () => {
   const [targetSyncAccountId, setTargetSyncAccountId] = useState<string>('');
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
-  // Selected Account for Transaction Drawer
   const [inspectedAccount, setInspectedAccount] = useState<FinancialAccount | null>(null);
   const [accountTransactions, setAccountTransactions] = useState<Transaction[]>([]);
   const [loadingTx, setLoadingTx] = useState<boolean>(false);
@@ -177,7 +174,6 @@ export const AccountsView: React.FC = () => {
     }
   };
 
-  // Sandbox Sync Flow
   const handleStartSandboxSync = async (provider: any) => {
     setSelectedProvider(provider);
     setIsSyncing(true);
@@ -185,7 +181,6 @@ export const AccountsView: React.FC = () => {
     try {
       const result = await api.syncSandbox(provider.id);
       setSyncPreview(result);
-      // Pre-select non-duplicates
       const nonDupIds = (result.previewItems || [])
         .filter((it: any) => !it.isDuplicate)
         .map((it: any) => it.externalId);
@@ -252,7 +247,6 @@ export const AccountsView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Top Banner & Summary Cards */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -283,7 +277,6 @@ export const AccountsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
@@ -341,7 +334,6 @@ export const AccountsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Account Type Filter Chips */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {[
           { id: 'ALL', label: 'All Accounts' },
@@ -366,7 +358,6 @@ export const AccountsView: React.FC = () => {
         ))}
       </div>
 
-      {/* Accounts Grid */}
       {isLoading ? (
         <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
@@ -445,7 +436,6 @@ export const AccountsView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Balance Display */}
                   <div className="mt-5 p-3 rounded-xl bg-slate-50 border border-slate-100">
                     <div className="text-[11px] text-slate-500 font-medium">
                       {isCredit ? 'Current Outstanding Balance' : 'Current Available Balance'}
@@ -469,7 +459,6 @@ export const AccountsView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Card Footer Actions */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -490,7 +479,6 @@ export const AccountsView: React.FC = () => {
         </div>
       )}
 
-      {/* Account Transactions Drawer / Inspector */}
       {inspectedAccount && (
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -584,7 +572,6 @@ export const AccountsView: React.FC = () => {
         </div>
       )}
 
-      {/* Synthetic Sandbox Modal */}
       {isSandboxOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 shadow-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
@@ -669,7 +656,6 @@ export const AccountsView: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Target Account Selector */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Assign to Financial Account
@@ -687,7 +673,6 @@ export const AccountsView: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Preview Table */}
                 <div className="border border-slate-200 rounded-xl overflow-hidden max-h-64 overflow-y-auto text-xs">
                   <table className="w-full text-left">
                     <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px]">
@@ -790,7 +775,6 @@ export const AccountsView: React.FC = () => {
         </div>
       )}
 
-      {/* Account Add / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">

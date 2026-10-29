@@ -1,17 +1,3 @@
-/**
- * Financial Accounts REST API Routes
- * 
- * Endpoints for:
- * - GET /api/accounts (List with Total Assets, Liabilities, Net Liquid Balance, and pagination)
- * - POST /api/accounts (Create account)
- * - GET /api/accounts/:id
- * - PUT /api/accounts/:id (Update account)
- * - PATCH /api/accounts/:id (Partial update)
- * - PATCH /api/accounts/:id/status (Change status: ACTIVE, INACTIVE, CLOSED)
- * - DELETE /api/accounts/:id (Safeguarded deletion with dependency checks)
- * - GET /api/accounts/:id/transactions (Filtered transactions for this account)
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -21,7 +7,6 @@ import { FinancialAccount, AccountType, AccountStatus } from '../types.js';
 
 export const accountsRouter = Router();
 
-// GET /api/accounts - List all accounts with summary metrics
 accountsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -77,7 +62,6 @@ accountsRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/accounts - Create new account
 accountsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -137,11 +121,8 @@ accountsRouter.post('/', async (req: Request, res: Response) => {
       updatedAt: now,
     };
 
-    // Save to persistent database
     const adapter = getDatabaseAdapter();
     await adapter.saveAccount(newAccount);
-
-    // Keep memory cache updated
     db.accounts.set(accountId, newAccount);
 
     db.recordAuditEvent({
@@ -156,7 +137,6 @@ accountsRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/accounts/:id - Get single account details
 accountsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -181,7 +161,6 @@ accountsRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// PUT & PATCH /api/accounts/:id - Update account
 async function handleUpdateAccount(req: Request, res: Response) {
   try {
     const userId = (req as any).userId;
@@ -254,10 +233,7 @@ async function handleUpdateAccount(req: Request, res: Response) {
 
     acc.updatedAt = new Date().toISOString();
 
-    // Persist to database
     await adapter.saveAccount(acc);
-
-    // Keep memory cache updated
     db.accounts.set(acc.id, acc);
 
     db.recordAuditEvent({
@@ -275,7 +251,6 @@ async function handleUpdateAccount(req: Request, res: Response) {
 accountsRouter.put('/:id', handleUpdateAccount);
 accountsRouter.patch('/:id', handleUpdateAccount);
 
-// PATCH /api/accounts/:id/status - Status change
 accountsRouter.patch('/:id/status', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -317,7 +292,6 @@ accountsRouter.patch('/:id/status', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/accounts/:id - Safe deletion with dependent record safeguards
 accountsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -336,7 +310,6 @@ accountsRouter.delete('/:id', async (req: Request, res: Response) => {
       return sendError(res, 404, 'ACCOUNT_NOT_FOUND', 'Financial account not found or inaccessible.');
     }
 
-    // Safeguard: Check for dependent records unless forced
     const txCount = await adapter.getAccountTransactionsCount(accountId, userId);
     const force = req.query.force === 'true' || req.body?.force === true;
 
@@ -349,7 +322,6 @@ accountsRouter.delete('/:id', async (req: Request, res: Response) => {
       );
     }
 
-    // Delete dependent transactions if force requested
     if (force && txCount > 0) {
       await adapter.execute(`DELETE FROM transactions WHERE account_id = $1 AND user_id = $2;`, [accountId, userId]);
       for (const [id, tx] of db.transactions.entries()) {
@@ -374,7 +346,6 @@ accountsRouter.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/accounts/:id/transactions - Get transactions for specific account
 accountsRouter.get('/:id/transactions', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

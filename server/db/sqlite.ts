@@ -522,7 +522,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
   public async withTransaction<T>(callback: (client: IDatabaseAdapter) => Promise<T>): Promise<T> {
     if (!this.db) throw new Error('[SqliteAdapter] Database not initialized');
     if (this.transactionDepth > 0) {
-      // Already within an active transaction; execute callback within current transaction
       return await callback(this);
     }
 
@@ -543,10 +542,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       this.transactionDepth--;
     }
   }
-
-  /* ==========================================================================
-     IDOR & Centralized Authorization Helpers
-     ========================================================================== */
 
   public async getAccountForUser(accountId: string, userId: string): Promise<FinancialAccount | null> {
     const rows = await this.query(`SELECT * FROM accounts WHERE id = ? AND user_id = ?`, [accountId, userId]);
@@ -982,10 +977,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
     await this.saveKycRecord(merged);
   }
 
-  /* ==========================================================================
-     Atomic Financial Operations
-     ========================================================================== */
-
   public async createTransactionAtomic(data: {
     transaction: Transaction;
     account: FinancialAccount;
@@ -1275,10 +1266,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
     });
   }
 
-  /* ==========================================================================
-     Deletion Helpers
-     ========================================================================== */
-
   public async deleteTransaction(id: string): Promise<void> {
     await this.execute(`DELETE FROM transactions WHERE id = ?;`, [id]);
   }
@@ -1314,7 +1301,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
     }
   }
 
-  // Security Token Persistence (Email, Password Reset, MFA Tickets, Rate Limits)
   public async saveEmailVerificationToken(token: string, userId: string, expiresAt: number): Promise<void> {
     await this.execute(
       `INSERT OR REPLACE INTO email_verification_tokens (token, user_id, expires_at, used, created_at)
@@ -1636,10 +1622,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
     });
   }
 
-  /* ==========================================================================
-     Memory Cache Sync & Hydration
-     ========================================================================== */
-
   public async hasExistingData(): Promise<boolean> {
     try {
       const rows = await this.query(`SELECT COUNT(*) as cnt FROM users;`);
@@ -1656,7 +1638,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
 
     try {
       await this.withTransaction(async () => {
-        // Sync Users
       for (const [, user] of dbInstance.users || []) {
         this.db.run(
           `INSERT OR REPLACE INTO users (id, email, name, password_hash, salt, role, mfa_enabled, mfa_secret, mfa_recovery_codes_json, is_email_verified, session_timeout_minutes, created_at, updated_at, last_login_at)
@@ -1680,7 +1661,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Accounts
       for (const [, acc] of dbInstance.accounts || []) {
         this.db.run(
           `INSERT OR REPLACE INTO accounts (id, user_id, name, institution, account_type, masked_identifier, currency, opening_balance, current_balance, available_balance, credit_limit, status, is_demo, created_at, updated_at)
@@ -1705,7 +1685,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Transactions
       for (const [, tx] of dbInstance.transactions || []) {
         this.db.run(
           `INSERT OR REPLACE INTO transactions (id, user_id, account_id, source, date, description, clean_description, amount, type, category, payment_method, merchant, notes, is_recurring, recurring_frequency, ai_confidence, ai_predicted_category, user_corrected, blockchain_hash, block_number, blockchain_verified, created_at, updated_at)
@@ -1738,7 +1717,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Bills
       for (const [, bill] of dbInstance.bills || []) {
         this.db.run(
           `INSERT OR REPLACE INTO bills (id, user_id, account_id, name, merchant, amount, category, due_date, frequency, auto_paid, status, linked_transaction_id, notes, created_at, updated_at)
@@ -1763,7 +1741,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Subscriptions
       for (const [, sub] of dbInstance.subscriptions || []) {
         this.db.run(
           `INSERT OR REPLACE INTO subscriptions (id, user_id, account_id, name, merchant, amount, frequency, category, next_renewal_date, previous_amount, price_change_detected, status, notes, created_at, updated_at)
@@ -1788,7 +1765,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Loans
       for (const [, loan] of dbInstance.loans || []) {
         this.db.run(
           `INSERT OR REPLACE INTO loans (id, user_id, name, lender, principal, outstanding_balance, interest_rate, emi_amount, due_date, tenure_months, remaining_tenure_months, status, created_at, updated_at)
@@ -1812,7 +1788,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Sessions
       for (const [, sess] of dbInstance.sessions || []) {
         this.db.run(
           `INSERT OR REPLACE INTO sessions (id, token, user_id, device, browser, ip, location, created_at, last_active_at, expires_at, is_current)
@@ -1833,7 +1808,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Profiles
       for (const [, prof] of dbInstance.profiles || []) {
         this.db.run(
           `INSERT OR REPLACE INTO profiles (user_id, preferred_currency, monthly_income_range, major_categories_json, budget_thresholds_json, privacy_settings_json, onboarding_completed)
@@ -1850,7 +1824,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Budgets
       for (const [, bud] of dbInstance.budgets || []) {
         this.db.run(
           `INSERT OR REPLACE INTO budgets (id, user_id, month, total_budget, category_budgets_json, rollover_enabled, alert_thresholds_json, created_at, updated_at)
@@ -1869,7 +1842,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Goals
       for (const [, goal] of dbInstance.goals || []) {
         this.db.run(
           `INSERT OR REPLACE INTO goals (id, user_id, title, target_amount, current_amount, target_date, monthly_contribution, priority, category, estimated_completion_date, created_at, updated_at)
@@ -1891,7 +1863,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Receipts
       for (const [, rcpt] of dbInstance.receipts || []) {
         this.db.run(
           `INSERT OR REPLACE INTO receipts (id, user_id, merchant, date, amount, tax_amount, currency, category, payment_method, ocr_confidence, raw_text, line_items_json, processing_status, linked_transaction_id, created_at, updated_at)
@@ -1917,7 +1888,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync Notifications
       for (const [, notif] of dbInstance.notifications || []) {
         this.db.run(
           `INSERT OR REPLACE INTO notifications (id, user_id, type, title, message, severity, is_read, related_record_id, action_url, timestamp)
@@ -1937,7 +1907,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
 
-      // Sync KYC Records
       for (const [, kyc] of dbInstance.kycRecords || []) {
         this.db.run(
           `INSERT OR REPLACE INTO kyc_records (id, user_id, full_name, date_of_birth, address, country, document_type, document_number, masked_document_number, status, document_image_uri, ocr_extracted_json, reviewer_notes, submitted_at, verified_at, rejection_reason, created_at, updated_at)
@@ -1975,19 +1944,16 @@ export class SqliteAdapter implements IDatabaseAdapter {
     if (!this.db || !dbInstance || !userId) return;
 
     try {
-      // 1. User
       const user = await this.getUserById(userId);
       if (user) {
         dbInstance.users.set(user.id, user);
       }
 
-      // 2. Profile
       const profile = await this.getProfileForUser(userId);
       if (profile) {
         dbInstance.profiles.set(profile.userId, profile);
       }
 
-      // 3. Accounts for User
       const accRows = await this.query(`SELECT * FROM accounts WHERE user_id = ?;`, [userId]);
       for (const row of accRows) {
         dbInstance.accounts.set(row.id, {
@@ -2009,7 +1975,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 4. Transactions for User
       const txRows = await this.query(`SELECT * FROM transactions WHERE user_id = ?;`, [userId]);
       for (const row of txRows) {
         dbInstance.transactions.set(row.id, {
@@ -2041,7 +2006,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 5. Budgets for User
       const budRows = await this.query(`SELECT * FROM budgets WHERE user_id = ?;`, [userId]);
       for (const row of budRows) {
         dbInstance.budgets.set(row.id, {
@@ -2059,7 +2023,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 6. Goals for User
       const goalRows = await this.query(`SELECT * FROM goals WHERE user_id = ?;`, [userId]);
       for (const row of goalRows) {
         dbInstance.goals.set(row.id, {
@@ -2078,7 +2041,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 7. Bills for User
       const billRows = await this.query(`SELECT * FROM bills WHERE user_id = ?;`, [userId]);
       for (const row of billRows) {
         dbInstance.bills.set(row.id, {
@@ -2100,7 +2062,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 8. Subscriptions for User
       const subRows = await this.query(`SELECT * FROM subscriptions WHERE user_id = ?;`, [userId]);
       for (const row of subRows) {
         dbInstance.subscriptions.set(row.id, {
@@ -2126,7 +2087,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 9. Loans for User
       const loanRows = await this.query(`SELECT * FROM loans WHERE user_id = ?;`, [userId]);
       for (const row of loanRows) {
         dbInstance.loans.set(row.id, {
@@ -2150,7 +2110,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 10. Receipts for User
       const rcptRows = await this.query(`SELECT * FROM receipts WHERE user_id = ?;`, [userId]);
       for (const row of rcptRows) {
         dbInstance.receipts.set(row.id, {
@@ -2174,7 +2133,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 11. Notifications for User
       const notifRows = await this.query(`SELECT * FROM notifications WHERE user_id = ?;`, [userId]);
       for (const row of notifRows) {
         dbInstance.notifications.set(row.id, {
@@ -2191,7 +2149,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
         });
       }
 
-      // 12. KYC for User
       const kycRows = await this.query(`SELECT * FROM kyc_records WHERE user_id = ?;`, [userId]);
       if (kycRows.length > 0) {
         const row = kycRows[0];
@@ -2225,7 +2182,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
     if (!this.db || !dbInstance) return;
 
     try {
-      // 1. Users
       const userStmt = this.db.prepare('SELECT * FROM users');
       while (userStmt.step()) {
         const row = userStmt.getAsObject() as any;
@@ -2249,7 +2205,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       userStmt.free();
 
-      // 2. Profiles
       const profStmt = this.db.prepare('SELECT * FROM profiles');
       while (profStmt.step()) {
         const row = profStmt.getAsObject() as any;
@@ -2267,7 +2222,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       profStmt.free();
 
-      // 3. Sessions
       const sessStmt = this.db.prepare('SELECT * FROM sessions');
       while (sessStmt.step()) {
         const row = sessStmt.getAsObject() as any;
@@ -2287,7 +2241,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       sessStmt.free();
 
-      // 4. Accounts
       const accStmt = this.db.prepare('SELECT * FROM accounts');
       while (accStmt.step()) {
         const row = accStmt.getAsObject() as any;
@@ -2311,7 +2264,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       accStmt.free();
 
-      // 5. Transactions
       const txStmt = this.db.prepare('SELECT * FROM transactions');
       while (txStmt.step()) {
         const row = txStmt.getAsObject() as any;
@@ -2345,7 +2297,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       txStmt.free();
 
-      // 6. Budgets
       const budStmt = this.db.prepare('SELECT * FROM budgets');
       while (budStmt.step()) {
         const row = budStmt.getAsObject() as any;
@@ -2365,7 +2316,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       budStmt.free();
 
-      // 7. Goals
       const goalStmt = this.db.prepare('SELECT * FROM goals');
       while (goalStmt.step()) {
         const row = goalStmt.getAsObject() as any;
@@ -2386,7 +2336,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       goalStmt.free();
 
-      // 8. Bills
       const billStmt = this.db.prepare('SELECT * FROM bills');
       while (billStmt.step()) {
         const row = billStmt.getAsObject() as any;
@@ -2410,7 +2359,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       billStmt.free();
 
-      // 9. Subscriptions
       const subStmt = this.db.prepare('SELECT * FROM subscriptions');
       while (subStmt.step()) {
         const row = subStmt.getAsObject() as any;
@@ -2438,7 +2386,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       subStmt.free();
 
-      // 10. Loans
       const loanStmt = this.db.prepare('SELECT * FROM loans');
       while (loanStmt.step()) {
         const row = loanStmt.getAsObject() as any;
@@ -2464,7 +2411,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       loanStmt.free();
 
-      // 11. Receipts
       const rcptStmt = this.db.prepare('SELECT * FROM receipts');
       while (rcptStmt.step()) {
         const row = rcptStmt.getAsObject() as any;
@@ -2489,7 +2435,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       rcptStmt.free();
 
-      // 12. Notifications
       const notifStmt = this.db.prepare('SELECT * FROM notifications');
       while (notifStmt.step()) {
         const row = notifStmt.getAsObject() as any;
@@ -2508,7 +2453,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       notifStmt.free();
 
-      // 13. Audit Events
       const audStmt = this.db.prepare('SELECT * FROM audit_events');
       while (audStmt.step()) {
         const row = audStmt.getAsObject() as any;
@@ -2525,7 +2469,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       }
       audStmt.free();
 
-      // 14. KYC Records
       const kycStmt = this.db.prepare('SELECT * FROM kyc_records');
       while (kycStmt.step()) {
         const row = kycStmt.getAsObject() as any;
@@ -2559,10 +2502,6 @@ export class SqliteAdapter implements IDatabaseAdapter {
       console.error('[SqliteAdapter] Hydration from SQLite failed:', err);
     }
   }
-
-  /* ==========================================================================
-     Blockchain Ledger Persistence
-     ========================================================================== */
 
   public async saveBlockchainBlock(block: BlockchainBlock): Promise<void> {
     await this.execute(

@@ -1,22 +1,5 @@
-/**
- * Core Security, Authentication & Cryptography Services
- * 
- * Provides:
- * - RFC 6238-compliant TOTP generation & verification (HMAC-SHA1, 30s step, ±1 window)
- * - Offline local SVG / Data-URI QR Code generator (zero third-party leakages)
- * - Enterprise PBKDF2 password hashing (100,000 iterations, SHA-512, timing-safe equality)
- * - Single-use recovery codes (hashed storage, single-use invalidation)
- * - One-time password reset tokens (15-min expiry, one-time invalidation)
- * - Email verification token engine
- * - Sliding-window rate limiters with client-friendly error messaging
- * - Session lifecycle & timeout tracking (inactivity & absolute timeouts)
- */
-
 import crypto from 'crypto';
-
-/* ==========================================================================
-   1. PASSWORD HASHING & VALIDATION (PBKDF2 SHA-512)
-   ========================================================================== */
+import QRCode from 'qrcode';
 
 const PBKDF2_ITERATIONS = 100000;
 const KEY_LENGTH = 64;
@@ -61,10 +44,6 @@ export function validatePasswordStrength(password: string): { isValid: boolean; 
   }
   return { isValid: true };
 }
-
-/* ==========================================================================
-   2. RFC 6238 TOTP ENGINE & BASE32 UTILITIES
-   ========================================================================== */
 
 const BASE32_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
@@ -158,16 +137,6 @@ export function verifyAndConsumeRecoveryCode(
   return { valid: false, remainingHashedCodes: hashedCodesList };
 }
 
-import QRCode from 'qrcode';
-
-/* ==========================================================================
-   3. OFFLINE LOCAL QR CODE SVG GENERATOR
-   ========================================================================== */
-
-/**
- * Generates an SVG / Data URI for TOTP setup purely locally with zero third-party leakage.
- * Generates a standards-compliant ISO/IEC 18004 QR code for standard authenticator apps.
- */
 export async function generateLocalQrDataUri(text: string): Promise<string> {
   try {
     const svg = await QRCode.toString(text, {
@@ -180,14 +149,13 @@ export async function generateLocalQrDataUri(text: string): Promise<string> {
       },
     });
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-  } catch (err) {
+  } catch {
     const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><rect width="200" height="200" fill="#ffffff"/><text x="100" y="100" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#0f172a">AegisFinance Authenticator</text></svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
   }
 }
 
 export function generateLocalQrDataUriSync(text: string): string {
-  // Synchronous SVG fallback for test assertions
   const hash = crypto.createHash('sha256').update(text).digest();
   const size = 25;
   const cellSize = 8;
@@ -232,10 +200,6 @@ export function generateLocalQrDataUriSync(text: string): string {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-/* ==========================================================================
-   4. TOKENS & SESSIONS (Reset, Verification, Rate-Limiting)
-   ========================================================================== */
-
 export interface TokenRecord {
   token: string;
   userId: string;
@@ -247,9 +211,6 @@ export function generateSecureToken(byteLength = 32): string {
   return crypto.randomBytes(byteLength).toString('hex');
 }
 
-/**
- * Sliding-window rate limiter
- */
 interface RateLimitRecord {
   timestamps: number[];
 }
@@ -287,15 +248,11 @@ export class RateLimiter {
   }
 }
 
-export const authRateLimiter = new RateLimiter(6, 60000); // 6 attempts per minute
-export const mfaRateLimiter = new RateLimiter(5, 60000); // 5 attempts per minute
-export const passwordResetRateLimiter = new RateLimiter(4, 300000); // 4 attempts per 5 mins
-export const aiRateLimiter = new RateLimiter(30, 60000); // 30 AI queries per minute
-export const uploadRateLimiter = new RateLimiter(10, 60000); // 10 scans / imports per minute
-
-/* ==========================================================================
-   5. AUTHENTICATED AES-256-GCM ENCRYPTION & ED25519 DIGITAL SIGNATURES
-   ========================================================================== */
+export const authRateLimiter = new RateLimiter(6, 60000);
+export const mfaRateLimiter = new RateLimiter(5, 60000);
+export const passwordResetRateLimiter = new RateLimiter(4, 300000);
+export const aiRateLimiter = new RateLimiter(30, 60000);
+export const uploadRateLimiter = new RateLimiter(10, 60000);
 
 export interface EncryptedPayloadContainer {
   ciphertext: string;
@@ -308,12 +265,9 @@ export interface EncryptedPayloadContainer {
 
 const DEFAULT_BACKUP_SECRET = 'aegis-fintech-master-vault-encryption-key-2026';
 
-/**
- * Encrypts payload using authenticated AES-256-GCM with PBKDF2-SHA512 key derivation
- */
 export function encryptAES256GCM(plainText: string, passphrase?: string): EncryptedPayloadContainer {
   const salt = crypto.randomBytes(32);
-  const iv = crypto.randomBytes(12); // Standard 96-bit nonce for GCM
+  const iv = crypto.randomBytes(12);
   const key = crypto.pbkdf2Sync(passphrase || DEFAULT_BACKUP_SECRET, salt, 100000, 32, 'sha512');
 
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
@@ -330,9 +284,6 @@ export function encryptAES256GCM(plainText: string, passphrase?: string): Encryp
   };
 }
 
-/**
- * Decrypts and authenticates AES-256-GCM payload. Throws on tampering or tag mismatch.
- */
 export function decryptAES256GCM(container: EncryptedPayloadContainer, passphrase?: string): string {
   if (!container || !container.ciphertext || !container.iv || !container.salt || !container.authTag) {
     throw new Error('Malformed AES-256-GCM encrypted container: missing required cryptographic components.');
@@ -354,9 +305,6 @@ export function decryptAES256GCM(container: EncryptedPayloadContainer, passphras
   return decrypted.toString('utf8');
 }
 
-/**
- * Ed25519 Key Pair Generator
- */
 export function generateEd25519KeyPair(): { publicKeyPem: string; privateKeyPem: string } {
   const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519', {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
@@ -365,12 +313,8 @@ export function generateEd25519KeyPair(): { publicKeyPem: string; privateKeyPem:
   return { publicKeyPem: publicKey, privateKeyPem: privateKey };
 }
 
-// Global server authority key pair for signing ledger attestations & backups
 const serverAuthorityKeys = generateEd25519KeyPair();
 
-/**
- * Cryptographic Ed25519 digital signature of canonical data
- */
 export function signEd25519(data: string, privateKeyPem?: string): { signatureHex: string; publicKeyPem: string } {
   const key = privateKeyPem || serverAuthorityKeys.privateKeyPem;
   const pub = privateKeyPem ? undefined : serverAuthorityKeys.publicKeyPem;
@@ -381,9 +325,6 @@ export function signEd25519(data: string, privateKeyPem?: string): { signatureHe
   };
 }
 
-/**
- * Verifies Ed25519 digital signature
- */
 export function verifyEd25519(data: string, signatureHex: string, publicKeyPem?: string): boolean {
   try {
     const key = publicKeyPem || serverAuthorityKeys.publicKeyPem;
@@ -393,4 +334,3 @@ export function verifyEd25519(data: string, signatureHex: string, publicKeyPem?:
     return false;
   }
 }
-

@@ -19,7 +19,6 @@ interface CurrencyConverterModalProps {
   defaultCurrency?: string;
 }
 
-// Fallback baseline exchange rates relative to 1 USD
 const DEFAULT_RATES: Record<string, { rate: number; symbol: string; name: string }> = {
   USD: { rate: 1.0, symbol: '$', name: 'US Dollar' },
   INR: { rate: 86.45, symbol: '₹', name: 'Indian Rupee' },
@@ -49,7 +48,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
-  // Fetch exchange rates from backend service
   const fetchRates = async () => {
     try {
       setIsLoading(true);
@@ -61,7 +59,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
         setLastUpdated(data.timestamp || new Date().toISOString());
       }
     } catch {
-      // Fallback to client-side baseline
       const fallback: Record<string, number> = {};
       Object.entries(DEFAULT_RATES).forEach(([k, v]) => {
         fallback[k] = v.rate;
@@ -85,12 +82,10 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Validation
   const numAmount = parseFloat(amount);
   const isInvalidAmount = amount !== '' && (isNaN(numAmount) || numAmount < 0);
   const isZero = amount !== '' && numAmount === 0;
 
-  // Conversion calculations
   const fromRate = ratesMap[fromCurrency] || DEFAULT_RATES[fromCurrency]?.rate || 1;
   const toRate = ratesMap[toCurrency] || DEFAULT_RATES[toCurrency]?.rate || 1;
   const conversionFactor = fromRate > 0 ? toRate / fromRate : 1;
@@ -123,7 +118,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
         className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-2xs">
@@ -153,9 +147,7 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6 space-y-5">
-          {/* Amount Input */}
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <label className="block text-xs font-semibold text-slate-700">Amount to Convert</label>
@@ -185,7 +177,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
             </div>
           </div>
 
-          {/* Quick Preset Buttons */}
           <div className="flex items-center gap-1.5 flex-wrap">
             {[100, 500, 1000, 5000, 10000].map((val) => (
               <button
@@ -202,9 +193,7 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
             ))}
           </div>
 
-          {/* Selectors Grid */}
           <div className="grid grid-cols-7 items-center gap-2">
-            {/* From */}
             <div className="col-span-3 space-y-1">
               <label className="text-[11px] font-semibold text-slate-500">From</label>
               <select
@@ -220,7 +209,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
               </select>
             </div>
 
-            {/* Swap Button */}
             <div className="col-span-1 flex justify-center pt-5">
               <button
                 onClick={handleSwap}
@@ -231,7 +219,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
               </button>
             </div>
 
-            {/* To */}
             <div className="col-span-3 space-y-1">
               <label className="text-[11px] font-semibold text-slate-500">To</label>
               <select
@@ -248,7 +235,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
             </div>
           </div>
 
-          {/* Conversion Result Card */}
           <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-2">
             <div className="flex items-center justify-between text-[11px] text-indigo-700 font-semibold">
               <span>Converted Estimate</span>
@@ -281,7 +267,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
             </div>
           </div>
 
-          {/* Transparency / Status Banner */}
           <div className="flex items-start gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500">
             <Info className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
             <div>
@@ -294,7 +279,6 @@ export const CurrencyConverterModal: React.FC<CurrencyConverterModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
           <button
             onClick={fetchRates}

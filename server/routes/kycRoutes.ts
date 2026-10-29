@@ -1,19 +1,3 @@
-/**
- * KYC (Identity Verification Workflow) REST API Routes
- * 
- * Educational / Simulated KYC verification portal.
- * Clearly labeled: "Demo KYC Workflow — No real identity verification performed."
- * 
- * Provides:
- * - Profile & document submission (Passport, Driving License, National ID, Voter ID)
- * - Input validation, document number masking (e.g. •••• •••• 1234)
- * - User update of permitted non-privileged profile fields (PATCH /api/kyc)
- * - Strict prohibition on self-approval of verification statuses
- * - Administrative reviewer verification action (POST /api/kyc/review)
- * - Cryptographic audit trail anchoring on blockchain ledger simulation
- * - Multi-tenant IDOR protection and direct database persistence
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -32,7 +16,6 @@ function maskDocumentNumber(docNum: string): string {
   return '•••• •••• ' + last4;
 }
 
-// GET /api/kyc/status - Retrieve current user's KYC status summary
 kycRouter.get('/status', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -64,7 +47,6 @@ kycRouter.get('/status', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/kyc - Retrieve complete sanitized KYC record for user
 kycRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -90,7 +72,6 @@ kycRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/kyc/submit - Submit KYC document and profile
 kycRouter.post('/submit', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -146,13 +127,9 @@ kycRouter.post('/submit', async (req: Request, res: Response) => {
       updatedAt: now,
     };
 
-    // Direct database persistence
     await adapter.saveKycRecord(newKycRecord);
-
-    // Keep memory cache updated
     db.saveUserKyc(newKycRecord);
 
-    // Anchor KYC submission to blockchain ledger simulation
     const docHash = crypto
       .createHash('sha256')
       .update(`${kycId}:${userId}:${documentType}:${maskedDocumentNumber}:${now}`)
@@ -175,7 +152,6 @@ kycRouter.post('/submit', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/kyc - Update permitted user profile fields (prevents self-approval)
 kycRouter.patch('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -190,7 +166,6 @@ kycRouter.patch('/', async (req: Request, res: Response) => {
       return sendError(res, 404, 'KYC_NOT_FOUND', 'No KYC record found to update.');
     }
 
-    // Security Guard: Prevent standard users from modifying privileged status fields
     const { status, verifiedAt, reviewerNotes, rejectionReason, fullName, dateOfBirth, address, country, documentImageUri } = req.body;
 
     if (status !== undefined || verifiedAt !== undefined || reviewerNotes !== undefined || rejectionReason !== undefined) {
@@ -231,8 +206,6 @@ kycRouter.patch('/', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/kyc/review - Privileged Reviewer Action (Approve or Reject)
-// Protected: Only users with role === 'ADMIN' or reviewers may approve/reject KYC records
 kycRouter.post('/review', async (req: Request, res: Response) => {
   try {
     const requesterId = (req as any).userId;
@@ -241,7 +214,6 @@ kycRouter.post('/review', async (req: Request, res: Response) => {
     const requesterUser = await adapter.getUserById(requesterId);
     const targetUserId = req.body.targetUserId || requesterId;
 
-    // Security Check: Normal users cannot approve their own verification
     if (requesterUser?.role !== 'ADMIN') {
       return sendError(
         res,
@@ -270,7 +242,6 @@ kycRouter.post('/review', async (req: Request, res: Response) => {
       kyc.rejectionReason = undefined;
       kyc.updatedAt = now;
 
-      // Anchor approval into blockchain
       const approvalHash = crypto
         .createHash('sha256')
         .update(`KYC_VERIFIED:${kyc.id}:${targetUserId}:${now}`)
@@ -309,7 +280,6 @@ kycRouter.post('/review', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/kyc/reset - Reset KYC for Demo Testing
 kycRouter.post('/reset', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

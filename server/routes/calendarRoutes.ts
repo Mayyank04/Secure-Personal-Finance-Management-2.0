@@ -1,11 +1,3 @@
-/**
- * Financial Calendar REST API Routes (Phase 7)
- * 
- * Provides:
- * - GET /api/calendar/events (Aggregated timeline of bills, subscriptions, loan EMIs, recurring payments, and expected salary)
- * - GET /api/calendar/export-ics (Standard RFC 5545 iCalendar (.ics) download)
- */
-
 import { Router, Request, Response } from 'express';
 import { db } from '../db.js';
 
@@ -23,7 +15,6 @@ export interface CalendarEvent {
   notes?: string;
 }
 
-// Helper to calculate status relative to today
 function calculateDateStatus(dateStr: string, currentStatus?: string): 'UPCOMING' | 'DUE_SOON' | 'OVERDUE' | 'PAID' | 'COMPLETED' {
   if (currentStatus === 'PAID' || currentStatus === 'COMPLETED') return currentStatus;
   const today = new Date().toISOString().split('T')[0];
@@ -33,7 +24,6 @@ function calculateDateStatus(dateStr: string, currentStatus?: string): 'UPCOMING
   return 'UPCOMING';
 }
 
-// GET /api/calendar/events - Aggregate all financial commitments and inflow dates
 calendarRouter.get('/events', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -41,7 +31,6 @@ calendarRouter.get('/events', (req: Request, res: Response) => {
 
     const events: CalendarEvent[] = [];
 
-    // 1. Bills
     const bills = db.getUserBills(userId);
     for (const b of bills) {
       events.push({
@@ -56,7 +45,6 @@ calendarRouter.get('/events', (req: Request, res: Response) => {
       });
     }
 
-    // 2. Subscriptions
     const subs = db.getUserSubscriptions(userId);
     for (const s of subs) {
       events.push({
@@ -71,7 +59,6 @@ calendarRouter.get('/events', (req: Request, res: Response) => {
       });
     }
 
-    // 3. Loans
     const loans = db.getUserLoans(userId);
     for (const l of loans) {
       if (l.status === 'ACTIVE') {
@@ -91,7 +78,6 @@ calendarRouter.get('/events', (req: Request, res: Response) => {
       }
     }
 
-    // 4. Expected Salary / Inflow (1st of month)
     events.push({
       id: `evt-salary-${month}-01`,
       title: 'Corporate Payroll / Salary Credit',
@@ -103,7 +89,6 @@ calendarRouter.get('/events', (req: Request, res: Response) => {
       notes: 'Expected regular monthly salary inflow',
     });
 
-    // 5. Budget Reset (1st of month)
     events.push({
       id: `evt-bgt-${month}-01`,
       title: 'Monthly Budget Accounting Cycle Reset',
@@ -133,7 +118,6 @@ calendarRouter.get('/events', (req: Request, res: Response) => {
   }
 });
 
-// GET /api/calendar/export-ics - Export standard RFC 5545 iCalendar format
 calendarRouter.get('/export-ics', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -153,7 +137,6 @@ calendarRouter.get('/export-ics', (req: Request, res: Response) => {
 
     const todayStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 
-    // Export bills
     for (const b of bills) {
       const dtStart = b.dueDate.replace(/-/g, '');
       icsContent.push(
@@ -168,7 +151,6 @@ calendarRouter.get('/export-ics', (req: Request, res: Response) => {
       );
     }
 
-    // Export subscriptions
     for (const s of subs) {
       const dtStart = s.nextBillingDate.replace(/-/g, '');
       icsContent.push(

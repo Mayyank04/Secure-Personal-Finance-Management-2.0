@@ -60,7 +60,6 @@ export const DemoBanner: React.FC = () => {
         </button>
       </div>
 
-      {/* Expandable Architecture Explainer Drawer */}
       {showDetails && (
         <div className="w-full mt-2 p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm text-slate-600 text-xs space-y-1.5">
           <div className="flex items-center justify-between text-slate-800 font-medium">

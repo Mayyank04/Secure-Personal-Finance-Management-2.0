@@ -428,7 +428,6 @@ export const EMBEDDED_MIGRATIONS: MigrationFile[] = [
 ];
 
 export async function runPostgresMigrations(poolOrClient: any): Promise<{ applied: string[]; currentVersion: string }> {
-  // Ensure schema_migrations table exists
   await poolOrClient.query(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       version VARCHAR(64) PRIMARY KEY,

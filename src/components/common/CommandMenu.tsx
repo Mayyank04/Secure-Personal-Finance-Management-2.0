@@ -1,7 +1,3 @@
-/**
- * Global Quick-Action Command Menu (Cmd+K / Ctrl+K)
- * Fast fuzzy navigation and instant action trigger across the FinTech platform.
- */
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -139,7 +135,6 @@ export const CommandMenu: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-100">
       <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[80vh]">
-        {/* Search Bar */}
         <div className="p-4 border-b border-slate-100 flex items-center gap-3 bg-white">
           <Search className="w-5 h-5 text-slate-400 shrink-0" />
           <input
@@ -158,9 +153,7 @@ export const CommandMenu: React.FC = () => {
           </button>
         </div>
 
-        {/* Results List */}
         <div className="p-3 overflow-y-auto space-y-4 max-h-[420px]">
-          {/* Quick Actions */}
           {filteredActions.length > 0 && (
             <div>
               <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -194,7 +187,6 @@ export const CommandMenu: React.FC = () => {
             </div>
           )}
 
-          {/* Navigation Pages */}
           {filteredNav.length > 0 && (
             <div>
               <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -224,7 +216,6 @@ export const CommandMenu: React.FC = () => {
           )}
         </div>
 
-        {/* Footer shortcuts */}
         <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between text-[11px] text-slate-400">
           <div className="flex items-center gap-3">
             <span>

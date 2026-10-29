@@ -1,13 +1,3 @@
-/**
- * Bill Management REST API Routes
- * 
- * Provides:
- * - Bill scheduling & status lifecycle (Upcoming, Due Soon, Paid, Overdue, Cancelled)
- * - Full CRUD endpoints: GET, POST, GET /:id, PATCH /:id, PUT /:id, DELETE /:id
- * - Direct database persistence to PostgreSQL/SQLite
- * - One-click bill settlement with ledger transaction recording & account balance deductions
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -30,7 +20,6 @@ function computeBillStatus(dueDate: string, currentStatus: BillStatus): BillStat
   return 'UPCOMING';
 }
 
-// GET /api/bills - List bills with status breakdown & filters
 billsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -64,7 +53,6 @@ billsRouter.get('/', async (req: Request, res: Response) => {
       rawBills = db.getUserBills(userId);
     }
 
-    // Apply query filters
     const { status, category } = req.query as Record<string, string>;
     if (status && status !== 'ALL') {
       rawBills = rawBills.filter(b => b.status === status);
@@ -73,7 +61,6 @@ billsRouter.get('/', async (req: Request, res: Response) => {
       rawBills = rawBills.filter(b => b.category.toLowerCase() === category.toLowerCase());
     }
 
-    // Update dynamic status
     const bills = rawBills.map(b => {
       const updatedStatus = computeBillStatus(b.dueDate, b.status);
       b.status = updatedStatus;
@@ -106,7 +93,6 @@ billsRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/bills/:id - Retrieve single bill
 billsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -132,7 +118,6 @@ billsRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/bills - Create new bill
 billsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -182,11 +167,8 @@ billsRouter.post('/', async (req: Request, res: Response) => {
       updatedAt: now,
     };
 
-    // Direct database persistence
     const adapter = getDatabaseAdapter();
     await adapter.saveBill(newBill);
-
-    // Keep memory cache updated
     db.bills.set(billId, newBill);
 
     db.recordAuditEvent({
@@ -201,7 +183,6 @@ billsRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH & PUT /api/bills/:id - Update bill
 async function handleUpdateBill(req: Request, res: Response) {
   try {
     const userId = (req as any).userId;
@@ -257,8 +238,6 @@ async function handleUpdateBill(req: Request, res: Response) {
 
     // Persist to database
     await adapter.saveBill(bill);
-
-    // Keep memory cache updated
     db.bills.set(billId, bill);
 
     db.recordAuditEvent({
@@ -276,7 +255,6 @@ async function handleUpdateBill(req: Request, res: Response) {
 billsRouter.put('/:id', handleUpdateBill);
 billsRouter.patch('/:id', handleUpdateBill);
 
-// POST /api/bills/:id/pay - Mark bill as paid & record atomic ledger transaction
 billsRouter.post('/:id/pay', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -389,7 +367,6 @@ billsRouter.post('/:id/pay', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/bills/:id - Delete bill
 billsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

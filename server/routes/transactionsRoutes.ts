@@ -1,14 +1,3 @@
-/**
- * Transactions REST API Routes
- * 
- * Provides:
- * - Full CRUD endpoints: GET /, POST /, GET /:id, PATCH /:id, PUT /:id, DELETE /:id
- * - Filtering (date range, category, type, account, amount range)
- * - Sorting & pagination
- * - Atomic account balance cascading & blockchain ledger anchoring
- * - AI categorization preview & bulk transaction import
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -21,7 +10,6 @@ import { Transaction, TransactionCategory, FinancialAccount } from '../types.js'
 
 export const transactionsRouter = Router();
 
-// POST /api/transactions/categorize-preview - AI categorization preview
 transactionsRouter.post('/categorize-preview', (req: Request, res: Response) => {
   const { description = '', amount = 0, type = 'EXPENSE' } = req.body;
   const { cleaned, extractedMerchant } = cleanTransactionDescription(description);
@@ -39,7 +27,6 @@ transactionsRouter.post('/categorize-preview', (req: Request, res: Response) => 
   });
 });
 
-// GET /api/transactions - List transactions with filters, pagination, and sorting
 transactionsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -61,7 +48,6 @@ transactionsRouter.get('/', async (req: Request, res: Response) => {
 
     const { page, limit } = parsePaginationParams(req.query, 15, 100);
 
-    // Read from persistent database or hydrated cache
     let list: Transaction[] = [];
     try {
       const rows = await adapter.query(
@@ -103,7 +89,6 @@ transactionsRouter.get('/', async (req: Request, res: Response) => {
       list = db.getUserTransactions(userId);
     }
 
-    // Attach account names from accounts cache
     for (const tx of list) {
       if (tx.accountId && !tx.accountName) {
         const acc = db.accounts.get(tx.accountId);
@@ -111,7 +96,6 @@ transactionsRouter.get('/', async (req: Request, res: Response) => {
       }
     }
 
-    // Filters
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -154,7 +138,6 @@ transactionsRouter.get('/', async (req: Request, res: Response) => {
       list = list.filter(t => t.amount <= Number(maxAmount));
     }
 
-    // Sorting
     list.sort((a: any, b: any) => {
       const valA = a[sortBy];
       const valB = b[sortBy];
@@ -182,7 +165,6 @@ transactionsRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/transactions/:id - Retrieve single transaction with strict ownership check
 transactionsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -212,7 +194,6 @@ transactionsRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/transactions - Create transaction with atomic balance cascade & blockchain anchor
 transactionsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -265,7 +246,6 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
       merchant: finalMerchant,
     };
 
-    // Calculate canonical SHA-256 hash and anchor to cryptographic ledger
     const blockchainHash = blockchainAdapter.computeCanonicalTransactionHash(canonicalData);
     const onChainRecord = blockchainAdapter.recordTransactionHash(txId, blockchainHash);
 
@@ -308,7 +288,6 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
       updatedAt: now,
     };
 
-    // Atomic cascade: persist transaction, update account balance, record audit event
     if (targetAccount) {
       const isIncome = newTx.type === 'INCOME';
       const balanceDelta = isIncome ? newTx.amount : -newTx.amount;
@@ -352,10 +331,8 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
       );
     }
 
-    // Keep memory cache updated
     db.transactions.set(txId, newTx);
 
-    // Link receipt if provided
     if (receiptId) {
       const rcpt = db.receipts.get(receiptId);
       if (rcpt && rcpt.userId === userId) {
@@ -365,7 +342,6 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
       }
     }
 
-    // Link bill if provided
     if (billId) {
       const bill = db.bills.get(billId);
       if (bill && bill.userId === userId) {
@@ -376,7 +352,6 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
       }
     }
 
-    // Record category feedback
     if (manualCategory && manualCategory !== prediction.predictedCategory) {
       recordCategoryFeedback(description, manualCategory);
     }
@@ -392,7 +367,6 @@ transactionsRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH & PUT /api/transactions/:id - Edit transaction with balance reversion & re-anchoring
 async function handleUpdateTransaction(req: Request, res: Response) {
   try {
     const userId = (req as any).userId;
@@ -417,7 +391,6 @@ async function handleUpdateTransaction(req: Request, res: Response) {
     const oldType = tx.type;
     const oldAccountId = tx.accountId;
 
-    // Reverse old balance impact
     if (oldAccountId && (amount !== undefined || type !== undefined || accountId !== undefined)) {
       const oldAccount = await adapter.getAccountForUser(oldAccountId, userId);
       if (oldAccount) {
@@ -472,7 +445,6 @@ async function handleUpdateTransaction(req: Request, res: Response) {
       tx.accountName = acc?.name;
     }
 
-    // Apply new balance impact
     const targetAccountId = tx.accountId;
     if (targetAccountId && (amount !== undefined || type !== undefined || accountId !== undefined)) {
       const newAccount = await adapter.getAccountForUser(targetAccountId, userId);
@@ -493,7 +465,6 @@ async function handleUpdateTransaction(req: Request, res: Response) {
 
     tx.updatedAt = new Date().toISOString();
 
-    // Re-anchor updated hash on blockchain
     const canonicalData = {
       id: tx.id,
       userId: tx.userId,
@@ -510,7 +481,6 @@ async function handleUpdateTransaction(req: Request, res: Response) {
     tx.blockNumber = onChainRecord.blockNumber;
     tx.blockchainVerified = true;
 
-    // Persist to database
     await adapter.execute(
       `UPDATE transactions SET
          description = $1, clean_description = $2, amount = $3, type = $4, category = $5,
@@ -525,7 +495,6 @@ async function handleUpdateTransaction(req: Request, res: Response) {
       ]
     );
 
-    // Keep memory cache updated
     db.transactions.set(tx.id, tx);
 
     return sendSuccess(res, 200, { transaction: tx }, 'Transaction updated and re-anchored on blockchain.');
@@ -537,7 +506,6 @@ async function handleUpdateTransaction(req: Request, res: Response) {
 transactionsRouter.patch('/:id', handleUpdateTransaction);
 transactionsRouter.put('/:id', handleUpdateTransaction);
 
-// DELETE /api/transactions/:id - Delete transaction with balance reversion
 transactionsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -556,7 +524,6 @@ transactionsRouter.delete('/:id', async (req: Request, res: Response) => {
       return sendError(res, 404, 'TRANSACTION_NOT_FOUND', 'Transaction not found or inaccessible.');
     }
 
-    // Unlink receipt if linked
     if (tx.receiptId) {
       const rcpt = db.receipts.get(tx.receiptId);
       if (rcpt) {
@@ -565,7 +532,6 @@ transactionsRouter.delete('/:id', async (req: Request, res: Response) => {
       }
     }
 
-    // Reverse balance impact on account
     if (tx.accountId) {
       const targetAccount = await adapter.getAccountForUser(tx.accountId, userId);
       if (targetAccount) {
@@ -578,7 +544,6 @@ transactionsRouter.delete('/:id', async (req: Request, res: Response) => {
       }
     }
 
-    // Delete from database
     await adapter.deleteTransaction(txId);
     db.transactions.delete(txId);
 
@@ -594,7 +559,6 @@ transactionsRouter.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/transactions/import - Bulk import transactions
 transactionsRouter.post('/import', async (req: Request, res: Response) => {
   try {
     const ip = req.ip || '127.0.0.1';

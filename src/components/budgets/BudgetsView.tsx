@@ -31,7 +31,6 @@ export const BudgetsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
-  // Edit Budget state
   const [totalBudgetInput, setTotalBudgetInput] = useState<number>(85000);
   const [rolloverEnabled, setRolloverEnabled] = useState<boolean>(true);
   const [normalThreshold, setNormalThreshold] = useState<number>(70);
@@ -56,7 +55,6 @@ export const BudgetsView: React.FC = () => {
       setBudgets(bgtRes.budgets);
       setMonthlyComparison(dashRes.monthlyComparison || []);
 
-      // Extract current month spending
       const map: Record<string, number> = {};
       (dashRes?.categoryDistribution || []).forEach((c) => {
         map[c.category] = c.amount;
@@ -121,11 +119,9 @@ export const BudgetsView: React.FC = () => {
   const budgetRemaining = Math.max(0, currentBudget.totalBudget - totalSpent);
   const totalUtilization = currentBudget.totalBudget > 0 ? Math.round((totalSpent / currentBudget.totalBudget) * 100) : 0;
 
-  // Category allocation sum check
   const sumAllocated = currentBudget.categoryBudgets.reduce((sum, c) => sum + c.allocatedAmount, 0);
   const isAllocationOverBudget = sumAllocated > currentBudget.totalBudget;
 
-  // Month-end forecast calculation (Day 28 of 31 in August 2026)
   const currentDay = 28;
   const daysInMonth = 31;
   const daysRemaining = daysInMonth - currentDay;
@@ -133,7 +129,6 @@ export const BudgetsView: React.FC = () => {
   const projectedMonthEndTotal = Math.round(totalSpent + dailyBurnRate * daysRemaining);
   const projectedVariance = projectedMonthEndTotal - currentBudget.totalBudget;
 
-  // Helper status badge determination
   const getCategoryStatusBadge = (ratio: number, isOver: boolean) => {
     if (isOver || ratio >= 100) {
       return { label: 'Exceeded', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', icon: AlertTriangle };
@@ -149,7 +144,6 @@ export const BudgetsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Monthly Budget Planning & Controls</h1>
@@ -167,7 +161,6 @@ export const BudgetsView: React.FC = () => {
         </button>
       </div>
 
-      {/* Allocation Warning Banner if sum of category budgets exceeds monthly cap */}
       {isAllocationOverBudget && (
         <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
           <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -181,7 +174,6 @@ export const BudgetsView: React.FC = () => {
         </div>
       )}
 
-      {/* Top Total Budget Overview Card */}
       <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -213,7 +205,6 @@ export const BudgetsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Progress Bar with Threshold Markers */}
         <div className="space-y-1.5">
           <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden relative border border-slate-200">
             <div
@@ -237,7 +228,6 @@ export const BudgetsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Month-End Forecast Card */}
       <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -271,7 +261,6 @@ export const BudgetsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Budgets Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {currentBudget.categoryBudgets.map((cb) => {
           const spent = spentByCategory[cb.category] || 0;
@@ -334,7 +323,6 @@ export const BudgetsView: React.FC = () => {
         })}
       </div>
 
-      {/* Historical Adherence Comparison (6-Month Performance) */}
       <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -387,7 +375,6 @@ export const BudgetsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Configure Budget Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="relative w-full max-w-xl bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">

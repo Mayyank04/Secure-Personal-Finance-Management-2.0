@@ -33,7 +33,6 @@ export const BillsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [formState, setFormState] = useState({
@@ -48,7 +47,6 @@ export const BillsView: React.FC = () => {
     notes: '',
   });
 
-  // Pay Bill Action Modal
   const [payingBill, setPayingBill] = useState<Bill | null>(null);
   const [payAccountId, setPayAccountId] = useState<string>('');
   const [recordTx, setRecordTx] = useState<boolean>(true);
@@ -216,7 +214,6 @@ export const BillsView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -237,7 +234,6 @@ export const BillsView: React.FC = () => {
         </button>
       </div>
 
-      {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
@@ -288,7 +284,6 @@ export const BillsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {[
           { id: 'ALL', label: 'All Bills' },
@@ -311,7 +306,6 @@ export const BillsView: React.FC = () => {
         ))}
       </div>
 
-      {/* Bills List / Cards */}
       {isLoading ? (
         <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
@@ -431,7 +425,6 @@ export const BillsView: React.FC = () => {
         </div>
       )}
 
-      {/* Pay Bill Modal */}
       {payingBill && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">
@@ -519,7 +512,6 @@ export const BillsView: React.FC = () => {
         </div>
       )}
 
-      {/* Bill Add / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">

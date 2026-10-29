@@ -1,14 +1,3 @@
-/**
- * RECEIPT OCR — ZERO-COST IMPLEMENTATION
- * 
- * 100% Client-Side Open-Source OCR (Tesseract WebAssembly + Local Deterministic Parser)
- * - No paid OCR API
- * - No mandatory subscription
- * - No hard-coded API key
- * - Zero cloud upload of receipt images (complete privacy)
- * - Deterministic parsing of Merchant, Date, Total, Tax, Currency, Line Items, and Category
- * - Mandatory "Review extracted information before saving" confirmation step
- */
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -171,7 +160,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Parsed Receipt Fields for Review & Confirmation
   const [merchant, setMerchant] = useState<string>('');
   const [date, setDate] = useState<string>('');
   const [amount, setAmount] = useState<number>(0);
@@ -189,7 +177,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
   const [showRawText, setShowRawText] = useState<boolean>(false);
   const [isCopiedRaw, setIsCopiedRaw] = useState<boolean>(false);
 
-  // Manual raw text input drawer for testing OCR without an image
   const [showManualTextInput, setShowManualTextInput] = useState<boolean>(false);
   const [manualText, setManualText] = useState<string>('');
 
@@ -198,7 +185,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Reset state on open
       setStep('upload');
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -227,7 +213,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
     setOcrProgress({ status: 'Starting local browser OCR...', progress: 5 });
 
     try {
-      // Execute 100% on-device OCR using Tesseract WebAssembly
       const parsedData = await scanReceiptWithTesseract(file, currency, (prog) => {
         setOcrProgress(prog);
       });
@@ -238,7 +223,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
       setErrorMsg(
         'On-device image OCR encountered an issue. Falling back to local deterministic sample parser.'
       );
-      // Fallback to deterministic parser on first sample
       const sample = SAMPLE_RECEIPTS[0];
       const parsed = parseReceiptText(sample.text, currency);
       populateReviewData(parsed);
@@ -289,7 +273,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
     setStep('review');
   };
 
-  // Line item manipulation
   const handleAddItem = () => {
     setItems([...items, { name: '', price: 0, qty: 1 }]);
   };
@@ -382,7 +365,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -409,7 +391,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
           </button>
         </div>
 
-        {/* Privacy Assurance Banner */}
         <div className="px-6 py-2 bg-indigo-50/50 border-b border-indigo-100/60 flex items-center justify-between text-[11px] text-indigo-900">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-indigo-600 shrink-0" />
@@ -419,7 +400,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
           </div>
         </div>
 
-        {/* Content Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
           {errorMsg && (
             <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2.5">
@@ -428,10 +408,8 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
             </div>
           )}
 
-          {/* STEP 1: Upload / Capture / Presets */}
           {step === 'upload' && (
             <div className="space-y-6">
-              {/* Drag & Drop Upload Zone */}
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-8 text-center bg-slate-50/50 hover:bg-indigo-50/30 cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
@@ -483,7 +461,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 </div>
               </div>
 
-              {/* Realistic Sample Receipts */}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -524,7 +501,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 </div>
               </div>
 
-              {/* Collapsible Direct Text Input */}
               <div className="border-t border-slate-100 pt-4">
                 <button
                   type="button"
@@ -563,7 +539,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
             </div>
           )}
 
-          {/* STEP 2: Scanning & Processing Animation */}
           {step === 'scanning' && (
             <div className="py-12 flex flex-col items-center justify-center text-center space-y-5">
               <div className="relative">
@@ -579,7 +554,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   Running client-side WebAssembly OCR and deterministic parser locally in your browser.
                 </p>
 
-                {/* Progress Bar */}
                 <div className="mt-4 w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-indigo-600 h-2 rounded-full transition-all duration-300 ease-out"
@@ -593,10 +567,8 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
             </div>
           )}
 
-          {/* STEP 3: Mandatory Review & Confirmation Screen */}
           {step === 'review' && (
             <div className="space-y-5">
-              {/* Mandatory Notice Banner */}
               <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 flex items-start gap-3">
                 <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div className="text-xs space-y-0.5">
@@ -607,7 +579,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 </div>
               </div>
 
-              {/* Low Confidence Warning (if applicable) */}
               {isLowConfidence && (
                 <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-2.5 text-xs">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
@@ -626,7 +597,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 </div>
               )}
 
-              {/* Extracted Fields Form */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -720,7 +690,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 </div>
               </div>
 
-              {/* Line Items Section */}
               <div className="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -796,7 +765,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 )}
               </div>
 
-              {/* Notes */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Transaction Notes / Audit Memo
@@ -809,7 +777,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 />
               </div>
 
-              {/* Raw OCR Text Collapsible Viewer */}
               {rawOcrText && (
                 <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
                   <button
@@ -847,7 +814,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 </div>
               )}
 
-              {/* Blockchain Audit Guarantee */}
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5 text-xs text-slate-600">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>
@@ -858,7 +824,6 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
           )}
         </div>
 
-        {/* Footer Actions */}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
           {step === 'review' ? (
             <>

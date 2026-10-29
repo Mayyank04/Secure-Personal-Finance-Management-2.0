@@ -1,14 +1,3 @@
-/**
- * Receipt Vault REST API Routes
- * 
- * Provides:
- * - Persistent receipt vault collection with OCR metadata
- * - Confidence scoring & low-confidence review requirement
- * - Image & OCR text re-parsing
- * - Automatic and manual linking with transactions
- * - Itemized breakdown & Tax extraction
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -19,13 +8,11 @@ import { ReceiptRecord, Transaction, TransactionCategory } from '../types.js';
 
 export const receiptsRouter = Router();
 
-// GET /api/receipts - List receipts for user
 receiptsRouter.get('/', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const receipts = db.getUserReceipts(userId);
 
-    // Attach linked transaction summary
     const enhanced = receipts.map(r => {
       const linkedTx = r.linkedTransactionId ? db.transactions.get(r.linkedTransactionId) : undefined;
       return {
@@ -54,12 +41,11 @@ receiptsRouter.get('/', (req: Request, res: Response) => {
         unlinkedCount: receipts.length - linkedCount,
       },
     });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to retrieve receipts from vault.' });
   }
 });
 
-// POST /api/receipts - Scan & store new receipt
 receiptsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -127,7 +113,6 @@ receiptsRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/receipts/:id - Single receipt
 receiptsRouter.get('/:id', (req: Request, res: Response) => {
   const userId = (req as any).userId;
   const rcpt = db.receipts.get(req.params.id);
@@ -140,7 +125,6 @@ receiptsRouter.get('/:id', (req: Request, res: Response) => {
   return res.json({ receipt: rcpt, linkedTransaction: linkedTx });
 });
 
-// PUT /api/receipts/:id - Update receipt details
 receiptsRouter.put('/:id', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -165,12 +149,11 @@ receiptsRouter.put('/:id', (req: Request, res: Response) => {
     persistentSqlite.syncFromMemoryDb(db);
 
     return res.json({ message: 'Receipt updated successfully.', receipt: rcpt });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to update receipt.' });
   }
 });
 
-// POST /api/receipts/:id/link - Link receipt to transaction or create transaction from receipt
 receiptsRouter.post('/:id/link', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -193,7 +176,6 @@ receiptsRouter.post('/:id/link', (req: Request, res: Response) => {
       rcpt.linkedTransactionId = targetTx.id;
       rcpt.processingStatus = 'LINKED';
     } else if (createNewTransaction) {
-      // Create new transaction from receipt metadata
       const txId = 'tx-' + crypto.randomBytes(8).toString('hex');
       const canonicalData = {
         id: txId,
@@ -261,12 +243,11 @@ receiptsRouter.post('/:id/link', (req: Request, res: Response) => {
       receipt: rcpt,
       transaction: targetTx,
     });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to link receipt.' });
   }
 });
 
-// POST /api/receipts/:id/unlink - Unlink receipt from transaction
 receiptsRouter.post('/:id/unlink', (req: Request, res: Response) => {
   const userId = (req as any).userId;
   const rcpt = db.receipts.get(req.params.id);
@@ -287,7 +268,6 @@ receiptsRouter.post('/:id/unlink', (req: Request, res: Response) => {
   return res.json({ message: 'Receipt unlinked successfully.', receipt: rcpt });
 });
 
-// POST /api/receipts/:id/reprocess - Reprocess OCR on receipt
 receiptsRouter.post('/:id/reprocess', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -313,12 +293,11 @@ receiptsRouter.post('/:id/reprocess', async (req: Request, res: Response) => {
     rcpt.updatedAt = new Date().toISOString();
 
     return res.json({ message: 'Receipt reprocessed with AI OCR parser.', receipt: rcpt });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to reprocess receipt.' });
   }
 });
 
-// DELETE /api/receipts/:id - Delete receipt
 receiptsRouter.delete('/:id', (req: Request, res: Response) => {
   const userId = (req as any).userId;
   const rcpt = db.receipts.get(req.params.id);

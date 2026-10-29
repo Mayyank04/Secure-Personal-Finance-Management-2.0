@@ -88,7 +88,6 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Top Welcome & Notification Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Financial Overview & Integrity</h1>
@@ -115,9 +114,7 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Top 5 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Total Net Balance */}
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Net Liquid Balance</span>
@@ -136,7 +133,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Monthly Income */}
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>August Inflow</span>
@@ -152,7 +148,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Monthly Expenses */}
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>August Expenses</span>
@@ -168,7 +163,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Total Goal Savings */}
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Goal Reserves</span>
@@ -184,7 +178,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Budget Remaining */}
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Budget Balance</span>
@@ -208,9 +201,7 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Financial Health & Explainable AI Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Financial Health Score Widget */}
         <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
@@ -278,7 +269,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Income vs Expense History Bar Chart */}
         <div className="lg:col-span-2 p-5 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -317,9 +307,7 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Middle Row: Category Donut & Daily Spending Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Category Donut Distribution */}
         <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -380,7 +368,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Daily Spending Trend Area Chart */}
         <div className="lg:col-span-2 p-5 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -417,9 +404,7 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Savings Goals & Upcoming Recurring */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Savings Goals Progress */}
         <div className="lg:col-span-2 p-5 rounded-3xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -470,7 +455,6 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Upcoming Subscriptions & Bills */}
         <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -510,7 +494,6 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Transactions Table with Blockchain Hashes */}
       <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div>

@@ -1,14 +1,3 @@
-/**
- * CSV / Bank Statement Import REST API Routes
- * 
- * Provides:
- * - Smart column detection for major bank CSV formats (HDFC, ICICI, SBI, Chase, Standard CSV)
- * - Parsing of Date, Description, Amount/Debit/Credit, and Category
- * - Duplicate detection against existing ledger
- * - AI classification & confidence scoring
- * - Two-phase preview and batch commit with blockchain anchoring
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -73,17 +62,14 @@ function normalizeDate(raw: string): string {
   if (!raw) return new Date().toISOString().split('T')[0];
   const cleaned = raw.trim();
 
-  // Already YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) return cleaned;
 
-  // DD/MM/YYYY or DD-MM-YYYY
   const dmyMatch = cleaned.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
   if (dmyMatch) {
     const [, d, m, y] = dmyMatch;
     return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
 
-  // MM/DD/YYYY
   const mdyMatch = cleaned.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
   if (mdyMatch) {
     const [, m, d, y] = mdyMatch;
@@ -98,7 +84,6 @@ function normalizeDate(raw: string): string {
   return new Date().toISOString().split('T')[0];
 }
 
-// POST /api/import/csv-preview - Upload CSV string, auto-detect columns, return row preview
 importRouter.post('/csv-preview', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -117,128 +102,138 @@ importRouter.post('/csv-preview', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'CSV must contain at least a header row and one data row.' });
     }
 
-    // Detect delimiter
-    const sampleLine = lines[0];
-    let delimiter = ',';
-    if (sampleLine.includes('\t')) delimiter = '\t';
-    else if (sampleLine.includes(';') && !sampleLine.includes(',')) delimiter = ';';
+    const headerLine = lines[0];
+    const commaCount = (headerLine.match(/,/g) || []).length;
+    const semiCount = (headerLine.match(/;/g) || []).length;
+    const tabCount = (headerLine.match(/\t/g) || []).length;
+    const delimiter = tabCount > commaCount && tabCount > semiCount ? '\t' : semiCount > commaCount ? ';' : ',';
 
-    const headers = parseCSVLine(lines[0], delimiter);
-    const headersLower = headers.map(h => h.toLowerCase());
+    const headers = parseCSVLine(headerLine, delimiter).map(h => h.trim());
 
-    // Auto-detect column mapping if not provided
-    const mapping: ColumnMapping = customMapping || {
-      dateColumn: headers[headersLower.findIndex(h => h.includes('date') || h.includes('txn') || h.includes('time'))] || headers[0],
-      descriptionColumn: headers[headersLower.findIndex(h => h.includes('desc') || h.includes('narr') || h.includes('particular') || h.includes('detail') || h.includes('remark') || h.includes('merchant'))] || headers[1],
-      amountColumn: headers[headersLower.findIndex(h => (h.includes('amount') || h.includes('amt') || h.includes('sum') || h.includes('value')) && !h.includes('debit') && !h.includes('credit'))],
-      debitColumn: headers[headersLower.findIndex(h => h.includes('debit') || h.includes('dr') || h.includes('withdrawal'))],
-      creditColumn: headers[headersLower.findIndex(h => h.includes('credit') || h.includes('cr') || h.includes('deposit'))],
-      typeColumn: headers[headersLower.findIndex(h => h === 'type' || h.includes('cr/dr') || h.includes('txn type'))],
-      categoryColumn: headers[headersLower.findIndex(h => h.includes('cat'))],
-      methodColumn: headers[headersLower.findIndex(h => h.includes('method') || h.includes('mode') || h.includes('channel'))],
+    let mapping: ColumnMapping = {
+      dateColumn: '',
+      descriptionColumn: '',
     };
 
-    const dateIdx = headers.indexOf(mapping.dateColumn);
-    const descIdx = headers.indexOf(mapping.descriptionColumn);
-    const amtIdx = mapping.amountColumn ? headers.indexOf(mapping.amountColumn) : -1;
-    const debitIdx = mapping.debitColumn ? headers.indexOf(mapping.debitColumn) : -1;
-    const creditIdx = mapping.creditColumn ? headers.indexOf(mapping.creditColumn) : -1;
-    const typeIdx = mapping.typeColumn ? headers.indexOf(mapping.typeColumn) : -1;
-    const catIdx = mapping.categoryColumn ? headers.indexOf(mapping.categoryColumn) : -1;
-    const methodIdx = mapping.methodColumn ? headers.indexOf(mapping.methodColumn) : -1;
+    if (customMapping) {
+      mapping = { ...customMapping };
+    } else {
+      for (const h of headers) {
+        const lower = h.toLowerCase();
+        if (!mapping.dateColumn && (lower.includes('date') || lower.includes('time') || lower === 'txn_date')) {
+          mapping.dateColumn = h;
+        } else if (!mapping.descriptionColumn && (lower.includes('desc') || lower.includes('particular') || lower.includes('narration') || lower.includes('memo') || lower.includes('detail') || lower === 'payee')) {
+          mapping.descriptionColumn = h;
+        } else if (!mapping.amountColumn && (lower === 'amount' || lower === 'amt' || lower.includes('transaction amount'))) {
+          mapping.amountColumn = h;
+        } else if (!mapping.debitColumn && (lower.includes('debit') || lower.includes('withdrawal') || lower.includes('dr'))) {
+          mapping.debitColumn = h;
+        } else if (!mapping.creditColumn && (lower.includes('credit') || lower.includes('deposit') || lower.includes('cr'))) {
+          mapping.creditColumn = h;
+        } else if (!mapping.typeColumn && (lower === 'type' || lower.includes('txn_type'))) {
+          mapping.typeColumn = h;
+        } else if (!mapping.categoryColumn && (lower.includes('category') || lower.includes('tag'))) {
+          mapping.categoryColumn = h;
+        } else if (!mapping.methodColumn && (lower.includes('method') || lower.includes('mode') || lower.includes('channel'))) {
+          mapping.methodColumn = h;
+        }
+      }
+    }
 
-    const existingTxs = db.getUserTransactions(userId);
+    if (!mapping.dateColumn || !mapping.descriptionColumn) {
+      return res.status(400).json({
+        error: 'Could not auto-detect Date or Description columns. Please verify the CSV header.',
+        detectedHeaders: headers,
+        mapping,
+      });
+    }
+
+    const userExistingTxs = db.getUserTransactions(userId);
     const previewRows: ParsedPreviewRow[] = [];
-
-    let duplicateCount = 0;
     let validCount = 0;
-    let invalidCount = 0;
+    let duplicateCount = 0;
 
     for (let i = 1; i < lines.length; i++) {
-      const cols = parseCSVLine(lines[i], delimiter);
-      if (cols.length === 0 || (cols.length === 1 && cols[0] === '')) continue;
+      const line = lines[i];
+      if (!line) continue;
+      const values = parseCSVLine(line, delimiter);
+      if (values.length < 2) continue;
 
-      const rawDate = dateIdx >= 0 && cols[dateIdx] ? cols[dateIdx] : '';
-      const rawDesc = descIdx >= 0 && cols[descIdx] ? cols[descIdx] : 'Unspecified Transaction';
-      
-      let amount = 0;
-      let type: 'INCOME' | 'EXPENSE' = 'EXPENSE';
-      let rawAmtStr = '';
+      const rowMap: Record<string, string> = {};
+      headers.forEach((h, idx) => {
+        rowMap[h] = values[idx] || '';
+      });
 
-      if (debitIdx >= 0 && cols[debitIdx] && parseFloat(cols[debitIdx].replace(/[^0-9.-]/g, '')) > 0) {
-        amount = Math.abs(parseFloat(cols[debitIdx].replace(/[^0-9.-]/g, '')));
-        type = 'EXPENSE';
-        rawAmtStr = cols[debitIdx];
-      } else if (creditIdx >= 0 && cols[creditIdx] && parseFloat(cols[creditIdx].replace(/[^0-9.-]/g, '')) > 0) {
-        amount = Math.abs(parseFloat(cols[creditIdx].replace(/[^0-9.-]/g, '')));
-        type = 'INCOME';
-        rawAmtStr = cols[creditIdx];
-      } else if (amtIdx >= 0 && cols[amtIdx]) {
-        rawAmtStr = cols[amtIdx];
-        const cleanAmtStr = cols[amtIdx].replace(/[^0-9.-]/g, '');
-        const val = parseFloat(cleanAmtStr);
-        if (!isNaN(val)) {
-          amount = Math.abs(val);
-          if (val < 0) {
-            type = 'EXPENSE';
-          } else if (typeIdx >= 0 && cols[typeIdx]) {
-            const tStr = cols[typeIdx].toLowerCase();
-            type = (tStr.includes('cr') || tStr.includes('inc') || tStr.includes('dep')) ? 'INCOME' : 'EXPENSE';
+      const rawDate = rowMap[mapping.dateColumn] || '';
+      const parsedDate = normalizeDate(rawDate);
+      const rawDesc = rowMap[mapping.descriptionColumn] || '';
+      const { cleaned, extractedMerchant } = cleanTransactionDescription(rawDesc);
+
+      let parsedAmount = 0;
+      let txType: 'INCOME' | 'EXPENSE' = 'EXPENSE';
+
+      if (mapping.debitColumn && rowMap[mapping.debitColumn] && parseFloat(rowMap[mapping.debitColumn].replace(/[^0-9.-]/g, '')) > 0) {
+        parsedAmount = Math.abs(parseFloat(rowMap[mapping.debitColumn].replace(/[^0-9.-]/g, '')));
+        txType = 'EXPENSE';
+      } else if (mapping.creditColumn && rowMap[mapping.creditColumn] && parseFloat(rowMap[mapping.creditColumn].replace(/[^0-9.-]/g, '')) > 0) {
+        parsedAmount = Math.abs(parseFloat(rowMap[mapping.creditColumn].replace(/[^0-9.-]/g, '')));
+        txType = 'INCOME';
+      } else if (mapping.amountColumn && rowMap[mapping.amountColumn]) {
+        const valStr = rowMap[mapping.amountColumn].replace(/[^0-9.-]/g, '');
+        const valNum = parseFloat(valStr);
+        if (!isNaN(valNum)) {
+          if (valNum < 0) {
+            parsedAmount = Math.abs(valNum);
+            txType = 'EXPENSE';
           } else {
-            type = 'EXPENSE';
+            parsedAmount = valNum;
+            const explicitType = mapping.typeColumn ? rowMap[mapping.typeColumn]?.toLowerCase() : '';
+            if (explicitType.includes('credit') || explicitType.includes('deposit') || explicitType.includes('income')) {
+              txType = 'INCOME';
+            } else if (explicitType.includes('debit') || explicitType.includes('expense')) {
+              txType = 'EXPENSE';
+            } else {
+              txType = rawDesc.toLowerCase().includes('salary') || rawDesc.toLowerCase().includes('credit') ? 'INCOME' : 'EXPENSE';
+            }
           }
         }
       }
 
-      const parsedDate = normalizeDate(rawDate);
-      const { cleaned, extractedMerchant } = cleanTransactionDescription(rawDesc);
-      
-      let category: TransactionCategory;
-      let confidence = 85;
-
-      if (catIdx >= 0 && cols[catIdx]) {
-        category = cols[catIdx] as TransactionCategory;
-        confidence = 98;
-      } else {
-        const prediction = predictTransactionCategory(cleaned, amount, type);
-        category = prediction.predictedCategory;
-        confidence = prediction.confidence;
-      }
-
-      let paymentMethod: PaymentMethod = 'Bank Transfer';
-      if (methodIdx >= 0 && cols[methodIdx]) {
-        const m = cols[methodIdx];
-        if (m.toLowerCase().includes('card')) paymentMethod = 'Credit Card';
-        else if (m.toLowerCase().includes('upi')) paymentMethod = 'UPI / Instant Transfer';
-        else if (m.toLowerCase().includes('cash')) paymentMethod = 'Cash';
-      }
-
-      // Check validation
       let isValid = true;
       let validationError: string | undefined;
 
-      if (isNaN(amount) || amount <= 0) {
+      if (!parsedAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
         isValid = false;
-        validationError = 'Missing or invalid numeric amount.';
-        invalidCount++;
-      } else {
-        validCount++;
+        validationError = 'Missing or invalid transaction amount';
+      } else if (!rawDesc || rawDesc.trim().length === 0) {
+        isValid = false;
+        validationError = 'Missing transaction description';
       }
 
-      // Check duplicate
-      const isDuplicate = existingTxs.some(
-        tx =>
-          tx.date === parsedDate &&
-          Math.abs(tx.amount - amount) < 0.01 &&
-          (tx.merchant.toLowerCase().includes(extractedMerchant.toLowerCase()) ||
-            rawDesc.toLowerCase().includes(tx.description.toLowerCase()))
-      );
-
+      let isDuplicate = false;
       let duplicateReason: string | undefined;
-      if (isDuplicate) {
-        duplicateCount++;
-        duplicateReason = `Matches existing record on ${parsedDate} (₹${amount.toLocaleString('en-IN')})`;
+
+      if (isValid) {
+        const existingMatch = userExistingTxs.find(
+          t => t.date === parsedDate && Math.abs(t.amount - parsedAmount) < 0.01 && t.type === txType
+        );
+        if (existingMatch) {
+          isDuplicate = true;
+          duplicateReason = `Exact match found on ${parsedDate} (₹${parsedAmount} - "${existingMatch.description}")`;
+          duplicateCount++;
+        } else {
+          validCount++;
+        }
       }
+
+      const aiCat = predictTransactionCategory(rawDesc, parsedAmount, txType);
+
+      let paymentMethod: PaymentMethod = 'Bank Transfer';
+      const descLower = rawDesc.toLowerCase();
+      if (descLower.includes('upi') || descLower.includes('@')) paymentMethod = 'UPI / Instant Transfer';
+      else if (descLower.includes('card') || descLower.includes('pos')) paymentMethod = 'Debit Card';
+      else if (descLower.includes('atm') || descLower.includes('cash')) paymentMethod = 'Cash';
+      else if (descLower.includes('neft') || descLower.includes('rtgs') || descLower.includes('imps')) paymentMethod = 'Bank Transfer';
 
       previewRows.push({
         rowIndex: i,
@@ -246,13 +241,13 @@ importRouter.post('/csv-preview', (req: Request, res: Response) => {
         parsedDate,
         rawDescription: rawDesc,
         cleanDescription: cleaned,
-        rawAmount: rawAmtStr,
-        parsedAmount: amount,
-        type,
-        predictedCategory: category,
-        aiConfidence: confidence,
+        rawAmount: String(rowMap[mapping.amountColumn || mapping.debitColumn || ''] || parsedAmount),
+        parsedAmount: Math.round(parsedAmount * 100) / 100,
+        type: txType,
+        predictedCategory: aiCat.predictedCategory,
+        aiConfidence: aiCat.confidence,
         paymentMethod,
-        merchant: extractedMerchant || rawDesc.slice(0, 30),
+        merchant: extractedMerchant,
         isDuplicate,
         duplicateReason,
         isValid,
@@ -261,12 +256,13 @@ importRouter.post('/csv-preview', (req: Request, res: Response) => {
     }
 
     return res.json({
-      headers,
-      detectedMapping: mapping,
+      detectedHeaders: headers,
+      mapping,
+      totalRows: previewRows.length,
       summary: {
         totalRows: previewRows.length,
         validCount,
-        invalidCount,
+        invalidCount: previewRows.length - validCount - duplicateCount,
         duplicateCount,
       },
       previewRows,
@@ -276,7 +272,6 @@ importRouter.post('/csv-preview', (req: Request, res: Response) => {
   }
 });
 
-// POST /api/import/csv-confirm - Confirm and commit approved rows
 importRouter.post('/csv-confirm', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

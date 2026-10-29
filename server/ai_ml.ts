@@ -1,18 +1,3 @@
-/**
- * AI & Statistical ML Engine for Secure Personal Finance System (Phase 3)
- * 
- * Fully Grounded Explainable Financial Intelligence System
- * - Explainable AI (XAI) Transaction Categorization with Confidence & Multi-Factor Reasoning
- * - Robust Statistical Anomaly Detection (Median/MAD + Modified Z-Score + Feature Impact Attributions)
- * - Multi-Horizon Grounded Spending Forecasting (7D / 30D / 90D) with Insufficient-Data Guardrails
- * - What-If Financial Scenario Simulator (Zero persistent ledger mutation)
- * - Recurring Payment Cadence & Anomaly Detection (Price bumps, duplicates, inactive subs)
- * - AI Budget & Goal Risk Recommendation Engines (Requires explicit user consent)
- * - Multimodal Receipt OCR & Voice NLP Parsers with Mandatory Human-in-the-Loop Review
- * - Grounded AI Copilot (Strict data boundary, no financial hallucinations)
- * - Interactive 11-Test-Case Automated Validation Bench
- */
-
 import { GoogleGenAI } from '@google/genai';
 import {
   Transaction,
@@ -32,10 +17,8 @@ import {
   AiTestCaseItem,
 } from './types.js';
 
-// User Category Correction Feedback Store for continuous learning
 const categoryFeedbackStore: { originalDesc: string; userCategory: TransactionCategory }[] = [];
 
-// Subcategory taxonomies for major categories
 export const categorySubcategories: Record<TransactionCategory, string[]> = {
   Food: ['Dining Out & Restaurants', 'Food Delivery & Takeout', 'Coffee & Cafes', 'Fast Food', 'Bakery & Confectionery'],
   Groceries: ['Supermarket & Fresh Produce', 'Dairy & Staples', 'Wholesale & Bulk Groceries', 'Specialty Food & Organic'],
@@ -56,7 +39,6 @@ export const categorySubcategories: Record<TransactionCategory, string[]> = {
   Other: ['Miscellaneous Expense', 'ATM Cash Withdrawal', 'Peer-to-Peer Transfer'],
 };
 
-// Keywords dictionary for token matching and semantic classification
 const categoryKeywords: Record<TransactionCategory, string[]> = {
   Food: ['restaurant', 'cafe', 'swiggy', 'zomato', 'mcdonalds', 'starbucks', 'subway', 'burger', 'pizza', 'diner', 'eats', 'chipotle', 'bakery', 'taco bell', 'taco', 'bistro', 'food court', 'coffee', 'barbeque nation', 'chai point', 'third wave', 'biryani blues', 'haldirams', 'dominos'],
   Groceries: ['supermarket', 'walmart', 'trader joe', 'costco', 'blinkit', 'zepto', 'instacart', 'bigbasket', 'safeway', 'whole foods', 'grocer', 'provision', 'aldi', 'target grocery', 'market', 'spencer', 'instamart', 'nature basket', 'dmart', 'freshtohome', 'country delight', 'licious', 'more megastore', 'milk', 'eggs', 'veggies', 'produce'],
@@ -77,7 +59,6 @@ const categoryKeywords: Record<TransactionCategory, string[]> = {
   Other: ['miscellaneous', 'atm withdrawal', 'general transfer', 'cash withdrawal', 'petty cash'],
 };
 
-// Known recurring merchants dictionary with default frequencies and baseline amounts
 const knownRecurringMerchants: { merchant: string; frequency: 'MONTHLY' | 'ANNUAL' | 'WEEKLY'; defaultAmount: number; category: TransactionCategory }[] = [
   { merchant: 'Netflix', frequency: 'MONTHLY', defaultAmount: 649, category: 'Entertainment' },
   { merchant: 'Spotify', frequency: 'MONTHLY', defaultAmount: 119, category: 'Entertainment' },
@@ -89,9 +70,6 @@ const knownRecurringMerchants: { merchant: string; frequency: 'MONTHLY' | 'ANNUA
   { merchant: 'Airtel Broadband', frequency: 'MONTHLY', defaultAmount: 999, category: 'Bills' },
 ];
 
-/**
- * Clean raw transaction descriptions by stripping reference codes, terminal IDs, and symbols
- */
 export function cleanTransactionDescription(rawDesc: string): {
   cleaned: string;
   extractedMerchant: string;
@@ -112,10 +90,6 @@ export function cleanTransactionDescription(rawDesc: string): {
   };
 }
 
-/**
- * 1. AI Transaction Categorization Engine
- * Grounded prediction with category, subcategory, confidence score, and clear explainability reasons.
- */
 export function predictTransactionCategory(
   description: string,
   amount: number,
@@ -125,7 +99,6 @@ export function predictTransactionCategory(
   const descLower = description.toLowerCase();
   const cleanedLower = cleaned.toLowerCase();
 
-  // 1. Income Classification
   if (type === 'INCOME') {
     if (descLower.includes('salary') || descLower.includes('payroll') || descLower.includes('direct deposit')) {
       return {
@@ -188,7 +161,6 @@ export function predictTransactionCategory(
     };
   }
 
-  // 2. Check Learned User Feedback Store (Continuous Learning)
   const learned = categoryFeedbackStore.find(
     f => cleanedLower.includes(f.originalDesc.toLowerCase()) || f.originalDesc.toLowerCase().includes(cleanedLower)
   );
@@ -210,7 +182,6 @@ export function predictTransactionCategory(
     };
   }
 
-  // 3. Multi-Token Semantic Scoring
   let bestCategory: TransactionCategory = 'Other';
   let bestScore = 0;
   let matchedKeyword = '';
@@ -232,7 +203,6 @@ export function predictTransactionCategory(
     const confidence = Math.min(96, Math.max(78, 72 + Math.min(24, bestScore / 3)));
     const subcats = categorySubcategories[bestCategory] || ['General'];
     
-    // Choose appropriate subcategory based on matched keyword
     let chosenSub = subcats[0];
     if (bestCategory === 'Food') {
       if (descLower.includes('swiggy') || descLower.includes('zomato') || descLower.includes('eats')) chosenSub = 'Food Delivery & Takeout';
@@ -265,7 +235,6 @@ export function predictTransactionCategory(
     };
   }
 
-  // 4. Fallback Heuristics for Large Outlays
   if (amount >= 20000 && type === 'EXPENSE') {
     return {
       cleanDescription: cleaned,
@@ -314,15 +283,10 @@ export function recordAnomalyFeedback(anomalyId: string, decision: string, notes
   });
 }
 
-/**
- * 2. Statistical Anomaly Detection Module (Z-Score + MAD Baseline Engine)
- * Grounded statistical analysis with feature impact attributions (SHAP style).
- */
 export function detectAnomalies(transactions: Transaction[], userId: string): Anomaly[] {
   const userTx = transactions.filter(t => t.userId === userId && t.type === 'EXPENSE');
   if (userTx.length < 4) return [];
 
-  // Group transactions by category to compute individual category baselines
   const categoryStats: Record<string, { amounts: number[]; mean: number; stdDev: number; median: number; mad: number }> = {};
 
   for (const tx of userTx) {
@@ -353,16 +317,13 @@ export function detectAnomalies(transactions: Transaction[], userId: string): An
     const stats = categoryStats[tx.category];
     if (!stats || stats.amounts.length < 2) continue;
 
-    // Guardrail: Skip predictable regular fixed payments (like normal Rent, Salary, or consistent investments)
     if (tx.category === 'Rent' && tx.amount <= stats.median * 1.25) {
       continue;
     }
 
-    // Modified Z-score using Median Absolute Deviation (MAD)
     const modifiedZ = (0.6745 * (tx.amount - stats.median)) / (stats.mad || 1);
     const multiplier = stats.mean > 0 ? tx.amount / stats.mean : 1;
 
-    // Flag if modifiedZ > 2.2 and multiplier >= 1.8 OR multiplier >= 2.6
     if ((modifiedZ > 2.0 && multiplier >= 1.75) || multiplier >= 2.5) {
       const riskScore = Math.min(99, Math.max(70, Math.round(55 + modifiedZ * 11)));
       
@@ -396,14 +357,9 @@ export function detectAnomalies(transactions: Transaction[], userId: string): An
     }
   }
 
-  // Sort by highest deviation
   return anomalies.sort((a, b) => b.deviationMultiplier - a.deviationMultiplier).slice(0, 10);
 }
 
-/**
- * 3. Multi-Horizon Spending Forecasting Engine (7D / 30D / 90D)
- * Strict data-grounded time series with Insufficient Data guardrails.
- */
 export function generateMultiHorizonSpendingForecast(
   transactions: Transaction[],
   userId: string,
@@ -416,7 +372,6 @@ export function generateMultiHorizonSpendingForecast(
   const userIncomes = transactions
     .filter(t => t.userId === userId && t.type === 'INCOME');
 
-  // Guardrail: If insufficient historical data, do NOT fabricate numbers
   if (userExpenses.length < 3) {
     return {
       userId,
@@ -450,7 +405,6 @@ export function generateMultiHorizonSpendingForecast(
     };
   }
 
-  // Aggregate by day
   const dailyTotals: Record<string, number> = {};
   for (const tx of userExpenses) {
     dailyTotals[tx.date] = (dailyTotals[tx.date] || 0) + tx.amount;
@@ -493,7 +447,6 @@ export function generateMultiHorizonSpendingForecast(
   const projectedSavings = expectedIncome - expectedSpending;
   const projectedBalance = Math.round(expectedIncome - expectedSpending);
 
-  // Budget Risk Assessment
   const standardBudget = 60000 * (horizonDays / 30);
   const overspend = Math.max(0, expectedSpending - standardBudget);
   const isAtRisk = overspend > 0;
@@ -548,9 +501,6 @@ export function generateSpendingForecast(transactions: Transaction[], userId: st
   };
 }
 
-/**
- * Generates an event-based cash flow timeline and end-of-month projected balance.
- */
 export function generateCashFlowForecast(
   transactions: Transaction[],
   budgets: any = [],
@@ -566,7 +516,6 @@ export function generateCashFlowForecast(
   const activeRecurring = recList.filter((r) => r && r.status === 'ACTIVE');
   const upcomingRecurringTotal = activeRecurring.reduce((sum, r) => sum + r.amount, 0);
 
-  // Timeline events
   const timeline: {
     date: string;
     description: string;
@@ -578,7 +527,6 @@ export function generateCashFlowForecast(
 
   let runningBal = currentBalance;
 
-  // Add recent verified transactions
   const recent = [...transactions].sort((a, b) => a.date.localeCompare(b.date)).slice(-4);
   for (const t of recent) {
     timeline.push({
@@ -591,7 +539,6 @@ export function generateCashFlowForecast(
     });
   }
 
-  // Add scheduled upcoming recurring
   for (const r of activeRecurring) {
     runningBal -= r.amount;
     timeline.push({
@@ -604,7 +551,6 @@ export function generateCashFlowForecast(
     });
   }
 
-  // Add projected end-of-month baseline
   const projectedEOM = Math.max(0, runningBal);
 
   return {
@@ -616,11 +562,6 @@ export function generateCashFlowForecast(
   };
 }
 
-/**
- * 4. What-If Scenario Financial Simulator
- * Computes hypothetical impacts on balance, budget categories, goals, and savings velocity
- * without committing changes to actual records.
- */
 export function simulateWhatIfScenario(
   scenario: {
     scenarioName: string;
@@ -645,13 +586,12 @@ export function simulateWhatIfScenario(
     ? monthlySavingsBefore - purchaseAmount
     : monthlySavingsBefore;
 
-  // 1. Budget Impact
   const budgetImpact: WhatIfSimulationResult['budgetImpact'] = [];
   const currentBudget = currentData.budgets?.[0];
   if (currentBudget && Array.isArray(currentBudget.categoryBudgets)) {
     for (const catB of currentBudget.categoryBudgets) {
       if (catB.category === scenario.category) {
-        const afterAmount = (catB.allocatedAmount || 0) * 0.8 + purchaseAmount; // simulated spend
+        const afterAmount = (catB.allocatedAmount || 0) * 0.8 + purchaseAmount;
         budgetImpact.push({
           category: catB.category,
           currentSpent: Math.round((catB.allocatedAmount || 0) * 0.8),
@@ -663,14 +603,12 @@ export function simulateWhatIfScenario(
     }
   }
 
-  // 2. Goal Impact (Delay analysis on goals)
   const goalImpact: WhatIfSimulationResult['goalImpact'] = [];
   for (const goal of (currentData.goals || [])) {
     const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
     const currentMonthly = goal.monthlyContribution || 5000;
     const originalMonths = Math.ceil(remaining / Math.max(1, currentMonthly));
 
-    // If balance dips into safety margin, goal monthly contribution reduces
     const reducedMonthly = Math.max(1000, currentMonthly * 0.8);
     const delayedMonths = Math.ceil(remaining / reducedMonthly);
     const delayDiff = Math.max(0, delayedMonths - originalMonths);
@@ -690,7 +628,6 @@ export function simulateWhatIfScenario(
     });
   }
 
-  // 3. Health Score Impact
   const healthScoreBefore = 86;
   const balanceDropRatio = purchaseAmount / Math.max(1, currentBalance);
   const penalty = Math.min(25, Math.round(balanceDropRatio * 30 + (newBalance < 20000 ? 10 : 0)));
@@ -723,17 +660,12 @@ export function simulateWhatIfScenario(
   };
 }
 
-/**
- * 5. Recurring Payment Cadence & Anomaly Detection
- * Analyzes recurring payments to detect price increases, duplicates, unusual charges, and inactive subscriptions.
- */
 export function detectRecurringTelemetry(
   transactions: Transaction[],
   existingSubscriptions: RecurringPayment[]
 ): RecurringTelemetry {
   const flags: RecurringDetectionFlag[] = [];
 
-  // 1. Check for Price Increases
   for (const sub of existingSubscriptions) {
     if (sub.priceChanged && sub.previousAmount) {
       const diff = sub.amount - sub.previousAmount;
@@ -749,7 +681,6 @@ export function detectRecurringTelemetry(
     }
   }
 
-  // 2. Check for Duplicate Subscriptions (e.g. multiple streaming or gym services)
   const categoryCounts: Record<string, string[]> = {};
   for (const sub of existingSubscriptions) {
     const merchantName = sub.merchant || (sub as any).name || sub.description || 'Service';
@@ -768,7 +699,6 @@ export function detectRecurringTelemetry(
     });
   }
 
-  // 3. Check for Inactive / Silent Subscriptions
   for (const sub of existingSubscriptions) {
     const merchantStr = (sub.merchant || (sub as any).name || sub.description || '').toLowerCase();
     if (merchantStr.includes('gym') || merchantStr.includes('cult')) {
@@ -798,11 +728,6 @@ export function detectRecurringTelemetry(
   };
 }
 
-/**
- * 6. AI Budget Recommendations Engine
- * Suggests data-grounded category budget adjustments based on historical average & variance.
- * Requires user approval before committing.
- */
 export function generateBudgetRecommendations(
   transactions: Transaction[],
   currentBudget: Budget
@@ -847,10 +772,6 @@ export function generateBudgetRecommendations(
   return recommendations;
 }
 
-/**
- * 7. AI Goal Recommendations & Risk Analyzer Engine
- * Evaluates savings targets, projected completion timelines, and required monthly contributions.
- */
 export function generateGoalRecommendations(
   goals: SavingsGoal[],
   monthlySavingsHeadroom: number
@@ -896,9 +817,6 @@ export function generateGoalRecommendations(
   });
 }
 
-/**
- * 8. Receipt Scanner Engine (OCR & Structured Extraction)
- */
 export async function parseReceiptData(
   rawInput: { text?: string; imageBase64?: string; mimeType?: string }
 ): Promise<{
@@ -985,7 +903,6 @@ Return ONLY valid JSON with no markdown wrapping.`;
     }
   }
 
-  // Deterministic OCR Heuristic Engine Fallback
   const text = rawInput.text || '';
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
@@ -1057,9 +974,6 @@ Return ONLY valid JSON with no markdown wrapping.`;
   };
 }
 
-/**
- * 9. Voice Expense NLP Parser Engine
- */
 export async function parseVoiceExpense(
   transcript: string
 ): Promise<{
@@ -1128,7 +1042,6 @@ Return ONLY valid JSON.`;
     }
   }
 
-  // Deterministic NLP Rules Engine Fallback
   const lower = transcript.toLowerCase();
   let type: 'INCOME' | 'EXPENSE' = 'EXPENSE';
   if (lower.includes('received') || lower.includes('income') || lower.includes('salary') || lower.includes('got paid') || lower.includes('earned')) {
@@ -1173,10 +1086,6 @@ Return ONLY valid JSON.`;
   };
 }
 
-/**
- * 10. Server-Side Grounded AI Chat Assistant
- * Answers strictly grounded in available transactions, budgets, goals, recurring, and anomalies.
- */
 export async function queryFinancialAssistant(
   userQuery: string,
   contextData: {
@@ -1242,7 +1151,6 @@ CURRENT USER FINANCIAL DATA:
     }
   }
 
-  // Deterministic Grounded Engine
   const q = userQuery.toLowerCase();
   const c = contextData.currency;
 
@@ -1318,10 +1226,6 @@ CURRENT USER FINANCIAL DATA:
   };
 }
 
-/**
- * 11. Interactive AI Test Bench Suite (11 Test Cases)
- * Validates model performance, guardrails, NLP extraction, simulation, and risk engines against unified data.
- */
 export function runAiTestBenchSuite(
   transactions: Transaction[],
   budgets: Budget[],
@@ -1330,7 +1234,6 @@ export function runAiTestBenchSuite(
 ): AiTestCaseItem[] {
   const tests: AiTestCaseItem[] = [];
 
-  // 1. Normal Transaction Categorization
   const t1Start = performance.now();
   const t1Res = predictTransactionCategory('Starbucks Coffee Roasters', 350, 'EXPENSE');
   tests.push({
@@ -1345,7 +1248,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Token keyword match: "coffee/starbucks" -> Category: Food',
   });
 
-  // 2. Large Transaction within Context (e.g. Normal Rent)
   const t2Start = performance.now();
   const t2Res = predictTransactionCategory('Apartment Society Monthly Maintenance & Rent', 28000, 'EXPENSE');
   tests.push({
@@ -1360,7 +1262,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Keyword: "rent/society/maintenance" -> Category: Rent (Standard recurring baseline)',
   });
 
-  // 3. Duplicate Transaction Detection
   const t3Start = performance.now();
   const evalDupTxs: Transaction[] = (transactions && transactions.length >= 2)
     ? transactions
@@ -1419,7 +1320,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Exact matching tuple: (merchant, amount, date)',
   });
 
-  // 4. Recurring Payment Cadence Detection
   const t4Start = performance.now();
   const evalRecurring: RecurringPayment[] = (recurring && recurring.length > 0 && recurring.some(r => r.status === 'ACTIVE' && r.amount > 0))
     ? recurring
@@ -1441,7 +1341,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Periodicity analysis on monthly billing intervals',
   });
 
-  // 5. Statistical Anomaly Outlier Detection
   const t5Start = performance.now();
   const outlierTestTxs: Transaction[] = [
     { id: 'tx-anom-1', userId: 'usr-anom-test', source: 'MANUAL', date: '2026-08-01', description: 'Grocery Store Regular', cleanDescription: 'Grocery Store Regular', amount: 1200, type: 'EXPENSE', category: 'Groceries', paymentMethod: 'UPI / Instant Transfer', merchant: 'Supermarket', aiConfidence: 95, blockchainHash: 'h1', blockNumber: 1, blockchainVerified: true, createdAt: '2026-08-01T10:00:00Z', updatedAt: '2026-08-01T10:00:00Z' },
@@ -1463,7 +1362,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Modified Z-score > 2.0 & Deviation Multiplier >= 1.8',
   });
 
-  // 6. Insufficient Data Guardrail
   const t6Start = performance.now();
   const emptyForecast = generateMultiHorizonSpendingForecast([], 'usr-test-empty');
   tests.push({
@@ -1478,7 +1376,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Sample size check: N < 3 -> Halt stochastic extrapolation',
   });
 
-  // 7. OCR Extraction & Manual Correction Flow
   const t7Start = performance.now();
   const ocrRes = predictTransactionCategory('BLUE TOKAI COFFEE ROASTERS', 530, 'EXPENSE');
   tests.push({
@@ -1493,7 +1390,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Deterministic regex & entity token parser with mandatory human review guardrail',
   });
 
-  // 8. Voice NLP Parsing & Extraction
   const t8Start = performance.now();
   const voiceRes = predictTransactionCategory('Spent 850 rupees at Apollo Pharmacy for medicines', 850, 'EXPENSE');
   tests.push({
@@ -1508,7 +1404,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Natural language token parsing -> Entity: Apollo Pharmacy -> Category: Healthcare',
   });
 
-  // 9. What-If Financial Scenario Simulation
   const t9Start = performance.now();
   const whatIfRes = simulateWhatIfScenario(
     { scenarioName: 'What if I spend ₹20,000 on a laptop?', amount: 20000, category: 'Shopping' },
@@ -1532,7 +1427,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Stateless mathematical simulation pipeline',
   });
 
-  // 10. Budget-Risk Prediction
   const t10Start = performance.now();
   const evalBudget: Budget = (budgets && budgets.length > 0 && budgets[0].categoryBudgets?.length > 0)
     ? budgets[0]
@@ -1569,7 +1463,6 @@ export function runAiTestBenchSuite(
     groundedSignal: 'Variance & run-rate delta against allocated spending caps',
   });
 
-  // 11. Goal-Risk Prediction
   const t11Start = performance.now();
   const evalGoals: SavingsGoal[] = (goals && goals.length > 0)
     ? goals
@@ -1605,9 +1498,6 @@ export function runAiTestBenchSuite(
   return tests;
 }
 
-/**
- * Deterministic Synthetic Evaluation Benchmark Dataset (100 multi-class labeled samples)
- */
 export interface EvaluationSample {
   id: string;
   description: string;
@@ -1617,7 +1507,6 @@ export interface EvaluationSample {
 }
 
 export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
-  // Food (12)
   { id: 'eval-01', description: 'Swiggy Food Delivery Bangalore', amount: 450, type: 'EXPENSE', groundTruthCategory: 'Food' },
   { id: 'eval-02', description: 'Zomato Online Restaurant Order', amount: 620, type: 'EXPENSE', groundTruthCategory: 'Food' },
   { id: 'eval-03', description: 'Dominos Pizza Dine In', amount: 890, type: 'EXPENSE', groundTruthCategory: 'Food' },
@@ -1631,7 +1520,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-11', description: 'Haldirams Sweets and Savories', amount: 480, type: 'EXPENSE', groundTruthCategory: 'Food' },
   { id: 'eval-12', description: 'Taco Bell Burrito Combo', amount: 399, type: 'EXPENSE', groundTruthCategory: 'Food' },
 
-  // Groceries (10)
   { id: 'eval-13', description: 'Blinkit Instant 10min Grocery', amount: 840, type: 'EXPENSE', groundTruthCategory: 'Groceries' },
   { id: 'eval-14', description: 'Zepto Quick Milk & Eggs Delivery', amount: 390, type: 'EXPENSE', groundTruthCategory: 'Groceries' },
   { id: 'eval-15', description: 'BigBasket Monthly Grocery Basket', amount: 4200, type: 'EXPENSE', groundTruthCategory: 'Groceries' },
@@ -1643,7 +1531,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-21', description: 'Licious Fresh Chicken & Fish', amount: 780, type: 'EXPENSE', groundTruthCategory: 'Groceries' },
   { id: 'eval-22', description: 'More Megastore Groceries', amount: 2450, type: 'EXPENSE', groundTruthCategory: 'Groceries' },
 
-  // Transport (10)
   { id: 'eval-23', description: 'Uber Premier Airport Ride', amount: 780, type: 'EXPENSE', groundTruthCategory: 'Transport' },
   { id: 'eval-24', description: 'Ola Cabs City Ride', amount: 340, type: 'EXPENSE', groundTruthCategory: 'Transport' },
   { id: 'eval-25', description: 'Rapido Bike Taxi Quick Ride', amount: 85, type: 'EXPENSE', groundTruthCategory: 'Transport' },
@@ -1655,7 +1542,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-31', description: 'Shell Premium V-Power Petrol', amount: 3000, type: 'EXPENSE', groundTruthCategory: 'Transport' },
   { id: 'eval-32', description: 'BluSmart EV Airport Drop', amount: 850, type: 'EXPENSE', groundTruthCategory: 'Transport' },
 
-  // Rent & Utilities (10)
   { id: 'eval-33', description: 'Monthly Apartment Lease Rent Payment', amount: 24000, type: 'EXPENSE', groundTruthCategory: 'Rent' },
   { id: 'eval-34', description: 'Skyline Heights Rental Agreement', amount: 26000, type: 'EXPENSE', groundTruthCategory: 'Rent' },
   { id: 'eval-35', description: 'BESCOM Monthly Electricity Bill', amount: 2150, type: 'EXPENSE', groundTruthCategory: 'Utilities' },
@@ -1667,7 +1553,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-41', description: 'Society Maintenance Charges', amount: 3500, type: 'EXPENSE', groundTruthCategory: 'Rent' },
   { id: 'eval-42', description: 'ACT Fibernet 150Mbps Streamer', amount: 825, type: 'EXPENSE', groundTruthCategory: 'Utilities' },
 
-  // Healthcare (8)
   { id: 'eval-43', description: 'Apollo Pharmacy Prescriptions', amount: 680, type: 'EXPENSE', groundTruthCategory: 'Healthcare' },
   { id: 'eval-44', description: 'Fortis Hospital Specialist Consult', amount: 1200, type: 'EXPENSE', groundTruthCategory: 'Healthcare' },
   { id: 'eval-45', description: '1mg Online Medicine Delivery', amount: 1450, type: 'EXPENSE', groundTruthCategory: 'Healthcare' },
@@ -1677,7 +1562,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-49', description: 'MedPlus Generic Drug Store', amount: 420, type: 'EXPENSE', groundTruthCategory: 'Healthcare' },
   { id: 'eval-50', description: 'Dr Lal PathLabs Full Body Profile', amount: 2200, type: 'EXPENSE', groundTruthCategory: 'Healthcare' },
 
-  // Shopping & Entertainment (12)
   { id: 'eval-51', description: 'Amazon India Retail Order', amount: 2499, type: 'EXPENSE', groundTruthCategory: 'Shopping' },
   { id: 'eval-52', description: 'Flipkart Electronics Summer Sale', amount: 4890, type: 'EXPENSE', groundTruthCategory: 'Shopping' },
   { id: 'eval-53', description: 'Myntra Fashion Apparel Order', amount: 3200, type: 'EXPENSE', groundTruthCategory: 'Shopping' },
@@ -1691,7 +1575,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-61', description: 'Cinepolis Dolby Atmos Cinema', amount: 650, type: 'EXPENSE', groundTruthCategory: 'Entertainment' },
   { id: 'eval-62', description: 'Uniqlo Airism Summer Shirts', amount: 4490, type: 'EXPENSE', groundTruthCategory: 'Shopping' },
 
-  // Subscriptions (8)
   { id: 'eval-63', description: 'Netflix 4K UHD Premium Plan', amount: 649, type: 'EXPENSE', groundTruthCategory: 'Subscriptions' },
   { id: 'eval-64', description: 'Spotify Family Music Subscription', amount: 179, type: 'EXPENSE', groundTruthCategory: 'Subscriptions' },
   { id: 'eval-65', description: 'Disney Plus Hotstar Annual Super', amount: 899, type: 'EXPENSE', groundTruthCategory: 'Subscriptions' },
@@ -1701,7 +1584,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-69', description: 'Apple One Cloud & Music Bundle', amount: 365, type: 'EXPENSE', groundTruthCategory: 'Subscriptions' },
   { id: 'eval-70', description: 'The Ken Annual Tech Journalism', amount: 2999, type: 'EXPENSE', groundTruthCategory: 'Subscriptions' },
 
-  // Travel (6)
   { id: 'eval-71', description: 'MakeMyTrip Flight Tickets Goa', amount: 8400, type: 'EXPENSE', groundTruthCategory: 'Travel' },
   { id: 'eval-72', description: 'IndiGo Airlines Passenger Flight', amount: 6200, type: 'EXPENSE', groundTruthCategory: 'Travel' },
   { id: 'eval-73', description: 'Airbnb Mountain Villa Stay', amount: 12500, type: 'EXPENSE', groundTruthCategory: 'Travel' },
@@ -1709,7 +1591,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-75', description: 'ClearTrip Hotel Booking Kerala', amount: 7800, type: 'EXPENSE', groundTruthCategory: 'Travel' },
   { id: 'eval-76', description: 'Goibibo Weekend Resort Booking', amount: 6900, type: 'EXPENSE', groundTruthCategory: 'Travel' },
 
-  // Income: Salary & Freelance (12)
   { id: 'eval-77', description: 'Monthly Tech Lead Salary Inflow', amount: 110000, type: 'INCOME', groundTruthCategory: 'Salary' },
   { id: 'eval-78', description: 'Infosys Corp Direct Salary Deposit', amount: 95000, type: 'INCOME', groundTruthCategory: 'Salary' },
   { id: 'eval-79', description: 'Wipro Limited Monthly Payroll', amount: 88000, type: 'INCOME', groundTruthCategory: 'Salary' },
@@ -1723,7 +1604,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-87', description: 'Quarterly Performance Bonus Direct Credit', amount: 45000, type: 'INCOME', groundTruthCategory: 'Salary' },
   { id: 'eval-88', description: 'Annual Retention Bonus Payroll Deposit', amount: 75000, type: 'INCOME', groundTruthCategory: 'Salary' },
 
-  // Investments & Education (12)
   { id: 'eval-89', description: 'Zerodha Mutual Fund SIP Investment', amount: 10000, type: 'EXPENSE', groundTruthCategory: 'Investment' },
   { id: 'eval-90', description: 'Groww Nifty 50 Index Fund SIP', amount: 8000, type: 'EXPENSE', groundTruthCategory: 'Investment' },
   { id: 'eval-91', description: 'Kuvera Direct Equity Investment', amount: 15000, type: 'EXPENSE', groundTruthCategory: 'Investment' },
@@ -1738,9 +1618,6 @@ export const SYNTHETIC_EVALUATION_DATASET: EvaluationSample[] = [
   { id: 'eval-100', description: 'Harvard Business Review Digital Subscription', amount: 4200, type: 'EXPENSE', groundTruthCategory: 'Education' },
 ];
 
-/**
- * 6-Pillar Transparent Financial Health Composite Score Calculator
- */
 export function calculateFinancialHealthScore(
   income: number,
   expenses: number,
@@ -1770,23 +1647,17 @@ export function calculateFinancialHealthScore(
     };
   }
 
-  // 1. Budget Adherence (25%)
   const budgetScore = Math.min(25, Math.max(0, Math.round(25 * (1 - Math.max(0, budgetAdherenceRatio - 0.75) * 2))));
 
-  // 2. Savings Rate (20%)
   const savingsRate = Math.max(0, (income - expenses) / income);
   const savingsScore = Math.min(20, Math.round(Math.min(1, savingsRate / 0.3) * 20));
 
-  // 3. Emergency Fund Runway (20%)
   const emergencyScore = Math.min(20, Math.round(Math.min(1, emergencyMonthsRunway / 6.0) * 20));
 
-  // 4. Debt Burden / DTI (15%)
   const debtScore = Math.min(15, Math.max(0, Math.round(15 * (1 - Math.min(1, debtToIncomeRatio / 0.5)))));
 
-  // 5. Cash Flow Stability (10%)
   const cashFlowScore = expenses < income * 0.85 ? 10 : expenses < income ? 7 : 3;
 
-  // 6. Spending Stability (10%)
   const stabilityScore = 9;
 
   const totalScore = Math.min(100, Math.max(10, budgetScore + savingsScore + emergencyScore + debtScore + cashFlowScore + stabilityScore));
@@ -1812,18 +1683,13 @@ export function calculateFinancialHealthScore(
   };
 }
 
-/**
- * Real AI Model Evaluation Engine: Multi-Class Confusion Matrix & Metrics
- */
 export function calculateModelEvaluationMetrics(transactions: Transaction[]) {
-  // 1. Run actual multi-class evaluation over the 100-sample benchmark dataset
   const categories: TransactionCategory[] = [
     'Food', 'Groceries', 'Transport', 'Rent', 'Utilities',
     'Entertainment', 'Healthcare', 'Shopping', 'Travel', 'Investment',
     'Salary', 'Freelance', 'Subscriptions', 'Education', 'Bills', 'Insurance', 'Other'
   ];
 
-  // Initialize confusion matrix
   const confusionMatrix: Record<string, Record<string, number>> = {};
   for (const c1 of categories) {
     confusionMatrix[c1] = {};
@@ -1851,7 +1717,6 @@ export function calculateModelEvaluationMetrics(transactions: Transaction[]) {
 
   const accuracy = Math.round((correctPredictions / totalSamples) * 1000) / 10;
 
-  // Calculate Precision, Recall, and F1 per category
   let precisionSum = 0;
   let recallSum = 0;
   let evaluatedClassesCount = 0;
@@ -1880,7 +1745,6 @@ export function calculateModelEvaluationMetrics(transactions: Transaction[]) {
   const macroRecall = evaluatedClassesCount > 0 ? Math.round((recallSum / evaluatedClassesCount) * 1000) / 10 : 95.8;
   const macroF1 = Math.round((2 * (macroPrecision * macroRecall) / (macroPrecision + macroRecall)) * 10) / 10;
 
-  // 2. Real Forecasting Evaluation on Held-out Historical Split
   const txList = transactions.filter(t => t.type === 'EXPENSE');
   const splitIdx = Math.floor(txList.length * 0.7);
   const trainSet = txList.slice(0, splitIdx);
@@ -1897,7 +1761,6 @@ export function calculateModelEvaluationMetrics(transactions: Transaction[]) {
     let absErrorSum = 0;
 
     for (const t of testSet) {
-      // Simulate AR prediction against actual
       const predictedVal = meanActual * (0.95 + (t.amount % 100) / 1000);
       const err = t.amount - predictedVal;
       absErrorSum += Math.abs(err);
@@ -1927,7 +1790,7 @@ export function calculateModelEvaluationMetrics(transactions: Transaction[]) {
       userCorrectionsLogged: transactions.filter(t => t.userCorrected).length,
     },
     confusionMatrix: {
-      categories: categories.slice(0, 10), // Top 10 primary categories for clear dashboard presentation
+      categories: categories.slice(0, 10),
       matrix: categories.slice(0, 10).map(actual => ({
         actualCategory: actual,
         predictions: categories.slice(0, 10).map(pred => confusionMatrix[actual][pred]),

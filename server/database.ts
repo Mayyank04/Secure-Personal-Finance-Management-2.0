@@ -1,13 +1,3 @@
-/**
- * Authoritative Persistent SQLite Database Engine & Repository Layer
- * 
- * Provides:
- * - Normalized relational tables with foreign keys, constraints & query indexes
- * - Atomic financial operations with automatic rollback on errors
- * - Centralized authorization & IDOR protection helpers (getAccountForUser, getTransactionForUser, etc.)
- * - Automatic persistence to data/aegis_finance.sqlite
- * - Complete wipe on account deletion (with immutable blockchain digest preserved off-chain)
- */
 
 import fs from 'fs';
 import path from 'path';
@@ -485,10 +475,6 @@ export class SQLiteDatabase {
     return this.db;
   }
 
-  /* ==========================================================================
-     IDOR & CENTRALIZED AUTHORIZATION VERIFICATION HELPERS
-     ========================================================================== */
-
   public getAccountForUser(accountId: string, userId: string): FinancialAccount | null {
     if (!this.db) return null;
     const stmt = this.db.prepare(`SELECT * FROM accounts WHERE id = ? AND user_id = ?`);
@@ -706,9 +692,6 @@ export class SQLiteDatabase {
     return null;
   }
 
-  /**
-   * Synchronizes in-memory entities into SQLite tables ensuring single source of truth
-   */
   public syncFromMemoryDb(dbInstance: any): void {
     if (!this.db || !dbInstance) return;
 
@@ -717,7 +700,6 @@ export class SQLiteDatabase {
     try {
       this.db.run('BEGIN TRANSACTION;');
 
-      // Sync Users
       for (const [, user] of dbInstance.users || []) {
         this.db.run(
           `INSERT OR REPLACE INTO users (id, email, name, password_hash, salt, role, mfa_enabled, mfa_secret, mfa_recovery_codes_json, is_email_verified, session_timeout_minutes, created_at, updated_at, last_login_at)
@@ -741,7 +723,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Accounts
       for (const [, acc] of dbInstance.accounts || []) {
         this.db.run(
           `INSERT OR REPLACE INTO accounts (id, user_id, name, institution, account_type, masked_identifier, currency, opening_balance, current_balance, available_balance, credit_limit, status, is_demo, created_at, updated_at)
@@ -766,7 +747,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Transactions
       for (const [, tx] of dbInstance.transactions || []) {
         this.db.run(
           `INSERT OR REPLACE INTO transactions (id, user_id, account_id, source, date, description, clean_description, amount, type, category, payment_method, merchant, notes, is_recurring, recurring_frequency, ai_confidence, ai_predicted_category, user_corrected, blockchain_hash, block_number, blockchain_verified, created_at, updated_at)
@@ -799,7 +779,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Bills
       for (const [, bill] of dbInstance.bills || []) {
         this.db.run(
           `INSERT OR REPLACE INTO bills (id, user_id, account_id, name, merchant, amount, category, due_date, frequency, auto_paid, status, linked_transaction_id, notes, created_at, updated_at)
@@ -824,7 +803,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Subscriptions
       for (const [, sub] of dbInstance.subscriptions || []) {
         this.db.run(
           `INSERT OR REPLACE INTO subscriptions (id, user_id, account_id, name, merchant, amount, frequency, category, next_renewal_date, previous_amount, price_change_detected, status, notes, created_at, updated_at)
@@ -849,7 +827,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Loans
       for (const [, loan] of dbInstance.loans || []) {
         this.db.run(
           `INSERT OR REPLACE INTO loans (id, user_id, name, lender, principal, outstanding_balance, interest_rate, emi_amount, due_date, tenure_months, remaining_tenure_months, status, created_at, updated_at)
@@ -873,7 +850,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Sessions
       for (const [, sess] of dbInstance.sessions || []) {
         this.db.run(
           `INSERT OR REPLACE INTO sessions (id, token, user_id, device, browser, ip, location, created_at, last_active_at, expires_at, is_current)
@@ -894,7 +870,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Profiles
       for (const [, prof] of dbInstance.profiles || []) {
         this.db.run(
           `INSERT OR REPLACE INTO profiles (user_id, preferred_currency, monthly_income_range, major_categories_json, budget_thresholds_json, privacy_settings_json, onboarding_completed)
@@ -911,7 +886,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Budgets
       for (const [, bud] of dbInstance.budgets || []) {
         this.db.run(
           `INSERT OR REPLACE INTO budgets (id, user_id, month, total_budget, category_budgets_json, rollover_enabled, alert_thresholds_json, created_at, updated_at)
@@ -930,7 +904,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Goals
       for (const [, goal] of dbInstance.goals || []) {
         this.db.run(
           `INSERT OR REPLACE INTO goals (id, user_id, title, target_amount, current_amount, target_date, monthly_contribution, priority, category, estimated_completion_date, created_at, updated_at)
@@ -952,7 +925,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Receipts
       for (const [, rcpt] of dbInstance.receipts || []) {
         this.db.run(
           `INSERT OR REPLACE INTO receipts (id, user_id, merchant, date, amount, tax_amount, currency, category, payment_method, ocr_confidence, raw_text, line_items_json, processing_status, linked_transaction_id, created_at, updated_at)
@@ -978,7 +950,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync Notifications
       for (const [, notif] of dbInstance.notifications || []) {
         this.db.run(
           `INSERT OR REPLACE INTO notifications (id, user_id, type, title, message, severity, is_read, related_record_id, action_url, timestamp)
@@ -998,7 +969,6 @@ export class SQLiteDatabase {
         );
       }
 
-      // Sync KYC Records
       for (const [, kyc] of dbInstance.kycRecords || []) {
         this.db.run(
           `INSERT OR REPLACE INTO kyc_records (id, user_id, full_name, date_of_birth, address, country, document_type, document_number, masked_document_number, status, document_image_uri, ocr_extracted_json, reviewer_notes, submitted_at, verified_at, rejection_reason, created_at, updated_at)
@@ -1057,14 +1027,10 @@ export class SQLiteDatabase {
     return false;
   }
 
-  /**
-   * Hydrates in-memory maps from SQLite database tables ensuring persistence across process restarts
-   */
   public hydrateMemoryDb(dbInstance: any): void {
     if (!this.db || !dbInstance) return;
 
     try {
-      // 1. Users
       const userStmt = this.db.prepare('SELECT * FROM users');
       while (userStmt.step()) {
         const row = userStmt.getAsObject() as any;
@@ -1088,7 +1054,6 @@ export class SQLiteDatabase {
       }
       userStmt.free();
 
-      // 2. Profiles
       const profStmt = this.db.prepare('SELECT * FROM profiles');
       while (profStmt.step()) {
         const row = profStmt.getAsObject() as any;
@@ -1104,7 +1069,6 @@ export class SQLiteDatabase {
       }
       profStmt.free();
 
-      // 3. Sessions
       const sessStmt = this.db.prepare('SELECT * FROM sessions');
       while (sessStmt.step()) {
         const row = sessStmt.getAsObject() as any;
@@ -1124,7 +1088,6 @@ export class SQLiteDatabase {
       }
       sessStmt.free();
 
-      // 4. Accounts
       const accStmt = this.db.prepare('SELECT * FROM accounts');
       while (accStmt.step()) {
         const row = accStmt.getAsObject() as any;
@@ -1148,7 +1111,6 @@ export class SQLiteDatabase {
       }
       accStmt.free();
 
-      // 5. Transactions
       const txStmt = this.db.prepare('SELECT * FROM transactions');
       while (txStmt.step()) {
         const row = txStmt.getAsObject() as any;
@@ -1182,7 +1144,6 @@ export class SQLiteDatabase {
       }
       txStmt.free();
 
-      // 6. Budgets
       const budStmt = this.db.prepare('SELECT * FROM budgets');
       while (budStmt.step()) {
         const row = budStmt.getAsObject() as any;
@@ -1200,7 +1161,6 @@ export class SQLiteDatabase {
       }
       budStmt.free();
 
-      // 7. Goals
       const goalStmt = this.db.prepare('SELECT * FROM goals');
       while (goalStmt.step()) {
         const row = goalStmt.getAsObject() as any;
@@ -1221,7 +1181,6 @@ export class SQLiteDatabase {
       }
       goalStmt.free();
 
-      // 8. Bills
       const billStmt = this.db.prepare('SELECT * FROM bills');
       while (billStmt.step()) {
         const row = billStmt.getAsObject() as any;
@@ -1245,7 +1204,6 @@ export class SQLiteDatabase {
       }
       billStmt.free();
 
-      // 9. Subscriptions
       const subStmt = this.db.prepare('SELECT * FROM subscriptions');
       while (subStmt.step()) {
         const row = subStmt.getAsObject() as any;
@@ -1273,7 +1231,6 @@ export class SQLiteDatabase {
       }
       subStmt.free();
 
-      // 10. Loans
       const loanStmt = this.db.prepare('SELECT * FROM loans');
       while (loanStmt.step()) {
         const row = loanStmt.getAsObject() as any;
@@ -1299,7 +1256,6 @@ export class SQLiteDatabase {
       }
       loanStmt.free();
 
-      // 11. Receipts
       const rcptStmt = this.db.prepare('SELECT * FROM receipts');
       while (rcptStmt.step()) {
         const row = rcptStmt.getAsObject() as any;
@@ -1324,7 +1280,6 @@ export class SQLiteDatabase {
       }
       rcptStmt.free();
 
-      // 12. Notifications
       const notifStmt = this.db.prepare('SELECT * FROM notifications');
       while (notifStmt.step()) {
         const row = notifStmt.getAsObject() as any;
@@ -1343,7 +1298,6 @@ export class SQLiteDatabase {
       }
       notifStmt.free();
 
-      // 13. Audit Events
       const audStmt = this.db.prepare('SELECT * FROM audit_events');
       while (audStmt.step()) {
         const row = audStmt.getAsObject() as any;
@@ -1360,7 +1314,6 @@ export class SQLiteDatabase {
       }
       audStmt.free();
 
-      // 14. KYC Records
       const kycStmt = this.db.prepare('SELECT * FROM kyc_records');
       while (kycStmt.step()) {
         const row = kycStmt.getAsObject() as any;
@@ -1599,10 +1552,6 @@ export class SQLiteDatabase {
     }
   }
 
-  /* ==========================================================================
-     PERMANENT ACCOUNT DELETION (OFF-CHAIN PERSONAL DATA PURGE)
-     ========================================================================== */
-
   public deleteUserAccountPermanently(userId: string): { success: boolean; deletedEntitiesCount: number } {
     const provider = resolveDatabaseProvider();
     if (provider === 'postgresql') {
@@ -1613,12 +1562,10 @@ export class SQLiteDatabase {
 
     this.db.run('BEGIN TRANSACTION;');
     try {
-      // Cascade delete deletes all associated rows via foreign keys
       this.db.run(`DELETE FROM users WHERE id = ?;`, [userId]);
       this.db.run('COMMIT;');
       this.saveToDisk();
 
-      // Record cryptographic audit notice (non-repudiation: anchor deletion timestamp to blockchain ledger)
       blockchainAdapter.recordAuditEvent(
         `user-purge-${userId}`,
         crypto.createHash('sha256').update(`USER_OFFCHAIN_DATA_PERMANENTLY_PURGED:${userId}:${new Date().toISOString()}`).digest('hex')

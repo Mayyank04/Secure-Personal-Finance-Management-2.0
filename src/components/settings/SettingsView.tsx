@@ -1,13 +1,3 @@
-/**
- * FinTech Settings & System Configuration View
- * Features:
- * - Profile & KYC verification status
- * - Multi-currency preferences & localization
- * - Security & MFA configuration (TOTP, WebAuthn, Session Inactivity Timer)
- * - Privacy & AI Model Permissions
- * - Blockchain Network Node settings
- * - Complete data export & reset triggers
- */
 
 import React, { useState } from 'react';
 import {
@@ -76,7 +66,6 @@ export const SettingsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-slate-900 tracking-tight">
           System Settings & Security Configuration
@@ -94,9 +83,7 @@ export const SettingsView: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Core Preferences (2 cols) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Section 1: User Profile & KYC */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -152,7 +139,6 @@ export const SettingsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 2: Localization & Currency */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -211,7 +197,6 @@ export const SettingsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 3: Privacy & AI Engine Permissions */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-2xl bg-purple-50 text-purple-600 border border-purple-100">
@@ -263,9 +248,7 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Security, Blockchain & Data Actions (1 col) */}
         <div className="space-y-6">
-          {/* Multi-Factor Authentication */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5">
               <Shield className="w-5 h-5 text-indigo-600" />
@@ -298,7 +281,6 @@ export const SettingsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Blockchain Node Status */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5">
               <Layers className="w-5 h-5 text-indigo-600" />
@@ -327,7 +309,6 @@ export const SettingsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Backup & Demo Controls */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3">
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Data Management & Backup
@@ -350,7 +331,6 @@ export const SettingsView: React.FC = () => {
             </button>
           </div>
 
-          {/* Save Button */}
           <button
             onClick={handleSavePreferences}
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2"

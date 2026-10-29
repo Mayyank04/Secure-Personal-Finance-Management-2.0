@@ -43,7 +43,6 @@ export const AnalyticsView: React.FC = () => {
     return <div className="p-12 text-center text-xs text-slate-500 font-mono">Loading Analytics Matrix...</div>;
   }
 
-  // Monthly burn rate breakdown
   const burnRateData = [
     { month: 'Jun', discretionary: 34200, fixed: 48000, savings: 37800 },
     { month: 'Jul', discretionary: 39500, fixed: 48000, savings: 32500 },
@@ -66,7 +65,6 @@ export const AnalyticsView: React.FC = () => {
         </p>
       </div>
 
-      {/* Burn Rate Velocity Stacked Bar Chart */}
       <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -106,7 +104,6 @@ export const AnalyticsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Spending Breakdown Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">

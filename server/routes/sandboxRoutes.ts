@@ -1,15 +1,3 @@
-/**
- * Bank & UPI Sandbox Connector REST API Routes
- * 
- * Provides:
- * - Provider registry
- * - Synthetic data sync simulation
- * - Duplicate detection
- * - Batch transaction import into blockchain-anchored ledger
- * 
- * ALL DATA IS CLEARLY LABELED: SYNTHETIC / DEMO
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -25,7 +13,6 @@ import { Transaction } from '../types.js';
 
 export const sandboxRouter = Router();
 
-// GET /api/sandbox/providers - List all available synthetic & demo providers
 sandboxRouter.get('/providers', (req: Request, res: Response) => {
   return res.json({
     disclaimer: 'SYNTHETIC / DEMO ENVIRONMENT: No real banking credentials or live funds are involved.',
@@ -33,7 +20,6 @@ sandboxRouter.get('/providers', (req: Request, res: Response) => {
   });
 });
 
-// POST /api/sandbox/connect - Initiate a synthetic connector session
 sandboxRouter.post('/connect', (req: Request, res: Response) => {
   const { providerId } = req.body;
   const provider = AVAILABLE_SANDBOX_PROVIDERS.find(p => p.id === providerId);
@@ -52,35 +38,33 @@ sandboxRouter.post('/connect', (req: Request, res: Response) => {
   });
 });
 
-// GET /api/sandbox/sync/:providerId - Run sync and preview synthetic transactions with duplicate detection
 sandboxRouter.get('/sync/:providerId', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { providerId } = req.params;
 
-    const existingTxs = db.getUserTransactions(userId).map(t => ({
+    let adapter;
+    if (providerId.includes('upi')) {
+      adapter = new DemoUPIAdapter(providerId);
+    } else {
+      adapter = new DemoBankAdapter(providerId);
+    }
+
+    const existingUserTxs = db.getUserTransactions(userId).map(t => ({
       date: t.date,
       amount: t.amount,
       merchant: t.merchant,
       description: t.description,
     }));
 
-    let adapter;
-    if (providerId.includes('upi') || providerId.includes('gpay') || providerId.includes('phonepe')) {
-      adapter = new DemoUPIAdapter(providerId);
-    } else {
-      adapter = new DemoBankAdapter(providerId);
-    }
+    const result = await adapter.fetchTransactions('2026-08-01', '2026-08-31', existingUserTxs);
 
-    const syncResult = await adapter.fetchTransactions('2026-08-01', '2026-08-28', existingTxs);
-
-    return res.json(syncResult);
+    return res.json(result);
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to sync synthetic sandbox transactions: ' + err.message });
+    return res.status(500).json({ error: 'Failed to sync with sandbox provider: ' + err.message });
   }
 });
 
-// POST /api/sandbox/import - Commit selected transactions into ledger
 sandboxRouter.post('/import', (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -98,10 +82,8 @@ sandboxRouter.post('/import', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Please select at least one transaction to import.' });
     }
 
-    // Verify or find account
     let targetAccount = accountId ? db.accounts.get(accountId) : undefined;
     if (!targetAccount) {
-      // Find or create matching demo account
       const userAccounts = db.getUserAccounts(userId);
       targetAccount = userAccounts[0];
     }
@@ -151,7 +133,6 @@ sandboxRouter.post('/import', (req: Request, res: Response) => {
       db.transactions.set(txId, newTx);
       importedTransactions.push(newTx);
 
-      // Adjust account balance if linked
       if (targetAccount) {
         db.updateAccountBalance(targetAccount.id, newTx.amount, newTx.type === 'INCOME');
       }
@@ -171,7 +152,7 @@ sandboxRouter.post('/import', (req: Request, res: Response) => {
       transactions: importedTransactions,
       isSyntheticDemo: true,
     });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({ error: 'Failed to import sandbox transactions.' });
   }
 });

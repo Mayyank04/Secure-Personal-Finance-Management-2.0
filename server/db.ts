@@ -1,13 +1,3 @@
-/**
- * In-Memory Tenant-Isolated Database & Synthetic Seed Generator
- * 
- * Provides:
- * - Normalized entity collections isolated by `userId`
- * - Accounts, Bills, Subscriptions, Loans, Receipts, Transactions, Budgets, Goals
- * - 6-Month realistic financial synthetic dataset (March - August 2026)
- * - Blockchain hash anchoring for all seed transactions
- * - Reset and test data generation tools
- */
 
 import crypto from 'crypto';
 import {
@@ -79,9 +69,6 @@ class Database {
     }
   }
 
-  /**
-   * Hashes a password with salt using SHA-256 + HMAC
-   */
   public hashPassword(password: string, salt: string): string {
     return crypto.pbkdf2Sync(password, salt, 10000, 32, 'sha256').toString('hex');
   }
@@ -105,9 +92,6 @@ class Database {
     this.kycRecords.clear();
   }
 
-  /**
-   * Seeds default demo user with full accounts, bills, loans, receipts & transactions
-   */
   public seedDemoAccount() {
     this.clearAll();
 
@@ -173,10 +157,8 @@ class Database {
     this.profiles.set(demoUserId, demoProfile);
     this.kycRecords.set(demoUserId, demoKyc);
 
-    // Anchor user identity on blockchain
     blockchainAdapter.registerUserIdentity(demoUserId);
 
-    // 1. SEED MULTIPLE FINANCIAL ACCOUNTS
     const acc1: FinancialAccount = {
       id: 'acc-hdfc-salary',
       userId: demoUserId,
@@ -220,7 +202,7 @@ class Database {
       maskedIdentifier: '•••• 7382',
       currency: 'INR',
       openingBalance: 0,
-      currentBalance: -24850, // Liability
+      currentBalance: -24850,
       availableBalance: 175150,
       creditLimit: 200000,
       status: 'ACTIVE',
@@ -287,7 +269,6 @@ class Database {
     this.accounts.set(acc5.id, acc5);
     this.accounts.set(acc6.id, acc6);
 
-    // 2. SEED BILLS
     const bill1: Bill = {
       id: 'bill-bescom',
       userId: demoUserId,
@@ -397,7 +378,6 @@ class Database {
     this.bills.set(bill5.id, bill5);
     this.bills.set(bill6.id, bill6);
 
-    // 3. SEED SUBSCRIPTIONS (UPGRADED RECURRING MANAGER)
     const sub1: Subscription = {
       id: 'sub-netflix',
       userId: demoUserId,
@@ -472,7 +452,7 @@ class Database {
       accountId: acc1.id,
       status: 'ACTIVE',
       previousAmount: 1450,
-      priceChangeDetected: true, // Price increase detected for AI telemetry!
+      priceChangeDetected: true,
       notes: 'EC2 & S3 hosting infrastructure',
       createdAt: '2026-04-01T00:00:00Z',
       updatedAt: '2026-08-01T00:00:00Z',
@@ -504,7 +484,6 @@ class Database {
     this.subscriptions.set(sub4.id, sub4);
     this.subscriptions.set(sub5.id, sub5);
 
-    // Keep legacy recurring map synced for backwards compatibility
     const rec1: RecurringPayment = {
       id: sub1.id,
       userId: demoUserId,
@@ -558,7 +537,6 @@ class Database {
     this.recurring.set(rec3.id, rec3);
     this.recurring.set(rec4.id, rec4);
 
-    // 4. SEED DEBT AND LOANS
     const loan1: Loan = {
       id: 'loan-hdfc-home',
       userId: demoUserId,
@@ -600,7 +578,6 @@ class Database {
     this.loans.set(loan1.id, loan1);
     this.loans.set(loan2.id, loan2);
 
-    // 5. SEED RECEIPTS (RECEIPT VAULT)
     const rcpt1: ReceiptRecord = {
       id: 'rcpt-croma-001',
       userId: demoUserId,
@@ -714,9 +691,7 @@ class Database {
     this.receipts.set(rcpt4.id, rcpt4);
     this.receipts.set(rcpt5.id, rcpt5);
 
-    // 6. SEED 6 MONTHS OF TRANSACTIONS LINKED TO ACCOUNTS & RECEIPTS
     const rawSeedList = [
-      // AUGUST 2026 (Current Month)
       { date: '2026-08-01', desc: 'Apex Technologies Monthly Salary', amount: 95000, type: 'INCOME', cat: 'Salary', method: 'Bank Transfer', merchant: 'Apex Technologies', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 99 },
       { date: '2026-08-02', desc: 'Skyline Heights Apartment Rent', amount: 24000, type: 'EXPENSE', cat: 'Rent', method: 'Net Banking', merchant: 'Skyline Heights', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', billId: 'bill-rent', source: 'MANUAL', conf: 98 },
       { date: '2026-08-03', desc: 'Nature Basket Organic Groceries', amount: 3450, type: 'EXPENSE', cat: 'Groceries', method: 'UPI / Instant Transfer', merchant: 'Nature Basket', accId: 'acc-gpay-upi', accName: 'Google Pay UPI Instant Transfer', rcptId: 'rcpt-nature-003', source: 'SANDBOX_UPI', conf: 94 },
@@ -731,17 +706,14 @@ class Database {
       { date: '2026-08-18', desc: 'Shell V-Power Premium Petrol', amount: 3100, type: 'EXPENSE', cat: 'Transport', method: 'Credit Card', merchant: 'Shell Gas', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', rcptId: 'rcpt-shell-004', source: 'MANUAL', conf: 92 },
       { date: '2026-08-20', desc: 'Apollo Pharmacy Health & Vitamins', amount: 890, type: 'EXPENSE', cat: 'Healthcare', method: 'Debit Card', merchant: 'Apollo Pharmacy', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', rcptId: 'rcpt-apollo-005', source: 'MANUAL', conf: 91 },
       
-      // INTENTIONAL ANOMALY 1: High-deviation Electronics with Receipt
       { date: '2026-08-22', desc: 'Croma Electronics - Ultra-Wide 4K Dual Setup', amount: 42500, type: 'EXPENSE', cat: 'Shopping', method: 'Credit Card', merchant: 'Croma Electronics', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', rcptId: 'rcpt-croma-001', source: 'RECEIPT_SCAN', conf: 94, notes: 'Workstation upgrade hardware purchase' },
       
-      // INTENTIONAL ANOMALY 2: High-deviation Dining with Receipt
       { date: '2026-08-24', desc: 'Bukhara Luxury Fine Dining Dinner', amount: 9800, type: 'EXPENSE', cat: 'Food', method: 'Credit Card', merchant: 'ITC Maurya Bukhara', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', rcptId: 'rcpt-bukhara-002', source: 'RECEIPT_SCAN', conf: 93, notes: 'Anniversary celebration dinner' },
       
       { date: '2026-08-26', desc: 'Amazon Prime Essentials & Books', amount: 1650, type: 'EXPENSE', cat: 'Shopping', method: 'Credit Card', merchant: 'Amazon', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 90 },
       { date: '2026-08-27', desc: 'Swiggy Gourmet Family Dinner', amount: 1420, type: 'EXPENSE', cat: 'Food', method: 'UPI / Instant Transfer', merchant: 'Swiggy', accId: 'acc-gpay-upi', accName: 'Google Pay UPI Instant Transfer', source: 'SANDBOX_UPI', conf: 95 },
       { date: '2026-08-28', desc: 'Vanguard Index Fund SIP Contribution', amount: 15000, type: 'EXPENSE', cat: 'Investment', method: 'Bank Transfer', merchant: 'Vanguard Mutual Funds', accId: 'acc-zerodha-invest', accName: 'Zerodha Kite Index & Equity Portfolio', source: 'MANUAL', conf: 97 },
 
-      // JULY 2026
       { date: '2026-07-01', desc: 'Apex Technologies Monthly Salary', amount: 95000, type: 'INCOME', cat: 'Salary', method: 'Bank Transfer', merchant: 'Apex Technologies', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 99 },
       { date: '2026-07-02', desc: 'Skyline Heights Apartment Rent', amount: 24000, type: 'EXPENSE', cat: 'Rent', method: 'Net Banking', merchant: 'Skyline Heights', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 98 },
       { date: '2026-07-04', desc: 'Whole Foods Market Weekly Essentials', amount: 4100, type: 'EXPENSE', cat: 'Groceries', method: 'Credit Card', merchant: 'Whole Foods', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 95 },
@@ -753,13 +725,11 @@ class Database {
       { date: '2026-07-18', desc: 'Zomato Bistro Dinner & Beverages', amount: 1850, type: 'EXPENSE', cat: 'Food', method: 'UPI / Instant Transfer', merchant: 'Zomato', accId: 'acc-gpay-upi', accName: 'Google Pay UPI Instant Transfer', source: 'SANDBOX_UPI', conf: 95 },
       { date: '2026-07-22', desc: 'H&M Summer Casual Apparel', amount: 4800, type: 'EXPENSE', cat: 'Shopping', method: 'Credit Card', merchant: 'H&M Retail', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 91 },
       
-      // INTENTIONAL ANOMALY 3: Weekend Luxury Travel Booking
       { date: '2026-07-25', desc: 'Taj Palace Luxury Heritage Weekend Stay', amount: 28000, type: 'EXPENSE', cat: 'Travel', method: 'Credit Card', merchant: 'Taj Palace Resorts', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 94, notes: 'Weekend monsoon getaway reservation' },
       
       { date: '2026-07-28', desc: 'Zepto Quick Groceries & Fruits', amount: 890, type: 'EXPENSE', cat: 'Groceries', method: 'UPI / Instant Transfer', merchant: 'Zepto', accId: 'acc-gpay-upi', accName: 'Google Pay UPI Instant Transfer', source: 'SANDBOX_UPI', conf: 93 },
       { date: '2026-07-29', desc: 'Vanguard Index Fund SIP Contribution', amount: 15000, type: 'EXPENSE', cat: 'Investment', method: 'Bank Transfer', merchant: 'Vanguard Mutual Funds', accId: 'acc-zerodha-invest', accName: 'Zerodha Kite Index & Equity Portfolio', source: 'MANUAL', conf: 97 },
 
-      // JUNE 2026
       { date: '2026-06-01', desc: 'Apex Technologies Monthly Salary', amount: 95000, type: 'INCOME', cat: 'Salary', method: 'Bank Transfer', merchant: 'Apex Technologies', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 99 },
       { date: '2026-06-02', desc: 'Skyline Heights Apartment Rent', amount: 24000, type: 'EXPENSE', cat: 'Rent', method: 'Net Banking', merchant: 'Skyline Heights', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 98 },
       { date: '2026-06-05', desc: 'Costco Wholesale Bulk Provisions', amount: 5600, type: 'EXPENSE', cat: 'Groceries', method: 'Credit Card', merchant: 'Costco', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 96 },
@@ -772,7 +742,6 @@ class Database {
       { date: '2026-06-25', desc: 'Vanguard Index Fund SIP Contribution', amount: 15000, type: 'EXPENSE', cat: 'Investment', method: 'Bank Transfer', merchant: 'Vanguard Mutual Funds', accId: 'acc-zerodha-invest', accName: 'Zerodha Kite Index & Equity Portfolio', source: 'MANUAL', conf: 97 },
       { date: '2026-06-28', desc: 'Zara Casual Summer Shirt', amount: 3490, type: 'EXPENSE', cat: 'Shopping', method: 'Credit Card', merchant: 'Zara', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 92 },
 
-      // MAY 2026
       { date: '2026-05-01', desc: 'Apex Technologies Monthly Salary', amount: 95000, type: 'INCOME', cat: 'Salary', method: 'Bank Transfer', merchant: 'Apex Technologies', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 99 },
       { date: '2026-05-02', desc: 'Skyline Heights Apartment Rent', amount: 24000, type: 'EXPENSE', cat: 'Rent', method: 'Net Banking', merchant: 'Skyline Heights', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 98 },
       { date: '2026-05-05', desc: 'Supermart Family Grocery Cart', amount: 4600, type: 'EXPENSE', cat: 'Groceries', method: 'Debit Card', merchant: 'Supermart', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 95 },
@@ -783,13 +752,11 @@ class Database {
       { date: '2026-05-18', desc: 'Swiggy Weekend Dining with Friends', amount: 1450, type: 'EXPENSE', cat: 'Food', method: 'UPI / Instant Transfer', merchant: 'Swiggy', accId: 'acc-gpay-upi', accName: 'Google Pay UPI Instant Transfer', source: 'SANDBOX_UPI', conf: 95 },
       { date: '2026-05-20', desc: 'Electricity Board Online Bill', amount: 2900, type: 'EXPENSE', cat: 'Utilities', method: 'Net Banking', merchant: 'State Electricity Board', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 94 },
       
-      // INTENTIONAL ANOMALY 4: Comprehensive Medical MRI & Diagnostic Scan
       { date: '2026-05-22', desc: 'Apollo Hospitals Preventive Full MRI & Health Panel', amount: 18500, type: 'EXPENSE', cat: 'Healthcare', method: 'Credit Card', merchant: 'Apollo Hospitals', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 95, notes: 'Annual executive comprehensive preventive health evaluation' },
       
       { date: '2026-05-25', desc: 'Vanguard Index Fund SIP Contribution', amount: 15000, type: 'EXPENSE', cat: 'Investment', method: 'Bank Transfer', merchant: 'Vanguard Mutual Funds', accId: 'acc-zerodha-invest', accName: 'Zerodha Kite Index & Equity Portfolio', source: 'MANUAL', conf: 97 },
       { date: '2026-05-29', desc: 'Blinkit Instant Fruit Basket', amount: 920, type: 'EXPENSE', cat: 'Groceries', method: 'UPI / Instant Transfer', merchant: 'Blinkit', accId: 'acc-gpay-upi', accName: 'Google Pay UPI Instant Transfer', source: 'SANDBOX_UPI', conf: 93 },
 
-      // APRIL 2026
       { date: '2026-04-01', desc: 'Apex Technologies Monthly Salary', amount: 95000, type: 'INCOME', cat: 'Salary', method: 'Bank Transfer', merchant: 'Apex Technologies', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 99 },
       { date: '2026-04-02', desc: 'Skyline Heights Apartment Rent', amount: 24000, type: 'EXPENSE', cat: 'Rent', method: 'Net Banking', merchant: 'Skyline Heights', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 98 },
       { date: '2026-04-05', desc: 'Nature Basket Organic Groceries', amount: 4800, type: 'EXPENSE', cat: 'Groceries', method: 'Credit Card', merchant: 'Nature Basket', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 94 },
@@ -802,7 +769,6 @@ class Database {
       { date: '2026-04-25', desc: 'Vanguard Index Fund SIP Contribution', amount: 15000, type: 'EXPENSE', cat: 'Investment', method: 'Bank Transfer', merchant: 'Vanguard Mutual Funds', accId: 'acc-zerodha-invest', accName: 'Zerodha Kite Index & Equity Portfolio', source: 'MANUAL', conf: 97 },
       { date: '2026-04-27', desc: 'Amazon Prime Books & Home Essentials', amount: 2800, type: 'EXPENSE', cat: 'Shopping', method: 'Credit Card', merchant: 'Amazon', accId: 'acc-hdfc-regalia', accName: 'HDFC Regalia Gold Credit Card', source: 'MANUAL', conf: 91 },
 
-      // MARCH 2026
       { date: '2026-03-01', desc: 'Apex Technologies Monthly Salary', amount: 95000, type: 'INCOME', cat: 'Salary', method: 'Bank Transfer', merchant: 'Apex Technologies', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 99 },
       { date: '2026-03-02', desc: 'Skyline Heights Apartment Rent', amount: 24000, type: 'EXPENSE', cat: 'Rent', method: 'Net Banking', merchant: 'Skyline Heights', accId: 'acc-hdfc-salary', accName: 'HDFC Corporate Salary Account', source: 'MANUAL', conf: 98 },
       { date: '2026-03-04', desc: 'BigBasket Monthly Pantry Staples', amount: 5200, type: 'EXPENSE', cat: 'Groceries', method: 'UPI / Instant Transfer', merchant: 'BigBasket', accId: 'acc-gpay-upi', accName: 'Google Pay UPI Instant Transfer', source: 'SANDBOX_UPI', conf: 94 },
@@ -870,7 +836,6 @@ class Database {
       this.transactions.set(txId, tx);
     });
 
-    // 7. SEED MONTHLY BUDGET
     const demoBudget: Budget = {
       id: 'bgt-demo-2026-08',
       userId: demoUserId,
@@ -899,7 +864,6 @@ class Database {
     };
     this.budgets.set(demoBudget.id, demoBudget);
 
-    // 8. SEED SAVINGS GOALS
     const goal1: SavingsGoal = {
       id: 'goal-emergency-fund',
       userId: demoUserId,
@@ -949,7 +913,6 @@ class Database {
     this.goals.set(goal2.id, goal2);
     this.goals.set(goal3.id, goal3);
 
-    // 9. SEED AI INSIGHTS
     const ins1: AIInsight = {
       id: 'ins-01',
       userId: demoUserId,
@@ -993,7 +956,6 @@ class Database {
     this.insights.set(ins2.id, ins2);
     this.insights.set(ins3.id, ins3);
 
-    // 10. SEED NOTIFICATIONS
     const notif1: NotificationItem = {
       id: 'notif-01',
       userId: demoUserId,
@@ -1029,7 +991,6 @@ class Database {
     this.notifications.set(notif2.id, notif2);
     this.notifications.set(notif3.id, notif3);
 
-    // 11. SEED AUDIT EVENTS
     const aud1: AuditEvent = {
       id: 'aud-01',
       userId: demoUserId,
@@ -1054,7 +1015,6 @@ class Database {
     this.auditEvents.set(aud1.id, aud1);
     this.auditEvents.set(aud2.id, aud2);
 
-    // 12. SEED ACTIVE SESSIONS
     const sess1: UserSession = {
       id: 'sess-active-01',
       token: 'tok-tls-live-current',
@@ -1069,10 +1029,6 @@ class Database {
     };
     this.sessions.set(sess1.id, sess1);
   }
-
-  /* ==========================================================================
-     HELPER QUERIES & CALCULATIONS (TENANT-ISOLATED BY USERID)
-     ========================================================================== */
 
   public getUserTransactions(userId: string): Transaction[] {
     const list: Transaction[] = [];
@@ -1089,7 +1045,6 @@ class Database {
   public getAccountSummary(userId: string) {
     const accs = this.getUserAccounts(userId);
     
-    // Assets: Positive balances in Bank, Debit, Cash, Investment
     let totalAssets = 0;
     let totalLiabilities = 0;
 
@@ -1097,7 +1052,6 @@ class Database {
       if (acc.status === 'CLOSED') continue;
 
       if (acc.accountType === 'CREDIT_CARD') {
-        // Credit card current balance is negative liability or positive debt
         const debt = Math.abs(acc.currentBalance < 0 ? acc.currentBalance : 0);
         totalLiabilities += debt;
       } else {
@@ -1151,17 +1105,14 @@ class Database {
       .filter(l => l.status === 'ACTIVE')
       .reduce((s, l) => s + l.emi, 0);
 
-    // Estimated remaining interest calculation across active loans
     let totalEstimatedInterest = 0;
     for (const l of userLoans.filter(x => x.status === 'ACTIVE')) {
-      // Approximate remaining interest = (Principal * Rate * YearsRemaining)
       const monthlyRate = l.interestRate / 100 / 12;
       const approxMonthsRemaining = l.emi > 0 ? Math.ceil(l.outstandingBalance / (l.emi * 0.8)) : 60;
       const estimatedInterest = Math.max(0, (l.emi * approxMonthsRemaining) - l.outstandingBalance);
       totalEstimatedInterest += Math.round(estimatedInterest);
     }
 
-    // DTI Ratio = Total Monthly Debt Payments / Monthly Gross Income (95,000 base)
     const monthlyIncome = 95000;
     const debtToIncomeRatio = monthlyIncome > 0
       ? Math.min(100, Math.round((totalMonthlyObligation / monthlyIncome) * 100))
@@ -1206,7 +1157,6 @@ class Database {
       .filter(t => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    // Account Summary (Total Assets, Liabilities, Net Liquid Balance)
     const accountSummary = this.getAccountSummary(userId);
     const totalBalance = accountSummary.netLiquidBalance;
 
@@ -1217,7 +1167,6 @@ class Database {
     const userGoals = Array.from(this.goals.values()).filter(g => g.userId === userId);
     const totalSavings = userGoals.reduce((sum, g) => sum + g.currentAmount, 0);
 
-    // Category breakdown
     const categoryMap: Record<string, number> = {};
     for (const t of monthTx.filter(x => x.type === 'EXPENSE')) {
       categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
@@ -1228,7 +1177,6 @@ class Database {
       percentage: monthlyExpenses > 0 ? Math.round((amount / monthlyExpenses) * 100) : 0,
     })).sort((a, b) => b.amount - a.amount);
 
-    // Monthly Income vs Expense comparison (March - August 2026)
     const monthKeys = [
       { key: '2026-03', label: 'Mar 2026' },
       { key: '2026-04', label: 'Apr 2026' },
@@ -1249,7 +1197,6 @@ class Database {
       };
     });
 
-    // Spending trend (Daily in current month)
     const dailySpendingMap: Record<string, number> = {};
     for (let i = 1; i <= 28; i++) {
       const dStr = `2026-08-${i.toString().padStart(2, '0')}`;
@@ -1261,21 +1208,17 @@ class Database {
       }
     }
     const spendingTrend = Object.entries(dailySpendingMap).map(([date, amount]) => ({
-      date: date.slice(5), // MM-DD
+      date: date.slice(5),
       amount,
     }));
 
-    // Financial Health Score
     const budgetAdherenceRatio = totalBudget > 0 ? monthlyExpenses / totalBudget : 0.8;
     const health = calculateFinancialHealthScore(monthlyIncome, monthlyExpenses, totalSavings, budgetAdherenceRatio);
 
-    // Anomalies
     const anomalies = detectAnomalies(txs, userId);
 
-    // Debt summary
     const debtSummary = this.getDebtSummary(userId);
 
-    // Upcoming bills
     const upcomingBills = this.getUserBills(userId).filter(b => b.status !== 'PAID').slice(0, 4);
 
     return {
@@ -1306,15 +1249,11 @@ class Database {
     };
   }
 
-  /**
-   * Adjusts account balance after transaction insertion or deletion
-   */
   public updateAccountBalance(accountId: string, amountChange: number, isCredit: boolean) {
     const acc = this.accounts.get(accountId);
     if (!acc) return;
 
     if (acc.accountType === 'CREDIT_CARD') {
-      // Spending increases liability (makes balance more negative), payment decreases liability
       if (isCredit) {
         acc.currentBalance += amountChange;
       } else {
@@ -1345,9 +1284,6 @@ class Database {
     } catch {}
   }
 
-  /**
-   * Tamper Simulation Lab for University/Investor Demo
-   */
   public tamperTransactionForDemo(transactionId: string, tamperedAmount: number): boolean {
     const tx = this.transactions.get(transactionId);
     if (!tx) return false;
@@ -1358,9 +1294,6 @@ class Database {
     return true;
   }
 
-  /**
-   * Appends an immutable security audit event
-   */
   public recordAuditEvent(data: {
     userId: string;
     eventType: string;

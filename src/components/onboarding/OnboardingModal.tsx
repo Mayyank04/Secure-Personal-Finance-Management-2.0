@@ -21,7 +21,6 @@ export const OnboardingModal: React.FC = () => {
   const { isOnboardingOpen, setIsOnboardingOpen, setCurrency, refreshProfile } = useAuth();
   const [step, setStep] = useState<number>(1);
 
-  // Form State
   const [selectedCurrency, setSelectedCurrency] = useState<'INR' | 'USD' | 'EUR' | 'GBP'>('INR');
   const [incomeRange, setIncomeRange] = useState<string>('₹80,000 - ₹120,000');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
@@ -99,7 +98,6 @@ export const OnboardingModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Step Progress Bar */}
         <div className="w-full bg-slate-100 h-1.5 flex">
           {[1, 2, 3, 4, 5, 6, 7].map((s) => (
             <div
@@ -111,7 +109,6 @@ export const OnboardingModal: React.FC = () => {
           ))}
         </div>
 
-        {/* Top Header */}
         <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -125,9 +122,7 @@ export const OnboardingModal: React.FC = () => {
           <span className="text-xs font-mono text-slate-500">{Math.round((step / 7) * 100)}% Complete</span>
         </div>
 
-        {/* Step Content */}
         <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6">
-          {/* STEP 1: Welcome & Architecture */}
           {step === 1 && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100">
@@ -170,7 +165,6 @@ export const OnboardingModal: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 2: Base Currency */}
           {step === 2 && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div>
@@ -205,7 +199,6 @@ export const OnboardingModal: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 3: Income Profile */}
           {step === 3 && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div>
@@ -240,7 +233,6 @@ export const OnboardingModal: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 4: Spending Categories */}
           {step === 4 && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div>
@@ -272,7 +264,6 @@ export const OnboardingModal: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 5: Budget Thresholds */}
           {step === 5 && (
             <div className="space-y-5 animate-in fade-in duration-200">
               <div>
@@ -316,7 +307,6 @@ export const OnboardingModal: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 6: Privacy & Blockchain Consent */}
           {step === 6 && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div>
@@ -375,7 +365,6 @@ export const OnboardingModal: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 7: Ready to Launch */}
           {step === 7 && (
             <div className="space-y-4 text-center py-4 animate-in fade-in duration-200">
               <div className="w-16 h-16 rounded-3xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center mx-auto">
@@ -407,7 +396,6 @@ export const OnboardingModal: React.FC = () => {
           )}
         </div>
 
-        {/* Footer Controls */}
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
           {step > 1 ? (
             <button

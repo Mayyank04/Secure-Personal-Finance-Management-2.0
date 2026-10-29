@@ -1,6 +1,3 @@
-/**
- * Client-side TypeScript Type Definitions
- */
 
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
@@ -88,10 +85,6 @@ export interface Transaction {
   createdAt: string;
   updatedAt: string;
 }
-
-/* ==========================================================================
-   Phase 2 Financial Ecosystem Models
-   ========================================================================== */
 
 export type AccountType = 'BANK' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'UPI' | 'CASH' | 'INVESTMENT';
 export type AccountStatus = 'ACTIVE' | 'INACTIVE' | 'CLOSED';
@@ -634,7 +627,6 @@ export interface MonthlyReportData {
     blockHeight: number;
   };
 }
-
 
 export interface DashboardData {
   currency: string;

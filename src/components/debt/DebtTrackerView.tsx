@@ -37,7 +37,6 @@ export const DebtTrackerView: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
   const [formState, setFormState] = useState({
@@ -54,7 +53,6 @@ export const DebtTrackerView: React.FC = () => {
     notes: '',
   });
 
-  // EMI Pay Modal
   const [payingLoan, setPayingLoan] = useState<Loan | null>(null);
   const [emiAmount, setEmiAmount] = useState<string>('');
   const [payAccountId, setPayAccountId] = useState<string>('');
@@ -211,7 +209,6 @@ export const DebtTrackerView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -232,7 +229,6 @@ export const DebtTrackerView: React.FC = () => {
         </button>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
@@ -291,7 +287,6 @@ export const DebtTrackerView: React.FC = () => {
         </div>
       </div>
 
-      {/* Loans Grid */}
       {isLoading ? (
         <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
@@ -356,7 +351,6 @@ export const DebtTrackerView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Balance & Progress Bar */}
                   <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500 font-medium">Outstanding Balance</span>
@@ -407,7 +401,6 @@ export const DebtTrackerView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Footer Pay Button */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-[11px] text-slate-400 font-medium">
                     Matures: {loan.maturityDate}
@@ -431,7 +424,6 @@ export const DebtTrackerView: React.FC = () => {
         </div>
       )}
 
-      {/* EMI Settlement Modal */}
       {payingLoan && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">
@@ -513,7 +505,6 @@ export const DebtTrackerView: React.FC = () => {
         </div>
       )}
 
-      {/* Loan Add / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">

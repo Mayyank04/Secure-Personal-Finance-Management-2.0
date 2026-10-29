@@ -1,6 +1,3 @@
-/**
- * Typed API Client for Secure Personal Finance Backend
- */
 
 import {
   DashboardData,
@@ -75,7 +72,6 @@ class ApiClient {
         // ignore read error
       }
 
-
       if (res.status === 401) {
         const isAuthAttempt =
           endpoint.includes('/api/auth/login') ||
@@ -96,7 +92,6 @@ class ApiClient {
     return res.json() as Promise<T>;
   }
 
-  // Auth
   async register(data: { name: string; email: string; password: string; currency?: string }) {
     return this.request<{ token: string; verificationToken?: string; user: any; profile: any }>('/api/auth/register', {
       method: 'POST',
@@ -192,12 +187,10 @@ class ApiClient {
     });
   }
 
-  // Calendar
   async getCalendarEvents(month?: string) {
     return this.request<any>(`/api/calendar/events${month ? `?month=${month}` : ''}`);
   }
 
-  // Notifications
   async getNotifications() {
     return this.request<{ notifications: any[]; unreadCount: number; totalCount: number }>('/api/notifications');
   }
@@ -226,12 +219,10 @@ class ApiClient {
     });
   }
 
-  // Dashboard
   async getDashboard(): Promise<DashboardData> {
     return this.request<DashboardData>('/api/dashboard');
   }
 
-  // Transactions
   async getTransactions(params: Record<string, string> = {}) {
     const qs = new URLSearchParams(params).toString();
     return this.request<{
@@ -272,7 +263,6 @@ class ApiClient {
     });
   }
 
-  // Budgets
   async getBudgets() {
     return this.request<{ budgets: Budget[] }>('/api/budgets');
   }
@@ -291,7 +281,6 @@ class ApiClient {
     });
   }
 
-  // Goals
   async getGoals() {
     return this.request<{ goals: SavingsGoal[] }>('/api/goals');
   }
@@ -310,7 +299,6 @@ class ApiClient {
     });
   }
 
-  // AI & ML
   async getInsights() {
     return this.request<{ insights: AIInsight[] }>('/api/insights');
   }
@@ -360,7 +348,6 @@ class ApiClient {
     });
   }
 
-  // Blockchain
   async getBlockchainAudit() {
     return this.request<{
       telemetry: any;
@@ -419,7 +406,6 @@ class ApiClient {
     });
   }
 
-  // Privacy & Security
   async getPrivacy() {
     return this.request<{ privacySettings: any }>('/api/privacy');
   }
@@ -452,7 +438,6 @@ class ApiClient {
     return this.request<{ message: string }>('/api/demo/reset', { method: 'POST' });
   }
 
-  // Receipt Scanner & Voice Entry
   async scanReceipt(data: { imageBase64?: string; text?: string; mimeType?: string }) {
     return this.request<any>('/api/receipt/scan', {
       method: 'POST',
@@ -467,7 +452,6 @@ class ApiClient {
     });
   }
 
-  // Cash Flow & Recurring Subscriptions
   async getCashFlowForecast() {
     return this.request<any>('/api/cashflow/forecast');
   }
@@ -486,12 +470,10 @@ class ApiClient {
     });
   }
 
-  // AI Model Evaluation Metrics
   async getModelMetrics() {
     return this.request<any>('/api/ai/model-metrics');
   }
 
-  // Sessions & MFA Verification
   async getSessions() {
     return this.request<{ sessions: any[] }>('/api/security/sessions');
   }
@@ -530,7 +512,6 @@ class ApiClient {
     });
   }
 
-  // Backup & Restore
   async exportBackup() {
     return this.request<{
       backupContainer: any;
@@ -576,21 +557,14 @@ class ApiClient {
     }>(`/api/blockchain/verify-block/${blockNumber}`);
   }
 
-  // Monthly Financial Statements
   async getMonthlyReport(month?: string) {
     return this.request<any>(`/api/reports/monthly${month ? `?month=${month}` : ''}`);
   }
 
-  // Data Export & Portability
   async exportUserData() {
     return this.request<any>('/api/export/data');
   }
 
-  /* ==========================================================================
-     Phase 2 Financial Ecosystem API Endpoints
-     ========================================================================== */
-
-  // Accounts
   async getAccounts() {
     return this.request<{
       accounts: any[];
@@ -632,7 +606,6 @@ class ApiClient {
     return this.request<{ transactions: any[]; count: number }>(`/api/accounts/${id}/transactions`);
   }
 
-  // Sandbox Banking & UPI
   async getSandboxProviders() {
     return this.request<{ disclaimer: string; providers: any[] }>('/api/sandbox/providers');
   }
@@ -658,7 +631,6 @@ class ApiClient {
     );
   }
 
-  // CSV & Statement Import
   async previewCSV(data: { csvContent: string; customMapping?: any }) {
     return this.request<any>('/api/import/csv-preview', {
       method: 'POST',
@@ -673,7 +645,6 @@ class ApiClient {
     });
   }
 
-  // Receipt Vault
   async getReceipts() {
     return this.request<{
       receipts: any[];
@@ -724,7 +695,6 @@ class ApiClient {
     });
   }
 
-  // Bills Management
   async getBills() {
     return this.request<{
       bills: any[];
@@ -759,7 +729,6 @@ class ApiClient {
     });
   }
 
-  // Subscriptions
   async getSubscriptions() {
     return this.request<{
       subscriptions: any[];
@@ -803,7 +772,6 @@ class ApiClient {
     });
   }
 
-  // Loans & Debt
   async getLoans() {
     return this.request<{
       loans: any[];
@@ -845,7 +813,6 @@ class ApiClient {
     });
   }
 
-  // Calendar .ICS Download
   async downloadCalendarIcs(): Promise<void> {
     const token = localStorage.getItem('fintech_session_token');
     const res = await fetch('/api/calendar/export-ics', {
@@ -872,7 +839,6 @@ class ApiClient {
     URL.revokeObjectURL(url);
   }
 
-  // KYC (Identity Verification Workflow)
   async getKycStatus() {
     return this.request<{ status: string; kyc: any; message?: string }>('/api/kyc/status');
   }
@@ -906,12 +872,10 @@ class ApiClient {
     });
   }
 
-  // Health & Diagnostics
   async getHealth() {
     return this.request<{ status: string; environment: string; database: string; timestamp: string }>('/api/health');
   }
 
-  // Currency & Real-Time / Cached FX Conversion
   async getExchangeRates(base: string = 'USD') {
     return this.request<{
       base: string;

@@ -54,7 +54,6 @@ export const AuthModal: React.FC = () => {
     setError(null);
   };
 
-
   if (!isAuthModalOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,7 +101,6 @@ export const AuthModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
-        {/* Header */}
         <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -138,7 +136,6 @@ export const AuthModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-6 space-y-4">
           {error && (
             <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
@@ -294,7 +291,6 @@ export const AuthModal: React.FC = () => {
             </form>
           )}
 
-          {/* Quick Pre-filled Demo helper */}
           {authModalMode === 'login' && !showMfaStep && (
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
               <div>
@@ -315,7 +311,6 @@ export const AuthModal: React.FC = () => {
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 text-center text-xs text-slate-500">
           {authModalMode === 'login' ? (
             <p>

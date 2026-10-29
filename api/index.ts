@@ -6,7 +6,7 @@ let initPromise: Promise<void> | null = null;
 async function ensureInitialized(): Promise<void> {
   if (!initPromise) {
     initPromise = initDb().catch((err) => {
-      initPromise = null; // Reset promise so subsequent invocations safely retry
+      initPromise = null;
       throw err;
     });
   }
@@ -14,7 +14,6 @@ async function ensureInitialized(): Promise<void> {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // 1. Ensure durable database is connected & migrated
   try {
     await ensureInitialized();
   } catch (err: any) {
@@ -28,7 +27,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // 2. Mark req._body = true if @vercel/node already parsed the request body
   if (req.body && typeof req.body === 'object') {
     (req as any)._body = true;
   } else if (typeof req.body === 'string' && req.body.trim().startsWith('{')) {
@@ -38,7 +36,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch {}
   }
 
-  // 3. Accurately reconstruct the incoming request URL from Vercel rewrite metadata
   let targetUrl = req.url || '/';
 
   if (req.query && req.query.__path) {
@@ -46,7 +43,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const cleanPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
     targetUrl = cleanPath.startsWith('/api') ? cleanPath : `/api${cleanPath}`;
 
-    // Preserve any other query parameters while removing internal __path
     try {
       const parsedUrl = new URL(req.url, 'http://localhost');
       parsedUrl.searchParams.delete('__path');
@@ -55,12 +51,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         targetUrl += `?${search}`;
       }
     } catch {}
-  } else if (req.headers['x-forwarded-uri'] && typeof req.headers['x-forwarded-uri'] === 'string') {
+  } else if (typeof req.headers['x-forwarded-uri'] === 'string') {
     const forwardedUri = req.headers['x-forwarded-uri'];
     if (forwardedUri !== '/api/index' && !forwardedUri.startsWith('/api/index?')) {
       targetUrl = forwardedUri;
     }
-  } else if (req.headers['x-vercel-matched-path'] && typeof req.headers['x-vercel-matched-path'] === 'string') {
+  } else if (typeof req.headers['x-vercel-matched-path'] === 'string') {
     const matchedPath = req.headers['x-vercel-matched-path'];
     if (matchedPath !== '/api/index' && !matchedPath.startsWith('/api/index?')) {
       targetUrl = matchedPath;
@@ -69,7 +65,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   req.url = targetUrl;
 
-  // 4. Delegate to Express app
   try {
     return app(req as any, res as any);
   } catch (handlerErr: any) {
@@ -84,4 +79,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 }
-

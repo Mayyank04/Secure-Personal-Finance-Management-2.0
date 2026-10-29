@@ -74,7 +74,6 @@ export const InsightsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  // What-If Simulator state
   const [simName, setSimName] = useState<string>('New MacBook Pro / Equipment');
   const [simAmount, setSimAmount] = useState<number>(24000);
   const [simCategory, setSimCategory] = useState<string>('Shopping');
@@ -114,7 +113,6 @@ export const InsightsView: React.FC = () => {
     loadInsightsData();
   }, [currency]);
 
-  // Refetch forecast when horizon changes
   useEffect(() => {
     api.getForecast(forecastHorizon).then((res) => setForecast(res)).catch(console.error);
   }, [forecastHorizon]);
@@ -166,7 +164,6 @@ export const InsightsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -198,7 +195,6 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* Sub-Navigation Tabs */}
       <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-xs">
         {[
           { id: 'anomalies', label: 'Unusual Outliers', count: anomalies.length },
@@ -254,7 +250,6 @@ export const InsightsView: React.FC = () => {
         })}
       </div>
 
-      {/* TAB 1: ANOMALIES & OUTLIER DETECTION */}
       {activeTab === 'anomalies' && (
         <div className="space-y-4 animate-in fade-in duration-200">
           <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-start gap-3">
@@ -303,7 +298,6 @@ export const InsightsView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Flagged Reasons & SHAP Attribution */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
                   <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
                     <span className="flex items-center gap-1.5 text-indigo-700">
@@ -326,7 +320,6 @@ export const InsightsView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Actions Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
                   <button
                     onClick={() =>
@@ -370,10 +363,8 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: MULTI-HORIZON SPENDING FORECAST */}
       {activeTab === 'forecast' && forecast && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Horizon Selection Buttons */}
           <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-200 shadow-xs">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-indigo-600" />
@@ -396,7 +387,6 @@ export const InsightsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Top Forecast Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs">
               <span className="text-xs text-slate-500">
@@ -425,7 +415,6 @@ export const InsightsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Forecast Chart with Prediction Intervals */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -466,7 +455,6 @@ export const InsightsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Machine Learning Model Performance Evaluation Panel */}
           <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -509,7 +497,6 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: WHAT-IF SCENARIO SIMULATOR */}
       {activeTab === 'whatif' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           <form onSubmit={handleRunSimulation} className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6">
@@ -657,10 +644,8 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: SMART BUDGET & GOAL RECOMMENDATIONS */}
       {activeTab === 'recommendations' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Smart Budget Recommendations */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -722,7 +707,6 @@ export const InsightsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Goal Acceleration & Feasibility Analytics */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -770,7 +754,6 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 5: RECURRING SUBSCRIPTIONS & INTELLIGENCE */}
       {activeTab === 'recurring' && recurringTelemetry && (
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
@@ -792,7 +775,6 @@ export const InsightsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Smart Telemetry Flags (Price Increase, Duplicate, Zombie) */}
           {recurringTelemetry.flags && recurringTelemetry.flags.length > 0 && (
             <div className="space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subscription Alerts & Anomalies</p>
@@ -819,7 +801,6 @@ export const InsightsView: React.FC = () => {
             </div>
           )}
 
-          {/* Subscriptions List */}
           <div className="space-y-3 pt-2">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Verified Active Subscriptions</p>
             {recurringTelemetry.subscriptions.map((sub, idx) => (
@@ -842,7 +823,6 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 6: CASH FLOW TIMELINE */}
       {activeTab === 'cashflow' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -925,7 +905,6 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 7: BEHAVIORAL CADENCE */}
       {activeTab === 'behavior' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-200">
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
@@ -990,7 +969,6 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 8: AI FINANCIAL COACH & PATTERNS */}
       {activeTab === 'coach' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="p-6 rounded-3xl bg-linear-to-r from-indigo-50 via-white to-purple-50 border border-indigo-100 shadow-xs">
@@ -1065,7 +1043,6 @@ export const InsightsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 9: AI VALIDATION TEST BENCH */}
       {activeTab === 'testbench' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
@@ -1116,7 +1093,6 @@ export const InsightsView: React.FC = () => {
             )}
           </div>
 
-          {/* Test Items Table */}
           {testBench && (
             <div className="space-y-3">
               {testBench.tests.map((test) => (

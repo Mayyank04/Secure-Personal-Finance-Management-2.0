@@ -1,15 +1,3 @@
-/**
- * Subscription Management REST API Routes
- * 
- * Provides:
- * - Full subscription tracking with monthly & annual burn rates
- * - Full CRUD endpoints: GET, POST, GET /:id, PATCH /:id, PUT /:id, DELETE /:id
- * - Direct database persistence to PostgreSQL/SQLite
- * - Price change detection & alert flags
- * - Duplicate subscription warnings
- * - Lifecycle status management (ACTIVE, PAUSED, CANCELLED)
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -37,7 +25,6 @@ function calculateCosts(amount: number, freq: SubscriptionFrequency): { monthly:
   return { monthly, annual };
 }
 
-// GET /api/subscriptions - List subscriptions with burn calculations & flags
 subscriptionsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -80,7 +67,6 @@ subscriptionsRouter.get('/', async (req: Request, res: Response) => {
       subs = db.getUserSubscriptions(userId);
     }
 
-    // Filters
     const { status, category } = req.query as Record<string, string>;
     if (status && status !== 'ALL') {
       subs = subs.filter(s => s.status === status);
@@ -93,7 +79,6 @@ subscriptionsRouter.get('/', async (req: Request, res: Response) => {
     const totalMonthlyBurn = activeSubs.reduce((s, sub) => s + (sub.monthlyCost || sub.amount), 0);
     const totalAnnualBurn = activeSubs.reduce((s, sub) => s + (sub.annualCost || sub.amount * 12), 0);
 
-    // Duplicate detection flags
     const categoryCounts: Record<string, number> = {};
     for (const sub of activeSubs) {
       categoryCounts[sub.category] = (categoryCounts[sub.category] || 0) + 1;
@@ -124,7 +109,6 @@ subscriptionsRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/subscriptions/:id - Retrieve single subscription
 subscriptionsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -153,7 +137,6 @@ subscriptionsRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/subscriptions - Create new subscription
 subscriptionsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -212,11 +195,8 @@ subscriptionsRouter.post('/', async (req: Request, res: Response) => {
       updatedAt: now,
     };
 
-    // Direct database persistence
     const adapter = getDatabaseAdapter();
     await adapter.saveSubscription(newSub);
-
-    // Keep memory cache updated
     db.subscriptions.set(subId, newSub);
 
     db.recordAuditEvent({
@@ -231,7 +211,6 @@ subscriptionsRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH & PUT /api/subscriptions/:id - Update subscription
 async function handleUpdateSubscription(req: Request, res: Response) {
   try {
     const userId = (req as any).userId;
@@ -298,10 +277,7 @@ async function handleUpdateSubscription(req: Request, res: Response) {
     sub.annualCost = annual;
     sub.updatedAt = new Date().toISOString();
 
-    // Persist to database
     await adapter.saveSubscription(sub);
-
-    // Keep memory cache updated
     db.subscriptions.set(subId, sub);
 
     db.recordAuditEvent({
@@ -319,7 +295,6 @@ async function handleUpdateSubscription(req: Request, res: Response) {
 subscriptionsRouter.put('/:id', handleUpdateSubscription);
 subscriptionsRouter.patch('/:id', handleUpdateSubscription);
 
-// PATCH /api/subscriptions/:id/status - Status change
 subscriptionsRouter.patch('/:id/status', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -361,7 +336,6 @@ subscriptionsRouter.patch('/:id/status', async (req: Request, res: Response) => 
   }
 });
 
-// DELETE /api/subscriptions/:id - Delete subscription
 subscriptionsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

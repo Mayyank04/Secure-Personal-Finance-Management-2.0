@@ -35,11 +35,9 @@ export const ReceiptsVaultView: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Upload State
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Inspection / Review Modal
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptRecord | null>(null);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState<boolean>(false);
   const [selectedTxId, setSelectedTxId] = useState<string>('');
@@ -47,7 +45,6 @@ export const ReceiptsVaultView: React.FC = () => {
   const [linkAccountId, setLinkAccountId] = useState<string>('');
   const [isLinking, setIsLinking] = useState<boolean>(false);
 
-  // OCR Manual correction form
   const [editMerchant, setEditMerchant] = useState<string>('');
   const [editAmount, setEditAmount] = useState<string>('');
   const [editTax, setEditTax] = useState<string>('');
@@ -186,7 +183,6 @@ export const ReceiptsVaultView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -226,7 +222,6 @@ export const ReceiptsVaultView: React.FC = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
@@ -273,7 +268,6 @@ export const ReceiptsVaultView: React.FC = () => {
         </div>
       </div>
 
-      {/* Receipts Grid */}
       {isLoading ? (
         <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
@@ -332,7 +326,6 @@ export const ReceiptsVaultView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Amount & Items Count */}
                   <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                     <div>
                       <div className="text-[11px] text-slate-500 font-medium">Receipt Total</div>
@@ -358,7 +351,6 @@ export const ReceiptsVaultView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Line Item Snippet */}
                   {rc.items && rc.items.length > 0 && (
                     <div className="mt-3 space-y-1">
                       <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
@@ -381,7 +373,6 @@ export const ReceiptsVaultView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Card Action Footer */}
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   {isLinked ? (
                     <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-medium">
@@ -425,7 +416,6 @@ export const ReceiptsVaultView: React.FC = () => {
         </div>
       )}
 
-      {/* Review / OCR Edit Modal */}
       {selectedReceipt && !isLinkModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -529,7 +519,6 @@ export const ReceiptsVaultView: React.FC = () => {
                 </button>
               </div>
 
-              {/* Items Table */}
               <div className="space-y-2 text-xs">
                 <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
                   Itemized Breakdown ({selectedReceipt.items?.length || 0})
@@ -588,7 +577,6 @@ export const ReceiptsVaultView: React.FC = () => {
         </div>
       )}
 
-      {/* Link Transaction Modal */}
       {isLinkModalOpen && selectedReceipt && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">

@@ -1,13 +1,3 @@
-/**
- * Budgets REST API Routes
- * 
- * Provides:
- * - Full CRUD for monthly budgets and category allocations
- * - Dynamic spending progress derived from transactions
- * - Direct database persistence to PostgreSQL/SQLite
- * - Multi-tenant IDOR protection
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -17,7 +7,6 @@ import { Budget, TransactionCategory } from '../types.js';
 
 export const budgetsRouter = Router();
 
-// Helper to compute derived spending progress for a budget
 function computeBudgetProgress(budget: Budget, userId: string): Budget & { spentAmount: number; remainingAmount: number; progressPercent: number } {
   const [year, month] = budget.month.split('-');
   const txList = db.getUserTransactions(userId).filter(t => {
@@ -52,13 +41,11 @@ function computeBudgetProgress(budget: Budget, userId: string): Budget & { spent
   };
 }
 
-// GET /api/budgets - List all budgets for user with dynamic progress
 budgetsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const adapter = getDatabaseAdapter();
 
-    // Query from persistent database
     let list: Budget[] = [];
     try {
       const rows = await adapter.query(`SELECT * FROM budgets WHERE user_id = $1 ORDER BY month DESC;`, [userId]);
@@ -88,7 +75,6 @@ budgetsRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/budgets/:id - Retrieve single budget by ID
 budgetsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -114,7 +100,6 @@ budgetsRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/budgets - Create a new budget
 budgetsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -150,11 +135,9 @@ budgetsRouter.post('/', async (req: Request, res: Response) => {
       updatedAt: now,
     };
 
-    // Save to persistent database
     const adapter = getDatabaseAdapter();
     await adapter.saveBudget(newBudget);
 
-    // Keep memory cache updated
     db.budgets.set(budgetId, newBudget);
 
     db.recordAuditEvent({
@@ -170,7 +153,6 @@ budgetsRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH & PUT /api/budgets/:id - Update budget
 async function handleUpdateBudget(req: Request, res: Response) {
   try {
     const userId = (req as any).userId;
@@ -220,10 +202,8 @@ async function handleUpdateBudget(req: Request, res: Response) {
 
     budget.updatedAt = new Date().toISOString();
 
-    // Persist to database
     await adapter.saveBudget(budget);
 
-    // Keep memory cache updated
     db.budgets.set(budgetId, budget);
 
     db.recordAuditEvent({
@@ -242,7 +222,6 @@ async function handleUpdateBudget(req: Request, res: Response) {
 budgetsRouter.patch('/:id', handleUpdateBudget);
 budgetsRouter.put('/:id', handleUpdateBudget);
 
-// DELETE /api/budgets/:id - Delete budget
 budgetsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

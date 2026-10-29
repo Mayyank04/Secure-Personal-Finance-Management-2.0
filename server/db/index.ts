@@ -65,7 +65,6 @@ export async function closeDatabase(): Promise<void> {
   }
 }
 
-// Export singleton proxy
 export const dbAdapter = new Proxy({} as IDatabaseAdapter, {
   get(_target, prop) {
     const adapter = getDatabaseAdapter();

@@ -126,7 +126,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
 
   return (
     <>
-      {/* Mobile Backdrop */}
       {isOpen && (
         <div
           onClick={onClose}
@@ -134,13 +133,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
         />
       )}
 
-      {/* Sidebar Container */}
       <aside
         className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-200 ease-in-out md:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Top Header in mobile */}
         <div className="p-4 flex items-center justify-between border-b border-slate-200 md:hidden">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-indigo-600" />
@@ -151,7 +148,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
           </button>
         </div>
 
-        {/* Navigation Links */}
         <div className="p-3 space-y-3 overflow-y-auto flex-1 text-xs">
           <div>
             <div className="px-3 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -182,7 +178,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
           </div>
         </div>
 
-        {/* Bottom Blockchain Status Panel */}
         <div className="p-3 border-t border-slate-200 bg-slate-50">
           <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
             <div className="flex items-center justify-between text-[11px] font-semibold text-slate-800">

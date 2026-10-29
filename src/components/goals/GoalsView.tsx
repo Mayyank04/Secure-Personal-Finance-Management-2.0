@@ -22,13 +22,11 @@ export const GoalsView: React.FC = () => {
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [contributeGoal, setContributeGoal] = useState<SavingsGoal | null>(null);
   const [contributeAmount, setContributeAmount] = useState<string>('5000');
   const [celebrationMsg, setCelebrationMsg] = useState<string | null>(null);
 
-  // New Goal State
   const [newTitle, setNewTitle] = useState<string>('');
   const [newTarget, setNewTarget] = useState<string>('');
   const [newCurrent, setNewCurrent] = useState<string>('0');
@@ -95,7 +93,6 @@ export const GoalsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Capital Accumulation & Savings Goals</h1>
@@ -125,7 +122,6 @@ export const GoalsView: React.FC = () => {
         </div>
       )}
 
-      {/* Aggregate Overview Card */}
       <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <span className="text-[10px] font-mono text-indigo-600 font-semibold uppercase tracking-wider">
@@ -156,7 +152,6 @@ export const GoalsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Goals Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {goals.map((goal) => {
           const pct = Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100));
@@ -195,7 +190,6 @@ export const GoalsView: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Progress Bar */}
                 <div className="mt-3 space-y-1">
                   <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
                     <div
@@ -231,7 +225,6 @@ export const GoalsView: React.FC = () => {
         })}
       </div>
 
-      {/* Contribute Funds Modal */}
       {contributeGoal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
@@ -295,7 +288,6 @@ export const GoalsView: React.FC = () => {
         </div>
       )}
 
-      {/* Create New Goal Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">

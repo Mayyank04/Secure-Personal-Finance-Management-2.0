@@ -9,7 +9,7 @@ export interface ApiErrorPayload {
 export interface ApiErrorEnvelope {
   success: false;
   error: ApiErrorPayload;
-  message: string; // Root-level string for backwards compatibility with existing UI components
+  message: string;
 }
 
 export function sendSuccess<T extends Record<string, any>>(
@@ -24,7 +24,7 @@ export function sendSuccess<T extends Record<string, any>>(
     ...(message ? { message } : {}),
     ...(meta ? { meta } : {}),
     data,
-    ...data, // Spreads root keys (e.g. transaction, account, etc.) for existing frontend compatibility
+    ...data,
   });
 }
 
@@ -42,13 +42,9 @@ export function sendError(
       message,
       ...(details !== undefined ? { details } : {}),
     },
-    message, // Backwards-compatible root message
+    message,
   });
 }
-
-// -----------------------------------------------------------------------------
-// Validation Utilities
-// -----------------------------------------------------------------------------
 
 export const SUPPORTED_CURRENCIES = new Set([
   'INR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'SGD', 'AED', 'CHF', 'CNY'

@@ -1,12 +1,3 @@
-/**
- * OpenAPI 3.1 Specification & Interactive Documentation Engine for AegisFinance / CipherLedger AI
- * 
- * Provides:
- * - OpenAPI 3.1 compliant schema definition
- * - Interactive Swagger UI mounted safely at /api/docs
- * - Raw JSON schema endpoint at /api/docs/openapi.json
- */
-
 import { Router, Request, Response } from 'express';
 
 export const openapiRouter = Router();
@@ -708,13 +699,11 @@ Or via the \`x-session-token\` custom header.
   },
 };
 
-// GET /api/docs/openapi.json
 openapiRouter.get('/openapi.json', (_req: Request, res: Response) => {
   res.setHeader('Content-Type', 'application/json');
   return res.json(openApiSpec);
 });
 
-// GET /api/docs - Standalone Swagger UI HTML page
 openapiRouter.get('/', (_req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/html');
   return res.send(`<!DOCTYPE html>

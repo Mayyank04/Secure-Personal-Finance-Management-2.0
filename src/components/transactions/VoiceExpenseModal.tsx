@@ -1,16 +1,3 @@
-/**
- * Voice Expense Entry Modal (Speech Recognition & NLP Parser)
- * 
- * Features:
- * - Completely decoupled Hardware Microphone (getUserMedia) from Browser Speech Recognition (Web Speech API)
- * - Independent MicState ('idle' | 'requesting' | 'granted' | 'denied' | 'unavailable' | 'listening' | 'error')
- * - Independent SpeechState ('idle' | 'starting' | 'listening' | 'ended' | 'unsupported' | 'network-error' | 'not-allowed' | 'error')
- * - AudioContext + AnalyserNode live waveform visualization driven by real acoustic volume
- * - Real-time diagnostic badge displaying hardware connection, speech engine status, and audio level
- * - Zero-mic-dependency Sample Voice Phrases for instant testing & demonstrations
- * - Live transcript visualization with clear & inline manual editing
- * - Comprehensive lifecycle management preventing duplicate instances, memory leaks, and InvalidStateError
- */
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -72,7 +59,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
   const { currency } = useAuth();
   const c = currency === 'INR' ? '₹' : '$';
 
-  // Decoupled State Management
   const [micState, setMicState] = useState<MicState>('idle');
   const [speechState, setSpeechState] = useState<SpeechState>('idle');
 
@@ -86,7 +72,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
   const [audioLevel, setAudioLevel] = useState<number>(0);
 
-  // Review fields
   const [amount, setAmount] = useState<number>(0);
   const [category, setCategory] = useState<TransactionCategory>('Food');
   const [merchant, setMerchant] = useState<string>('');
@@ -103,7 +88,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
-  // Modal open / close lifecycle
   useEffect(() => {
     if (isOpen) {
       setStep('listen');
@@ -128,7 +112,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
     }
   }, [isOpen]);
 
-  // Recording timer
   useEffect(() => {
     if (isRecording) {
       timerRef.current = setInterval(() => {
@@ -142,7 +125,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
     };
   }, [isRecording]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       cleanupAudio();
@@ -207,7 +189,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
     setRecordingSeconds(0);
     cleanupAudio();
 
-    // STEP 1: Hardware Microphone Access via getUserMedia
     setMicState('requesting');
     let stream: MediaStream | null = null;
 
@@ -217,7 +198,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
         mediaStreamRef.current = stream;
         setMicState('granted');
 
-        // Setup real-time Web Audio Analyser
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
         if (AudioCtx) {
           const audioCtx = new AudioCtx();
@@ -272,7 +252,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
       setInfoMsg('Microphone API is not supported in this browser. You can type your expense or choose a sample phrase below.');
     }
 
-    // STEP 2: Optional Browser Speech Recognition (Web Speech API)
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
@@ -289,7 +268,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'en-IN'; // Indian English
+      recognition.lang = 'en-IN';
       recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
@@ -324,7 +303,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
           case 'not-allowed':
           case 'service-not-allowed':
             setSpeechState('not-allowed');
-            // If microphone hardware is granted, NEVER show false "Microphone denied"
             setInfoMsg('Microphone hardware is connected, but browser speech recognition service is unavailable in this session. You can type your expense or choose a sample phrase below.');
             break;
           case 'network':
@@ -441,7 +419,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
   };
 
   const handleSelectSamplePhrase = (prompt: string) => {
-    // 100% Zero-mic dependency: immediately populate & parse
     cleanupAudio();
     setErrorMsg(null);
     setInfoMsg(null);
@@ -521,7 +498,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
       <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -548,9 +524,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-6 overflow-y-auto flex-1">
-          {/* Diagnostic Status Bar */}
           <div className="mb-4 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] grid grid-cols-3 gap-2">
             <div className="flex items-center gap-1.5">
               <span className="text-slate-500">Hardware Mic:</span>
@@ -612,7 +586,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
             </div>
           </div>
 
-          {/* Error Banner */}
           {errorMsg && (
             <div className="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -622,7 +595,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
             </div>
           )}
 
-          {/* Info / Neutral Notice Banner */}
           {infoMsg && !errorMsg && (
             <div className="mb-4 p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200 text-indigo-800 text-xs flex items-start gap-2.5">
               <Info className="w-4 h-4 shrink-0 mt-0.5 text-indigo-600" />
@@ -634,7 +606,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
 
           {step === 'listen' && (
             <div className="space-y-6">
-              {/* Mic Visualizer Container */}
               <div className="flex flex-col items-center justify-center py-6 bg-slate-50/60 rounded-2xl border border-slate-100">
                 <div className="relative">
                   {isRecording && (
@@ -672,7 +643,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                   </p>
                 </div>
 
-                {/* Real Acoustic Audio Waveform Bar Animation */}
                 {isRecording && (
                   <div className="flex items-center gap-1.5 mt-4 h-7">
                     {[16, 24, 12, 32, 20, 28, 14, 26, 18, 30].map((baseH, i) => {
@@ -689,7 +659,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                 )}
               </div>
 
-              {/* Live Transcript / Manual Input Box */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
                   <span>Detected Voice Transcript</span>
@@ -720,7 +689,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                 </div>
               </div>
 
-              {/* Sample Phrases (Always available without microphone permissions) */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -750,7 +718,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
             </div>
           )}
 
-          {/* STEP 2: Review Screen */}
           {step === 'review' && (
             <div className="space-y-4">
               <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
@@ -765,7 +732,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                 </span>
               </div>
 
-              {/* Form Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -875,7 +841,6 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
           {step === 'listen' ? (
             <>

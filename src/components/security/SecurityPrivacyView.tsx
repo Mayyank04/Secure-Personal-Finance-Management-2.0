@@ -38,17 +38,14 @@ export const SecurityPrivacyView: React.FC = () => {
   const { user, isMfaActive, setIsMfaActive, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'privacy' | 'backup' | 'testbench' | 'architecture' | 'logs'>('overview');
 
-  // Security Overview Data
   const [securityData, setSecurityData] = useState<any>(null);
   const [sessions, setSessions] = useState<any[]>([]);
   const [logs, setLogs] = useState<SecurityLog[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  // Inactivity Timeout
   const [sessionTimeout, setSessionTimeout] = useState<number>(30);
 
-  // Privacy toggles with descriptive states
   const [privacySettings, setPrivacySettings] = useState({
     aiPersonalization: true,
     aiProcessing: true,
@@ -58,7 +55,6 @@ export const SecurityPrivacyView: React.FC = () => {
     voiceProcessing: true,
   });
 
-  // MFA Flow States
   const [showMfaSetupModal, setShowMfaSetupModal] = useState<boolean>(false);
   const [showMfaDisableModal, setShowMfaDisableModal] = useState<boolean>(false);
   const [mfaSetupData, setMfaSetupData] = useState<{ secret: string; qrCodeUri: string; recoveryCodes: string[] } | null>(null);
@@ -68,14 +64,12 @@ export const SecurityPrivacyView: React.FC = () => {
   const [mfaModalError, setMfaModalError] = useState<string | null>(null);
   const [mfaSecretCopied, setMfaSecretCopied] = useState<boolean>(false);
 
-  // Backup & Restore States
   const [backupContainer, setBackupContainer] = useState<any>(null);
   const [backupJsonInput, setBackupJsonInput] = useState<string>('');
   const [backupValidationResult, setBackupValidationResult] = useState<any>(null);
   const [showRestoreConfirmModal, setShowRestoreConfirmModal] = useState<boolean>(false);
   const [isBackingUp, setIsBackingUp] = useState<boolean>(false);
 
-  // Test Bench State
   const [testResults, setTestResults] = useState<Array<{
     id: string;
     title: string;
@@ -173,7 +167,6 @@ export const SecurityPrivacyView: React.FC = () => {
     setTimeout(() => setStatusMessage(null), 4000);
   };
 
-  // MFA Handlers
   const handleStartMfaSetup = async () => {
     try {
       setMfaSubmitting(true);
@@ -237,7 +230,6 @@ export const SecurityPrivacyView: React.FC = () => {
     }
   };
 
-  // Session Handlers
   const handleRevokeSession = async (sessionId: string) => {
     try {
       await api.revokeSession(sessionId);
@@ -259,7 +251,6 @@ export const SecurityPrivacyView: React.FC = () => {
     }
   };
 
-  // Privacy Toggle Handler
   const handlePrivacyToggle = async (key: string, value: boolean) => {
     const updated = { ...privacySettings, [key]: value };
     setPrivacySettings(updated);
@@ -271,7 +262,6 @@ export const SecurityPrivacyView: React.FC = () => {
     }
   };
 
-  // Backup & Restore Handlers
   const handleExportBackup = async () => {
     try {
       setIsBackingUp(true);
@@ -336,7 +326,6 @@ export const SecurityPrivacyView: React.FC = () => {
     }
   };
 
-  // Test Bench Runner
   const runSingleTest = async (testId: string) => {
     setTestResults((prev) =>
       prev.map((t) => (t.id === testId ? { ...t, status: 'RUNNING', diagnosticOutput: undefined } : t))
@@ -420,9 +409,8 @@ export const SecurityPrivacyView: React.FC = () => {
     setIsRunningAllTests(false);
   };
 
-  // Calculate Security Score
   const computeSecurityScore = () => {
-    let score = 60; // Base score
+    let score = 60;
     if (isMfaActive) score += 20;
     if (sessionTimeout <= 30) score += 10;
     if (privacySettings.dataSharing === false) score += 5;
@@ -434,7 +422,6 @@ export const SecurityPrivacyView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Header */}
       <div>
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
@@ -466,7 +453,6 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* Main Navigation Sub-Tabs */}
       <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2 overflow-x-auto">
         {[
           { id: 'overview', label: 'Security Score & MFA', icon: ShieldCheck },
@@ -494,10 +480,8 @@ export const SecurityPrivacyView: React.FC = () => {
         })}
       </div>
 
-      {/* TAB 1: OVERVIEW & MFA */}
       {activeTab === 'overview' && (
         <div className="space-y-6 animate-in fade-in">
-          {/* Security Score Card */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -522,9 +506,7 @@ export const SecurityPrivacyView: React.FC = () => {
             </div>
           </div>
 
-          {/* Core Security Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* MFA Card */}
             <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -569,7 +551,6 @@ export const SecurityPrivacyView: React.FC = () => {
               </div>
             </div>
 
-            {/* Password & Credential Card */}
             <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -590,7 +571,6 @@ export const SecurityPrivacyView: React.FC = () => {
               <div className="text-[11px] text-slate-400 font-mono">Algorithm: PBKDF2-HMAC-SHA256</div>
             </div>
 
-            {/* Ledger Proof Card */}
             <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -614,10 +594,8 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: ACTIVE SESSIONS & TIMEOUT */}
       {activeTab === 'sessions' && (
         <div className="space-y-6 animate-in fade-in">
-          {/* Inactivity Timeout Config */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -645,7 +623,6 @@ export const SecurityPrivacyView: React.FC = () => {
             </div>
           </div>
 
-          {/* Active Sessions List */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -724,7 +701,6 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: PRIVACY & CONSENT CONTROLS */}
       {activeTab === 'privacy' && (
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6 animate-in fade-in">
           <div>
@@ -789,10 +765,8 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: ENCRYPTED BACKUPS & DATA EXPORT */}
       {activeTab === 'backup' && (
         <div className="space-y-6 animate-in fade-in">
-          {/* Data Portability (GDPR Art. 20) */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900">GDPR Article 20 Data Portability</h3>
@@ -880,7 +854,6 @@ export const SecurityPrivacyView: React.FC = () => {
             </div>
           </div>
 
-          {/* Backup Restore & Validator */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Import & Restore Encrypted Backup</h3>
@@ -920,7 +893,6 @@ export const SecurityPrivacyView: React.FC = () => {
                 )}
               </div>
 
-              {/* Validation Result Box */}
               {backupValidationResult && (
                 <div
                   className={`p-4 rounded-2xl border text-xs font-mono animate-in fade-in ${
@@ -957,7 +929,6 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 5: SECURITY TEST BENCH */}
       {activeTab === 'testbench' && (
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6 animate-in fade-in">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
@@ -980,7 +951,6 @@ export const SecurityPrivacyView: React.FC = () => {
             </button>
           </div>
 
-          {/* Test Items Grid */}
           <div className="space-y-3">
             {testResults.map((test) => (
               <div
@@ -1031,7 +1001,6 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 6: TECHNICAL ARCHITECTURE & THREAT MODEL */}
       {activeTab === 'architecture' && (
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6 animate-in fade-in">
           <div>
@@ -1111,7 +1080,6 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 7: IMMUTABLE AUDIT TRAIL LOGS */}
       {activeTab === 'logs' && (
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4 animate-in fade-in">
           <div className="flex items-center justify-between">
@@ -1170,7 +1138,6 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* MFA SETUP MODAL */}
       {showMfaSetupModal && mfaSetupData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 space-y-5">
@@ -1268,7 +1235,6 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* MFA DISABLE MODAL */}
       {showMfaDisableModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
           <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-xl p-6 space-y-5">
@@ -1314,7 +1280,6 @@ export const SecurityPrivacyView: React.FC = () => {
         </div>
       )}
 
-      {/* RESTORE CONFIRMATION MODAL */}
       {showRestoreConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
           <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-xl p-6 space-y-5">

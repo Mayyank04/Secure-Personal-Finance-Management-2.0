@@ -33,7 +33,6 @@ export const BlockchainAuditView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedBlock, setSelectedBlock] = useState<BlockchainBlock | null>(null);
 
-  // Full Chain Audit state
   const [isAuditing, setIsAuditing] = useState<boolean>(false);
   const [auditResult, setAuditResult] = useState<{
     isValid: boolean;
@@ -41,7 +40,6 @@ export const BlockchainAuditView: React.FC = () => {
     auditDetails: string[];
   } | null>(null);
 
-  // Single Block Verification State
   const [isVerifyingBlock, setIsVerifyingBlock] = useState<boolean>(false);
   const [blockVerificationResult, setBlockVerificationResult] = useState<{
     isValid: boolean;
@@ -56,10 +54,8 @@ export const BlockchainAuditView: React.FC = () => {
     details: string[];
   } | null>(null);
 
-  // Active Tab
   const [activeTab, setActiveTab] = useState<'explorer' | 'simulation' | 'architecture'>('explorer');
 
-  // Simulation Steps
   const [simulationStep, setSimulationStep] = useState<number>(isTampered ? 2 : 1);
 
   const loadBlockchainData = async () => {
@@ -139,7 +135,6 @@ export const BlockchainAuditView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -174,7 +169,6 @@ export const BlockchainAuditView: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
         <button
           onClick={() => setActiveTab('explorer')}
@@ -216,7 +210,6 @@ export const BlockchainAuditView: React.FC = () => {
         </button>
       </div>
 
-      {/* 4 Node Telemetry Status Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-500">
@@ -257,7 +250,6 @@ export const BlockchainAuditView: React.FC = () => {
         </div>
       </div>
 
-      {/* Audit Result Display Banner if run */}
       {auditResult && (
         <div
           className={`p-5 rounded-3xl border animate-in fade-in ${
@@ -295,10 +287,8 @@ export const BlockchainAuditView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 1: BLOCK EXPLORER */}
       {activeTab === 'explorer' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in">
-          {/* Blocks List Column */}
           <div className="lg:col-span-1 p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -367,7 +357,6 @@ export const BlockchainAuditView: React.FC = () => {
             </div>
           </div>
 
-          {/* Selected Block Detailed Cryptographic Inspector */}
           <div className="lg:col-span-2 p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6">
             {selectedBlock ? (
               <>
@@ -397,7 +386,6 @@ export const BlockchainAuditView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Individual Block Verification Output Banner */}
                 {blockVerificationResult && (
                   <div
                     className={`p-4 rounded-2xl border text-xs font-mono animate-in fade-in ${
@@ -425,7 +413,6 @@ export const BlockchainAuditView: React.FC = () => {
                   </div>
                 )}
 
-                {/* Cryptographic Hashes Table */}
                 <div className="space-y-3 font-mono text-xs">
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                     <div className="flex justify-between text-slate-500 text-[10px] uppercase">
@@ -458,7 +445,6 @@ export const BlockchainAuditView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Merkle Leaf Transactions in this block */}
                 <div className="space-y-3 pt-2">
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                     Committed Transaction Leaf Records ({(selectedBlock.records || []).length})
@@ -486,7 +472,6 @@ export const BlockchainAuditView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Validator Node Signatures */}
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                   <div className="flex items-center justify-between text-[11px] text-slate-500">
                     <span className="font-semibold text-slate-800">Raft Consensus Node Signatures</span>
@@ -517,7 +502,6 @@ export const BlockchainAuditView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: TAMPER SIMULATION LAB */}
       {activeTab === 'simulation' && (
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6 animate-in fade-in">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
@@ -539,7 +523,6 @@ export const BlockchainAuditView: React.FC = () => {
             </div>
           </div>
 
-          {/* Step Progress Tracker */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
             {[
               { num: 1, title: 'Sound Baseline', desc: 'SHA-256 match confirmed' },
@@ -569,7 +552,6 @@ export const BlockchainAuditView: React.FC = () => {
             })}
           </div>
 
-          {/* Interactive Simulation Console */}
           <div className="p-6 rounded-2xl bg-slate-900 text-white font-mono text-xs space-y-4 shadow-inner">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
@@ -643,7 +625,6 @@ export const BlockchainAuditView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: TECHNICAL ARCHITECTURE */}
       {activeTab === 'architecture' && (
         <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6 animate-in fade-in">
           <div>

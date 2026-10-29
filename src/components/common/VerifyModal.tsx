@@ -40,7 +40,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
     setError(null);
     setResult(null);
 
-    // Run real-time verification request to server
     api.verifyTransaction(transaction.id)
       .then((res) => {
         if (isMounted) {
@@ -81,7 +80,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
-        {/* Top Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -100,9 +98,7 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
           </button>
         </div>
 
-        {/* Content Body */}
         <div className="p-6 space-y-5 overflow-y-auto">
-          {/* Target Transaction Summary Card */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
             <div>
               <span className="text-xs font-mono text-indigo-700 uppercase tracking-wider font-semibold">
@@ -119,7 +115,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
             </div>
           </div>
 
-          {/* Verification Status Banner */}
           {isVerifying ? (
             <div className="p-6 rounded-2xl bg-indigo-50/50 border border-indigo-100 text-center space-y-3">
               <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
@@ -170,7 +165,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
             </div>
           )}
 
-          {/* Cryptographic Proof Details Grid */}
           {result && (
             <div className="space-y-3 font-mono text-xs">
               <div className="text-xs font-semibold font-sans text-slate-700 uppercase tracking-wider flex items-center justify-between">
@@ -178,7 +172,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
                 <span className="font-mono text-slate-400">Channel: {result.channelId || 'fintech-audit-channel'}</span>
               </div>
 
-              {/* Block & Previous Block Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
                   <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
@@ -201,7 +194,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
                 </div>
               </div>
 
-              {/* Hash Comparison */}
               <div className="space-y-2">
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
                   <div className="flex items-center justify-between text-slate-500 text-[10px] uppercase mb-1">
@@ -236,7 +228,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
                 </div>
               </div>
 
-              {/* Canonical Payload Inspection Toggle */}
               <div className="pt-1">
                 <button
                   onClick={() => setShowCanonicalJson(!showCanonicalJson)}
@@ -253,7 +244,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
                 )}
               </div>
 
-              {/* Privacy Architecture Guarantee Note */}
               <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-2.5 text-xs font-sans text-slate-600">
                 <Cpu className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
                 <span>
@@ -264,7 +254,6 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
           <div className="text-xs text-slate-500 font-mono">
             MSP: <span className="text-slate-700 font-semibold">{result?.mspId || 'FintechOrg1MSP'}</span>

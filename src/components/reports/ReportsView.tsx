@@ -62,8 +62,7 @@ export const ReportsView: React.FC = () => {
       const doc = new jsPDF();
       const monthLabel = months.find((m) => m.value === selectedMonth)?.label || selectedMonth;
 
-      // Header Banner
-      doc.setFillColor(30, 41, 59); // Slate 800
+      doc.setFillColor(30, 41, 59);
       doc.rect(0, 0, 210, 36, 'F');
 
       doc.setTextColor(255, 255, 255);
@@ -73,11 +72,10 @@ export const ReportsView: React.FC = () => {
 
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(148, 163, 184); // Slate 400
+      doc.setTextColor(148, 163, 184);
       doc.text(`Official Monthly Financial Statement & Blockchain Cryptographic Attestation`, 14, 23);
       doc.text(`Accounting Period: ${monthLabel} | Generated: ${new Date().toISOString().split('T')[0]}`, 14, 29);
 
-      // Account & Ledger Metadata Box
       doc.setTextColor(15, 23, 42);
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
@@ -99,7 +97,6 @@ export const ReportsView: React.FC = () => {
         bodyStyles: { fontSize: 8 },
       });
 
-      // Executive Summary Table
       const summaryY = (doc as any).lastAutoTable.finalY + 8;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
@@ -121,7 +118,6 @@ export const ReportsView: React.FC = () => {
         bodyStyles: { fontSize: 8 },
       });
 
-      // Category Spending Breakdown Table
       const catY = (doc as any).lastAutoTable.finalY + 8;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
@@ -142,7 +138,6 @@ export const ReportsView: React.FC = () => {
         bodyStyles: { fontSize: 8 },
       });
 
-      // Flagged Anomalies Table (if present)
       let currentY = (doc as any).lastAutoTable.finalY + 8;
       if (reportData.anomaliesSummary && reportData.anomaliesSummary.length > 0) {
         doc.setFontSize(10);
@@ -169,7 +164,6 @@ export const ReportsView: React.FC = () => {
         currentY = (doc as any).lastAutoTable.finalY + 8;
       }
 
-      // Cryptographic Attestation Box
       if (currentY > 240) {
         doc.addPage();
         currentY = 20;
@@ -193,7 +187,6 @@ export const ReportsView: React.FC = () => {
       doc.text(`Timestamp: ${reportData.cryptographicSeal?.timestamp || new Date().toISOString()}`, 18, currentY + 26);
       doc.text(`Consensus: Raft PBFT Multi-Peer Quorum Verified (Block #${reportData.cryptographicSeal?.blockHeight || 41})`, 18, currentY + 32);
 
-      // Save PDF
       doc.save(`Monthly-Financial-Statement-${selectedMonth}.pdf`);
     } catch (err) {
       console.error(err);
@@ -204,7 +197,6 @@ export const ReportsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
@@ -216,7 +208,6 @@ export const ReportsView: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Month Selector */}
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
@@ -248,7 +239,6 @@ export const ReportsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Statement Paper Preview Document */}
       {isLoading ? (
         <div className="py-20 text-center space-y-3 bg-white rounded-3xl border border-slate-200">
           <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
@@ -260,7 +250,6 @@ export const ReportsView: React.FC = () => {
         </div>
       ) : (
         <div className="p-8 rounded-3xl bg-white border border-slate-200 space-y-6 shadow-xs max-w-4xl mx-auto">
-          {/* Statement Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-slate-200">
             <div>
               <div className="flex items-center gap-2">
@@ -288,7 +277,6 @@ export const ReportsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 1: Executive Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] text-slate-500 block uppercase">Total Inflows</span>
@@ -316,7 +304,6 @@ export const ReportsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 2: Expense Distribution */}
           <div className="space-y-3 pt-2">
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Category Expenditures & Outflow Distribution
@@ -348,7 +335,6 @@ export const ReportsView: React.FC = () => {
             </table>
           </div>
 
-          {/* Section 3: Flagged Anomalies if any */}
           {reportData.anomaliesSummary && reportData.anomaliesSummary.length > 0 && (
             <div className="space-y-3 pt-4 border-t border-slate-200">
               <div className="flex items-center gap-2">
@@ -376,7 +362,6 @@ export const ReportsView: React.FC = () => {
             </div>
           )}
 
-          {/* Cryptographic Attestation Footer */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-[11px] text-slate-500">
             <div className="flex items-center gap-2 text-slate-800 font-semibold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />

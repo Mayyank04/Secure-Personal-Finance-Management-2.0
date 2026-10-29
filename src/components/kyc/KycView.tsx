@@ -33,7 +33,6 @@ export const KycView: React.FC = () => {
   const [isReviewing, setIsReviewing] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Form Fields
   const [fullName, setFullName] = useState<string>('');
   const [dateOfBirth, setDateOfBirth] = useState<string>('1995-05-12');
   const [address, setAddress] = useState<string>('742 Evergreen Terrace, Sector 4, Bangalore');
@@ -43,7 +42,6 @@ export const KycView: React.FC = () => {
   const [documentImageUri, setDocumentImageUri] = useState<string>('');
   const [showMasked, setShowMasked] = useState<boolean>(true);
 
-  // Reviewer simulation controls
   const [reviewerNotes, setReviewerNotes] = useState<string>('Biometric & facial integrity verified against simulated identity registry.');
 
   const fetchKycStatus = async () => {
@@ -216,7 +214,6 @@ export const KycView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
@@ -250,7 +247,6 @@ export const KycView: React.FC = () => {
         </div>
       </div>
 
-      {/* Educational / Non-Government Transparency Alert */}
       <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex items-start gap-3">
         <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
         <div className="text-xs text-indigo-900 space-y-1">
@@ -278,9 +274,7 @@ export const KycView: React.FC = () => {
         </div>
       )}
 
-      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Verification Form or Details */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -289,7 +283,6 @@ export const KycView: React.FC = () => {
                 <p className="text-xs text-slate-500">Provide legal name, date of birth, and identity documentation</p>
               </div>
 
-              {/* Sample Preset Buttons */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[11px] font-semibold text-slate-400">Sample Presets:</span>
                 <button
@@ -318,7 +311,6 @@ export const KycView: React.FC = () => {
 
             <form onSubmit={handleSubmitKyc} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Full Name */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Full Legal Name</label>
                   <input
@@ -331,7 +323,6 @@ export const KycView: React.FC = () => {
                   />
                 </div>
 
-                {/* Date of Birth */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Date of Birth</label>
                   <input
@@ -345,7 +336,6 @@ export const KycView: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Document Type */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Document Type</label>
                   <select
@@ -360,7 +350,6 @@ export const KycView: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Document Number */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs font-semibold text-slate-700">Document Identifier</label>
@@ -384,7 +373,6 @@ export const KycView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Address */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Residential Address</label>
                 <input
@@ -396,7 +384,6 @@ export const KycView: React.FC = () => {
                 />
               </div>
 
-              {/* Document Image Dropzone / Upload */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Document Image or PDF Proof (Simulated OCR Ingress)
@@ -421,7 +408,6 @@ export const KycView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="pt-3 flex items-center justify-between border-t border-slate-100">
                 <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
                   <Lock className="w-3.5 h-3.5 text-indigo-500" />
@@ -441,9 +427,7 @@ export const KycView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right 1 Col: Status & Simulated Reviewer Workbench */}
         <div className="space-y-6">
-          {/* Identity Shield Card */}
           <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="text-xs font-bold text-slate-900">Current KYC Posture</div>
@@ -473,7 +457,6 @@ export const KycView: React.FC = () => {
               )}
             </div>
 
-            {/* Simulated Reviewer Workbench (Interactive Demonstration) */}
             <div className="pt-3 border-t border-slate-100 space-y-3">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                 <Sparkles className="w-4 h-4 text-indigo-600" />

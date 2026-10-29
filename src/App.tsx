@@ -123,45 +123,36 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-indigo-500/20 selection:text-indigo-900">
-      {/* Demo Banner */}
       {(isDemoMode || user?.id === 'usr-demo-fintech-01') && <DemoBanner />}
 
-      {/* Main Layout Shell */}
       <div className="flex-1 flex flex-col">
-        {/* Top Navbar */}
         <Navbar />
 
         <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
-          {/* Left Navigation Sidebar */}
           <Sidebar />
 
-          {/* Center Main Application View */}
           <main className="flex-1 min-w-0">
             {renderActiveView()}
           </main>
         </div>
       </div>
 
-      {/* Persistent Assistant, Modals & Drawers */}
       <AiAssistantDrawer />
       <VerifyModal />
       <ExplainModal />
       <AuthModal />
       <OnboardingModal />
 
-      {/* FinTech Actions & Command Palette */}
       <ReceiptScannerModal
         isOpen={isReceiptModalOpen}
         onClose={() => setIsReceiptModalOpen(false)}
         onTransactionCreated={() => {
-          // Transaction created, will re-render in views
         }}
       />
       <VoiceExpenseModal
         isOpen={isVoiceModalOpen}
         onClose={() => setIsVoiceModalOpen(false)}
         onTransactionCreated={() => {
-          // Transaction created
         }}
       />
       <CommandMenu />

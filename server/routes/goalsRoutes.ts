@@ -1,13 +1,3 @@
-/**
- * Savings Goals REST API Routes
- * 
- * Provides:
- * - Full CRUD for savings targets & wealth accumulation goals
- * - Target dates, monthly contributions, and progress tracking
- * - Atomic contributions with linked transactions & account deductions
- * - Direct database persistence to PostgreSQL/SQLite
- */
-
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
@@ -31,7 +21,6 @@ function computeGoalMetrics(goal: SavingsGoal): SavingsGoal & { progressPercent:
   };
 }
 
-// GET /api/goals - List all savings goals for user
 goalsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -69,7 +58,6 @@ goalsRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/goals/:id - Retrieve single savings goal
 goalsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -95,7 +83,6 @@ goalsRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/goals - Create a new savings goal
 goalsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -155,11 +142,8 @@ goalsRouter.post('/', async (req: Request, res: Response) => {
       updatedAt: now,
     };
 
-    // Persist to database
     const adapter = getDatabaseAdapter();
     await adapter.saveGoal(newGoal);
-
-    // Keep memory cache updated
     db.goals.set(goalId, newGoal);
 
     db.recordAuditEvent({
@@ -175,7 +159,6 @@ goalsRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH & PUT /api/goals/:id - Update savings goal
 async function handleUpdateGoal(req: Request, res: Response) {
   try {
     const userId = (req as any).userId;
@@ -240,7 +223,6 @@ async function handleUpdateGoal(req: Request, res: Response) {
       goal.category = String(category).trim();
     }
 
-    // Recalculate estimated completion date
     const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
     if (goal.monthlyContribution && goal.monthlyContribution > 0) {
       const monthsNeeded = Math.ceil(remaining / goal.monthlyContribution);
@@ -251,10 +233,7 @@ async function handleUpdateGoal(req: Request, res: Response) {
 
     goal.updatedAt = new Date().toISOString();
 
-    // Persist to database
     await adapter.saveGoal(goal);
-
-    // Keep memory cache updated
     db.goals.set(goalId, goal);
 
     db.recordAuditEvent({
@@ -273,7 +252,6 @@ async function handleUpdateGoal(req: Request, res: Response) {
 goalsRouter.patch('/:id', handleUpdateGoal);
 goalsRouter.put('/:id', handleUpdateGoal);
 
-// DELETE /api/goals/:id - Delete savings goal
 goalsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -307,7 +285,6 @@ goalsRouter.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/goals/:id/contribute - Add savings contribution
 goalsRouter.post('/:id/contribute', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
@@ -335,7 +312,6 @@ goalsRouter.post('/:id/contribute', async (req: Request, res: Response) => {
     goal.currentAmount += parsedAmount.value;
     goal.updatedAt = new Date().toISOString();
 
-    // Optionally create transaction if accountId provided
     if (accountId) {
       const acc = await adapter.getAccountForUser(accountId, userId);
       if (acc) {

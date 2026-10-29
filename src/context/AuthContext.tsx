@@ -1,6 +1,3 @@
-/**
- * Global App & Authentication Context
- */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserProfile, NotificationItem, Transaction } from '../types';
@@ -58,15 +55,12 @@ interface AuthContextType {
   setIsTampered?: (tampered: boolean) => void;
   refreshBlockchainStatus?: () => Promise<void>;
   openAuthModal?: (mode?: 'login' | 'signup' | 'forgot' | 'LOGIN' | 'SIGNUP') => void;
-  // Global verification modal trigger
   verifyTxModalData: Transaction | null;
   openVerifyModal: (tx: Transaction) => void;
   closeVerifyModal: () => void;
-  // Global explain modal trigger
   explainModalData: { title: string; explanation: string; signals: string[]; action?: string } | null;
   openExplainModal: (data: { title: string; explanation: string; signals: string[]; action?: string }) => void;
   closeExplainModal: () => void;
-  // Global AI Receipt & Voice Entry modals
   isReceiptModalOpen: boolean;
   setIsReceiptModalOpen: (open: boolean) => void;
   isVoiceModalOpen: boolean;
@@ -77,10 +71,8 @@ interface AuthContextType {
   setIsCommandMenuOpen: (open: boolean) => void;
   isCurrencyModalOpen: boolean;
   setIsCurrencyModalOpen: (open: boolean) => void;
-  // AI Chat Assistant drawer state
   isChatOpen: boolean;
   setIsChatOpen: (open: boolean) => void;
-  // Auth & Onboarding modals
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
   authModalMode: 'login' | 'signup' | 'forgot';
@@ -101,7 +93,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isMfaActive, setIsMfaActive] = useState<boolean>(false);
   const [isTampered, setIsTampered] = useState<boolean>(false);
 
-  // Global modals
   const [verifyTxModalData, setVerifyTxModalData] = useState<Transaction | null>(null);
   const [explainModalData, setExplainModalData] = useState<{ title: string; explanation: string; signals: string[]; action?: string } | null>(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState<boolean>(false);
@@ -114,7 +105,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
 
-  // Notifications
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const loadNotifications = async () => {
@@ -153,14 +143,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await loadNotifications();
       }
     } catch (err: any) {
-      // Only clear storage and session state on genuine 401 Unauthorized
       if (err?.status === 401) {
         localStorage.removeItem('fintech_session_token');
         setUser(null);
         setProfile(null);
         setActiveTab('landing');
       } else {
-        // For 503 Service Unavailable (DB cold start/reconnect) or network blip, preserve token
         console.warn('[AuthContext] Transient/database error during session load:', err?.message || err);
       }
     } finally {
@@ -251,7 +239,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await api.logout();
     } catch {
-      // continue
     }
     localStorage.removeItem('fintech_session_token');
     setUser(null);
