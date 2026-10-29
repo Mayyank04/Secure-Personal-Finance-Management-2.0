@@ -48,11 +48,18 @@ class ApiClient {
         try {
           const errorData = JSON.parse(text);
           if (errorData.error) {
-            errMessage = typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData.error);
+            if (typeof errorData.error === 'string') {
+              errMessage = errorData.error;
+            } else if (typeof errorData.error === 'object' && errorData.error.message) {
+              errMessage = errorData.error.message;
+              if (errorData.error.code) errCode = errorData.error.code;
+            } else {
+              errMessage = JSON.stringify(errorData.error);
+            }
           } else if (errorData.message) {
             errMessage = errorData.message;
           }
-          if (errorData.code) errCode = errorData.code;
+          if (errorData.code && !errCode) errCode = errorData.code;
         } catch {
           if (text && !text.includes('<!DOCTYPE') && !text.includes('<html') && text.trim().length > 0 && text.length < 300) {
             errMessage = text.trim();

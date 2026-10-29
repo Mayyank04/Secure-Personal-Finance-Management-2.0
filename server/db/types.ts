@@ -41,11 +41,36 @@ export interface IDatabaseAdapter {
   // IDOR & Centralized Authorization Helpers
   getAccountForUser(accountId: string, userId: string): Promise<FinancialAccount | null>;
   getTransactionForUser(transactionId: string, userId: string): Promise<Transaction | null>;
+  getBudgetForUser(budgetId: string, userId: string): Promise<Budget | null>;
   getBillForUser(billId: string, userId: string): Promise<Bill | null>;
   getGoalForUser(goalId: string, userId: string): Promise<SavingsGoal | null>;
   getLoanForUser(loanId: string, userId: string): Promise<Loan | null>;
   getSubscriptionForUser(subscriptionId: string, userId: string): Promise<Subscription | null>;
   getReceiptForUser(receiptId: string, userId: string): Promise<ReceiptRecord | null>;
+  getKycRecordForUser(userId: string): Promise<KycRecord | null>;
+
+  // Direct Resource Persistence Methods
+  saveAccount(account: FinancialAccount): Promise<void>;
+  updateAccount(account: Partial<FinancialAccount> & { id: string; userId: string }): Promise<void>;
+  getAccountTransactionsCount(accountId: string, userId: string): Promise<number>;
+
+  saveBudget(budget: Budget): Promise<void>;
+  updateBudget(budget: Partial<Budget> & { id: string; userId: string }): Promise<void>;
+
+  saveGoal(goal: SavingsGoal): Promise<void>;
+  updateGoal(goal: Partial<SavingsGoal> & { id: string; userId: string }): Promise<void>;
+
+  saveBill(bill: Bill): Promise<void>;
+  updateBill(bill: Partial<Bill> & { id: string; userId: string }): Promise<void>;
+
+  saveSubscription(subscription: Subscription): Promise<void>;
+  updateSubscription(subscription: Partial<Subscription> & { id: string; userId: string }): Promise<void>;
+
+  saveLoan(loan: Loan): Promise<void>;
+  updateLoan(loan: Partial<Loan> & { id: string; userId: string }): Promise<void>;
+
+  saveKycRecord(kyc: KycRecord): Promise<void>;
+  updateKycRecord(kyc: Partial<KycRecord> & { id: string; userId: string }): Promise<void>;
 
   // Financial Atomic Transactions
   createTransactionAtomic(data: {

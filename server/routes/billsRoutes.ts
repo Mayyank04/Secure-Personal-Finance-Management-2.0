@@ -3,16 +3,18 @@
  * 
  * Provides:
  * - Bill scheduling & status lifecycle (Upcoming, Due Soon, Paid, Overdue, Cancelled)
- * - Calendar integration & Due date alerts
+ * - Full CRUD endpoints: GET, POST, GET /:id, PATCH /:id, PUT /:id, DELETE /:id
+ * - Direct database persistence to PostgreSQL/SQLite
  * - One-click bill settlement with ledger transaction recording & account balance deductions
  */
 
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
-import { persistentSqlite } from '../database.js';
-import { Bill, BillStatus, BillFrequency, TransactionCategory, Transaction } from '../types.js';
+import { getDatabaseAdapter } from '../db/index.js';
 import { blockchainAdapter } from '../blockchain.js';
+import { sendSuccess, sendError, parsePositiveAmount, isValidIsoDate } from '../apiResponse.js';
+import { Bill, BillStatus, BillFrequency, TransactionCategory, Transaction } from '../types.js';
 
 export const billsRouter = Router();
 
@@ -28,11 +30,48 @@ function computeBillStatus(dueDate: string, currentStatus: BillStatus): BillStat
   return 'UPCOMING';
 }
 
-// GET /api/bills - List bills with status breakdown
-billsRouter.get('/', (req: Request, res: Response) => {
+// GET /api/bills - List bills with status breakdown & filters
+billsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
-    const rawBills = db.getUserBills(userId);
+    const adapter = getDatabaseAdapter();
+
+    let rawBills: Bill[] = [];
+    try {
+      const rows = await adapter.query(`SELECT * FROM bills WHERE user_id = $1 ORDER BY due_date ASC;`, [userId]);
+      rawBills = rows.map((r: any) => ({
+        id: r.id,
+        userId: r.user_id,
+        accountId: r.account_id || undefined,
+        name: r.name,
+        merchant: r.merchant,
+        amount: Number(r.amount),
+        category: r.category,
+        dueDate: r.due_date,
+        frequency: r.frequency,
+        autoPaid: Boolean(r.auto_paid),
+        status: r.status,
+        linkedTransactionId: r.linked_transaction_id || undefined,
+        notes: r.notes || undefined,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }));
+    } catch {
+      rawBills = db.getUserBills(userId);
+    }
+
+    if (rawBills.length === 0) {
+      rawBills = db.getUserBills(userId);
+    }
+
+    // Apply query filters
+    const { status, category } = req.query as Record<string, string>;
+    if (status && status !== 'ALL') {
+      rawBills = rawBills.filter(b => b.status === status);
+    }
+    if (category && category !== 'ALL') {
+      rawBills = rawBills.filter(b => b.category.toLowerCase() === category.toLowerCase());
+    }
 
     // Update dynamic status
     const bills = rawBills.map(b => {
@@ -52,7 +91,7 @@ billsRouter.get('/', (req: Request, res: Response) => {
     const overdueCount = bills.filter(b => b.status === 'OVERDUE').length;
     const dueSoonCount = bills.filter(b => b.status === 'DUE_SOON').length;
 
-    return res.json({
+    return sendSuccess(res, 200, {
       bills,
       summary: {
         totalBills: bills.length,
@@ -63,12 +102,38 @@ billsRouter.get('/', (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to retrieve bills.' });
+    return sendError(res, 500, 'BILLS_FETCH_ERROR', 'Failed to retrieve bills: ' + err.message);
+  }
+});
+
+// GET /api/bills/:id - Retrieve single bill
+billsRouter.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const billId = req.params.id;
+    const adapter = getDatabaseAdapter();
+
+    let bill = await adapter.getBillForUser(billId, userId);
+    if (!bill) {
+      const memBill = db.bills.get(billId);
+      if (memBill && memBill.userId === userId) {
+        bill = memBill;
+      }
+    }
+
+    if (!bill) {
+      return sendError(res, 404, 'BILL_NOT_FOUND', 'Bill not found or inaccessible.');
+    }
+
+    bill.status = computeBillStatus(bill.dueDate, bill.status);
+    return sendSuccess(res, 200, { bill });
+  } catch (err: any) {
+    return sendError(res, 500, 'BILL_FETCH_ERROR', 'Failed to retrieve bill: ' + err.message);
   }
 });
 
 // POST /api/bills - Create new bill
-billsRouter.post('/', (req: Request, res: Response) => {
+billsRouter.post('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const {
@@ -83,32 +148,46 @@ billsRouter.post('/', (req: Request, res: Response) => {
       autoPaid = false,
     } = req.body;
 
-    if (!name || !amount || !dueDate) {
-      return res.status(400).json({ error: 'Bill name, amount, and due date are required.' });
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Bill name is required.');
+    }
+
+    const parsedAmount = parsePositiveAmount(amount, 'Bill amount');
+    if (parsedAmount.error) {
+      return sendError(res, 400, 'VALIDATION_ERROR', parsedAmount.error);
+    }
+
+    if (!dueDate || !isValidIsoDate(dueDate)) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Valid due date in YYYY-MM-DD format is required.');
     }
 
     const billId = 'bill-' + crypto.randomBytes(6).toString('hex');
     const status = computeBillStatus(dueDate, 'UPCOMING');
+    const now = new Date().toISOString();
 
     const newBill: Bill = {
       id: billId,
       userId,
       name: name.trim(),
       merchant: merchant ? merchant.trim() : name.trim(),
-      amount: Number(amount),
+      amount: parsedAmount.value,
       category: category as TransactionCategory,
       dueDate,
       frequency: frequency as BillFrequency,
-      accountId,
+      accountId: accountId || undefined,
       status,
-      notes,
-      autoPaid,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      notes: notes || undefined,
+      autoPaid: Boolean(autoPaid),
+      createdAt: now,
+      updatedAt: now,
     };
 
+    // Direct database persistence
+    const adapter = getDatabaseAdapter();
+    await adapter.saveBill(newBill);
+
+    // Keep memory cache updated
     db.bills.set(billId, newBill);
-    persistentSqlite.syncFromMemoryDb(db);
 
     db.recordAuditEvent({
       userId,
@@ -116,64 +195,121 @@ billsRouter.post('/', (req: Request, res: Response) => {
       description: `Created new bill "${newBill.name}" for ₹${newBill.amount} due on ${newBill.dueDate}.`,
     });
 
-    return res.status(201).json({ message: 'Bill created successfully.', bill: newBill });
+    return sendSuccess(res, 201, { bill: newBill }, 'Bill created successfully.');
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to create bill.' });
+    return sendError(res, 500, 'BILL_CREATE_ERROR', 'Failed to create bill: ' + err.message);
   }
 });
 
-// PUT /api/bills/:id - Update bill
-billsRouter.put('/:id', (req: Request, res: Response) => {
+// PATCH & PUT /api/bills/:id - Update bill
+async function handleUpdateBill(req: Request, res: Response) {
   try {
     const userId = (req as any).userId;
-    const bill = db.bills.get(req.params.id);
+    const billId = req.params.id;
+    const adapter = getDatabaseAdapter();
 
-    if (!bill || bill.userId !== userId) {
-      return res.status(404).json({ error: 'Bill not found.' });
+    let bill = await adapter.getBillForUser(billId, userId);
+    if (!bill) {
+      const memBill = db.bills.get(billId);
+      if (memBill && memBill.userId === userId) {
+        bill = memBill;
+      }
+    }
+
+    if (!bill) {
+      return sendError(res, 404, 'BILL_NOT_FOUND', 'Bill not found or inaccessible.');
     }
 
     const { name, merchant, amount, category, dueDate, frequency, accountId, status, notes, autoPaid } = req.body;
 
-    if (name) bill.name = name.trim();
-    if (merchant) bill.merchant = merchant.trim();
-    if (amount !== undefined) bill.amount = Number(amount);
-    if (category) bill.category = category;
-    if (dueDate) bill.dueDate = dueDate;
-    if (frequency) bill.frequency = frequency;
-    if (accountId !== undefined) bill.accountId = accountId;
-    if (status) bill.status = status;
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim() === '') {
+        return sendError(res, 400, 'VALIDATION_ERROR', 'Bill name cannot be empty.');
+      }
+      bill.name = name.trim();
+    }
+
+    if (merchant !== undefined) bill.merchant = String(merchant).trim();
+
+    if (amount !== undefined) {
+      const parsedAmount = parsePositiveAmount(amount, 'Bill amount');
+      if (parsedAmount.error) return sendError(res, 400, 'VALIDATION_ERROR', parsedAmount.error);
+      bill.amount = parsedAmount.value;
+    }
+
+    if (category !== undefined) bill.category = category as TransactionCategory;
+
+    if (dueDate !== undefined) {
+      if (!isValidIsoDate(dueDate)) {
+        return sendError(res, 400, 'VALIDATION_ERROR', 'Invalid due date format. Must be YYYY-MM-DD.');
+      }
+      bill.dueDate = dueDate;
+      bill.status = computeBillStatus(dueDate, bill.status);
+    }
+
+    if (frequency !== undefined) bill.frequency = frequency as BillFrequency;
+    if (accountId !== undefined) bill.accountId = accountId || undefined;
+    if (status !== undefined) bill.status = status as BillStatus;
     if (notes !== undefined) bill.notes = notes;
-    if (autoPaid !== undefined) bill.autoPaid = autoPaid;
+    if (autoPaid !== undefined) bill.autoPaid = Boolean(autoPaid);
 
     bill.updatedAt = new Date().toISOString();
-    persistentSqlite.syncFromMemoryDb(db);
 
-    return res.json({ message: 'Bill updated successfully.', bill });
+    // Persist to database
+    await adapter.saveBill(bill);
+
+    // Keep memory cache updated
+    db.bills.set(billId, bill);
+
+    db.recordAuditEvent({
+      userId,
+      eventType: 'BILL_UPDATED',
+      description: `Updated details for bill "${bill.name}".`,
+    });
+
+    return sendSuccess(res, 200, { bill }, 'Bill updated successfully.');
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to update bill.' });
+    return sendError(res, 500, 'BILL_UPDATE_ERROR', 'Failed to update bill: ' + err.message);
   }
-});
+}
 
-// POST /api/bills/:id/pay - Mark bill as paid & optionally record transaction
-billsRouter.post('/:id/pay', (req: Request, res: Response) => {
+billsRouter.put('/:id', handleUpdateBill);
+billsRouter.patch('/:id', handleUpdateBill);
+
+// POST /api/bills/:id/pay - Mark bill as paid & record atomic ledger transaction
+billsRouter.post('/:id/pay', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
-    const bill = db.bills.get(req.params.id);
+    const billId = req.params.id;
+    const adapter = getDatabaseAdapter();
 
-    if (!bill || bill.userId !== userId) {
-      return res.status(404).json({ error: 'Bill not found.' });
+    let bill = await adapter.getBillForUser(billId, userId);
+    if (!bill) {
+      const memBill = db.bills.get(billId);
+      if (memBill && memBill.userId === userId) {
+        bill = memBill;
+      }
+    }
+
+    if (!bill) {
+      return sendError(res, 404, 'BILL_NOT_FOUND', 'Bill not found or inaccessible.');
     }
 
     const { recordTransaction = true, accountId, paymentMethod = 'Bank Transfer' } = req.body;
     const targetAccountId = accountId || bill.accountId;
-    const targetAccount = targetAccountId ? db.accounts.get(targetAccountId) : db.getUserAccounts(userId)[0];
+    let targetAccount = targetAccountId ? await adapter.getAccountForUser(targetAccountId, userId) : null;
+    if (!targetAccount) {
+      const accounts = await adapter.query(`SELECT * FROM accounts WHERE user_id = $1 LIMIT 1;`, [userId]);
+      if (accounts.length > 0) targetAccount = accounts[0];
+      else targetAccount = db.getUserAccounts(userId)[0] || null;
+    }
 
     bill.status = 'PAID';
     bill.updatedAt = new Date().toISOString();
 
     let createdTx: Transaction | undefined;
 
-    if (recordTransaction) {
+    if (recordTransaction && targetAccount) {
       const txId = 'tx-' + crypto.randomBytes(8).toString('hex');
       const canonicalData = {
         id: txId,
@@ -191,8 +327,8 @@ billsRouter.post('/:id/pay', (req: Request, res: Response) => {
       createdTx = {
         id: txId,
         userId,
-        accountId: targetAccount?.id,
-        accountName: targetAccount?.name,
+        accountId: targetAccount.id,
+        accountName: targetAccount.name,
         date: new Date().toISOString().split('T')[0],
         description: `Bill Payment: ${bill.name}`,
         cleanDescription: bill.name,
@@ -213,42 +349,76 @@ billsRouter.post('/:id/pay', (req: Request, res: Response) => {
         updatedAt: new Date().toISOString(),
       };
 
-      db.transactions.set(txId, createdTx);
+      await adapter.payBillAtomic({
+        bill,
+        transaction: createdTx,
+        account: targetAccount,
+        newBalance: targetAccount.currentBalance - bill.amount,
+        auditEvent: {
+          id: 'aud-' + crypto.randomBytes(6).toString('hex'),
+          userId,
+          eventType: 'BILL_PAID',
+          description: `Settled bill "${bill.name}" for ₹${bill.amount}.`,
+          timestamp: new Date().toISOString(),
+          ipAddress: req.ip || '127.0.0.1',
+          userAgent: (req.headers['user-agent'] as string) || 'Modern Web Client',
+          blockchainTxId: blockchainHash,
+        },
+        ledgerRecord: onChainRecord,
+      }).catch(err => {
+        console.error('[Bill Pay] Atomic persistence warning:', err);
+      });
+
       bill.linkedTransactionId = txId;
-
-      if (targetAccount) {
-        db.updateAccountBalance(targetAccount.id, bill.amount, false);
-      }
+      db.transactions.set(txId, createdTx);
+      db.updateAccountBalance(targetAccount.id, bill.amount, false);
+    } else {
+      await adapter.saveBill(bill);
     }
-    persistentSqlite.syncFromMemoryDb(db);
 
-    db.recordAuditEvent({
-      userId,
-      eventType: 'BILL_PAID',
-      description: `Settled bill "${bill.name}" for ₹${bill.amount}.`,
-    });
+    db.bills.set(bill.id, bill);
 
-    return res.json({
-      message: `Bill "${bill.name}" marked as paid.`,
-      bill,
-      transaction: createdTx,
-    });
+    return sendSuccess(
+      res,
+      200,
+      { bill, transaction: createdTx, transactionId: createdTx?.id },
+      `Bill "${bill.name}" marked as paid.`
+    );
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to settle bill.' });
+    return sendError(res, 500, 'BILL_PAY_ERROR', 'Failed to settle bill: ' + err.message);
   }
 });
 
 // DELETE /api/bills/:id - Delete bill
-billsRouter.delete('/:id', (req: Request, res: Response) => {
-  const userId = (req as any).userId;
-  const bill = db.bills.get(req.params.id);
+billsRouter.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const billId = req.params.id;
+    const adapter = getDatabaseAdapter();
 
-  if (!bill || bill.userId !== userId) {
-    return res.status(404).json({ error: 'Bill not found.' });
+    let bill = await adapter.getBillForUser(billId, userId);
+    if (!bill) {
+      const memBill = db.bills.get(billId);
+      if (memBill && memBill.userId === userId) {
+        bill = memBill;
+      }
+    }
+
+    if (!bill) {
+      return sendError(res, 404, 'BILL_NOT_FOUND', 'Bill not found or inaccessible.');
+    }
+
+    await adapter.deleteBill(billId);
+    db.bills.delete(billId);
+
+    db.recordAuditEvent({
+      userId,
+      eventType: 'BILL_DELETED',
+      description: `Removed bill "${bill.name}".`,
+    });
+
+    return sendSuccess(res, 200, { id: billId }, 'Bill removed successfully.');
+  } catch (err: any) {
+    return sendError(res, 500, 'BILL_DELETE_ERROR', 'Failed to delete bill: ' + err.message);
   }
-
-  db.bills.delete(req.params.id);
-  persistentSqlite.deleteBill(req.params.id);
-  persistentSqlite.syncFromMemoryDb(db);
-  return res.json({ message: 'Bill removed successfully.' });
 });

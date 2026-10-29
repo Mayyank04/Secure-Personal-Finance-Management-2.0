@@ -723,6 +723,265 @@ export class SqliteAdapter implements IDatabaseAdapter {
     };
   }
 
+  public async getBudgetForUser(budgetId: string, userId: string): Promise<Budget | null> {
+    const rows = await this.query(`SELECT * FROM budgets WHERE id = ? AND user_id = ?;`, [budgetId, userId]);
+    if (rows.length === 0) return null;
+    const r = rows[0];
+    return {
+      id: r.id,
+      userId: r.user_id,
+      month: r.month,
+      totalBudget: Number(r.total_budget),
+      categoryBudgets: r.category_budgets_json ? JSON.parse(r.category_budgets_json) : {},
+      rolloverEnabled: Boolean(r.rollover_enabled),
+      alertThresholds: r.alert_thresholds_json ? JSON.parse(r.alert_thresholds_json) : { normal: 70, high: 90, exceeded: 100 },
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
+
+  public async getKycRecordForUser(userId: string): Promise<KycRecord | null> {
+    const rows = await this.query(`SELECT * FROM kyc_records WHERE user_id = ?;`, [userId]);
+    if (rows.length === 0) return null;
+    const r = rows[0];
+    return {
+      id: r.id,
+      userId: r.user_id,
+      fullName: r.full_name,
+      dateOfBirth: r.date_of_birth || '',
+      address: r.address || '',
+      country: r.country || 'India',
+      documentType: r.document_type,
+      documentNumber: r.document_number,
+      maskedDocumentNumber: r.masked_document_number,
+      status: r.status,
+      documentImageUri: r.document_image_uri || undefined,
+      ocrExtractedData: r.ocr_extracted_json ? JSON.parse(r.ocr_extracted_json) : undefined,
+      reviewerNotes: r.reviewer_notes || undefined,
+      submittedAt: r.submitted_at || undefined,
+      verifiedAt: r.verified_at || undefined,
+      rejectionReason: r.rejection_reason || undefined,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
+
+  public async saveAccount(acc: FinancialAccount): Promise<void> {
+    await this.execute(
+      `INSERT OR REPLACE INTO accounts (id, user_id, name, institution, account_type, masked_identifier, currency, opening_balance, current_balance, available_balance, credit_limit, status, is_demo, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        acc.id,
+        acc.userId,
+        acc.name,
+        acc.institution,
+        acc.accountType,
+        acc.maskedIdentifier,
+        acc.currency || 'INR',
+        acc.openingBalance,
+        acc.currentBalance,
+        acc.availableBalance,
+        acc.creditLimit || null,
+        acc.status,
+        acc.isDemo ? 1 : 0,
+        acc.createdAt,
+        acc.updatedAt,
+      ]
+    );
+  }
+
+  public async updateAccount(acc: Partial<FinancialAccount> & { id: string; userId: string }): Promise<void> {
+    const existing = await this.getAccountForUser(acc.id, acc.userId);
+    if (!existing) throw new Error('Account not found');
+    const merged = { ...existing, ...acc, updatedAt: new Date().toISOString() };
+    await this.saveAccount(merged);
+  }
+
+  public async getAccountTransactionsCount(accountId: string, userId: string): Promise<number> {
+    const rows = await this.query(`SELECT COUNT(*) as count FROM transactions WHERE account_id = ? AND user_id = ?;`, [accountId, userId]);
+    return Number(rows[0]?.count || 0);
+  }
+
+  public async saveBudget(b: Budget): Promise<void> {
+    await this.execute(
+      `INSERT OR REPLACE INTO budgets (id, user_id, month, total_budget, category_budgets_json, rollover_enabled, alert_thresholds_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        b.id,
+        b.userId,
+        b.month,
+        b.totalBudget,
+        JSON.stringify(b.categoryBudgets || {}),
+        b.rolloverEnabled ? 1 : 0,
+        JSON.stringify(b.alertThresholds || { normal: 70, high: 90, exceeded: 100 }),
+        b.createdAt,
+        b.updatedAt,
+      ]
+    );
+  }
+
+  public async updateBudget(b: Partial<Budget> & { id: string; userId: string }): Promise<void> {
+    const existing = await this.getBudgetForUser(b.id, b.userId);
+    if (!existing) throw new Error('Budget not found');
+    const merged = { ...existing, ...b, updatedAt: new Date().toISOString() };
+    await this.saveBudget(merged);
+  }
+
+  public async saveGoal(g: SavingsGoal): Promise<void> {
+    await this.execute(
+      `INSERT OR REPLACE INTO goals (id, user_id, title, target_amount, current_amount, target_date, monthly_contribution, priority, category, estimated_completion_date, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        g.id,
+        g.userId,
+        g.title,
+        g.targetAmount,
+        g.currentAmount,
+        g.targetDate || null,
+        g.monthlyContribution || 0,
+        g.priority || 'MEDIUM',
+        g.category || null,
+        g.estimatedCompletionDate || null,
+        g.createdAt,
+        g.updatedAt,
+      ]
+    );
+  }
+
+  public async updateGoal(g: Partial<SavingsGoal> & { id: string; userId: string }): Promise<void> {
+    const existing = await this.getGoalForUser(g.id, g.userId);
+    if (!existing) throw new Error('Goal not found');
+    const merged = { ...existing, ...g, updatedAt: new Date().toISOString() };
+    await this.saveGoal(merged);
+  }
+
+  public async saveBill(b: Bill): Promise<void> {
+    await this.execute(
+      `INSERT OR REPLACE INTO bills (id, user_id, account_id, name, merchant, amount, category, due_date, frequency, auto_paid, status, linked_transaction_id, notes, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        b.id,
+        b.userId,
+        b.accountId || null,
+        b.name,
+        b.merchant,
+        b.amount,
+        b.category,
+        b.dueDate,
+        b.frequency || 'MONTHLY',
+        b.autoPaid ? 1 : 0,
+        b.status,
+        b.linkedTransactionId || null,
+        b.notes || null,
+        b.createdAt,
+        b.updatedAt,
+      ]
+    );
+  }
+
+  public async updateBill(b: Partial<Bill> & { id: string; userId: string }): Promise<void> {
+    const existing = await this.getBillForUser(b.id, b.userId);
+    if (!existing) throw new Error('Bill not found');
+    const merged = { ...existing, ...b, updatedAt: new Date().toISOString() };
+    await this.saveBill(merged);
+  }
+
+  public async saveSubscription(s: Subscription): Promise<void> {
+    await this.execute(
+      `INSERT OR REPLACE INTO subscriptions (id, user_id, account_id, name, merchant, amount, frequency, category, next_renewal_date, previous_amount, price_change_detected, status, linked_transaction_id, notes, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        s.id,
+        s.userId,
+        s.accountId || null,
+        s.name,
+        s.merchant,
+        s.amount,
+        s.frequency || 'MONTHLY',
+        s.category || 'Subscriptions',
+        s.nextBillingDate || s.nextRenewalDate || '',
+        s.previousAmount || null,
+        s.priceChangeDetected ? 1 : 0,
+        s.status,
+        s.linkedTransactionId || null,
+        s.notes || null,
+        s.createdAt,
+        s.updatedAt,
+      ]
+    );
+  }
+
+  public async updateSubscription(s: Partial<Subscription> & { id: string; userId: string }): Promise<void> {
+    const existing = await this.getSubscriptionForUser(s.id, s.userId);
+    if (!existing) throw new Error('Subscription not found');
+    const merged = { ...existing, ...s, updatedAt: new Date().toISOString() };
+    await this.saveSubscription(merged);
+  }
+
+  public async saveLoan(l: Loan): Promise<void> {
+    await this.execute(
+      `INSERT OR REPLACE INTO loans (id, user_id, name, lender, principal, outstanding_balance, interest_rate, emi_amount, due_date, tenure_months, remaining_tenure_months, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        l.id,
+        l.userId,
+        l.loanName,
+        l.lender,
+        l.principal,
+        l.outstandingBalance,
+        l.interestRate,
+        l.emi,
+        l.dueDate,
+        l.tenureMonths || 60,
+        l.remainingMonths || 48,
+        l.status,
+        l.createdAt,
+        l.updatedAt,
+      ]
+    );
+  }
+
+  public async updateLoan(l: Partial<Loan> & { id: string; userId: string }): Promise<void> {
+    const existing = await this.getLoanForUser(l.id, l.userId);
+    if (!existing) throw new Error('Loan not found');
+    const merged = { ...existing, ...l, updatedAt: new Date().toISOString() };
+    await this.saveLoan(merged);
+  }
+
+  public async saveKycRecord(k: KycRecord): Promise<void> {
+    await this.execute(
+      `INSERT OR REPLACE INTO kyc_records (id, user_id, full_name, date_of_birth, address, country, document_type, document_number, masked_document_number, status, document_image_uri, ocr_extracted_json, reviewer_notes, submitted_at, verified_at, rejection_reason, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        k.id,
+        k.userId,
+        k.fullName,
+        k.dateOfBirth || null,
+        k.address || null,
+        k.country || 'India',
+        k.documentType,
+        k.documentNumber,
+        k.maskedDocumentNumber,
+        k.status,
+        k.documentImageUri || null,
+        k.ocrExtractedData ? JSON.stringify(k.ocrExtractedData) : null,
+        k.reviewerNotes || null,
+        k.submittedAt || null,
+        k.verifiedAt || null,
+        k.rejectionReason || null,
+        k.createdAt,
+        k.updatedAt,
+      ]
+    );
+  }
+
+  public async updateKycRecord(k: Partial<KycRecord> & { id: string; userId: string }): Promise<void> {
+    const existing = await this.getKycRecordForUser(k.userId);
+    if (!existing) throw new Error('KYC record not found');
+    const merged = { ...existing, ...k, updatedAt: new Date().toISOString() };
+    await this.saveKycRecord(merged);
+  }
+
   /* ==========================================================================
      Atomic Financial Operations
      ========================================================================== */

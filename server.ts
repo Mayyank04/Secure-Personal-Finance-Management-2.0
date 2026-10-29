@@ -60,6 +60,9 @@ import { Transaction, TransactionCategory, User, UserProfile, UserSession } from
 
 // Routers
 import { accountsRouter } from './server/routes/accountsRoutes.js';
+import { transactionsRouter } from './server/routes/transactionsRoutes.js';
+import { budgetsRouter } from './server/routes/budgetsRoutes.js';
+import { goalsRouter } from './server/routes/goalsRoutes.js';
 import { sandboxRouter } from './server/routes/sandboxRoutes.js';
 import { importRouter } from './server/routes/importRoutes.js';
 import { receiptsRouter } from './server/routes/receiptsRoutes.js';
@@ -69,6 +72,7 @@ import { loansRouter } from './server/routes/loansRoutes.js';
 import { calendarRouter } from './server/routes/calendarRoutes.js';
 import { notificationsRouter } from './server/routes/notificationsRoutes.js';
 import { kycRouter } from './server/routes/kycRoutes.js';
+import { openapiRouter } from './server/openapi.js';
 
 export const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
@@ -239,7 +243,7 @@ app.get(['/api/ready', '/api/health/ready', '/ready'], async (_req, res) => {
       environment: isProd ? 'production' : 'development',
       database: 'connected',
       provider,
-      migrationVersion: health.migrationVersion || '004',
+      migrationVersion: health.migrationVersion || '005',
       timestamp: new Date().toISOString(),
       version: '2.0.0',
     });
@@ -567,7 +571,30 @@ async function authenticate(req: express.Request, res: express.Response, next: e
 }
 
 // Register Routers
+app.use('/api/docs', openapiRouter);
+
+// Unauthenticated helper preview for categorization input typing
+app.post('/api/transactions/categorize-preview', (req, res) => {
+  const { description = '', amount = 0, type = 'EXPENSE' } = req.body || {};
+  const { cleaned, extractedMerchant } = cleanTransactionDescription(description);
+  const prediction = predictTransactionCategory(cleaned, Number(amount), type);
+
+  return res.json({
+    cleanDescription: cleaned,
+    extractedMerchant,
+    predictedCategory: prediction.predictedCategory,
+    subcategory: prediction.subcategory,
+    confidence: prediction.confidence,
+    isUncertain: prediction.isUncertain,
+    reasons: prediction.reasons,
+    explanation: prediction.explanation,
+  });
+});
+
+app.use('/api/transactions', authenticate, transactionsRouter);
 app.use('/api/accounts', authenticate, accountsRouter);
+app.use('/api/budgets', authenticate, budgetsRouter);
+app.use('/api/goals', authenticate, goalsRouter);
 app.use('/api/sandbox', authenticate, sandboxRouter);
 app.use('/api/import', authenticate, importRouter);
 app.use('/api/receipts', authenticate, receiptsRouter);
@@ -827,7 +854,22 @@ app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req,
     await adapter.updateUser({ id: user.id, lastLoginAt: user.lastLoginAt, lastLoginIp: user.lastLoginIp }).catch(() => {});
     db.users.set(user.id, user);
 
-    const { sessionId, token: sessionToken, expiresAt: sessionExpiresAt } = createSignedSessionToken(user.id);
+    let sessionTokenData;
+    try {
+      sessionTokenData = createSignedSessionToken(user.id);
+    } catch (secErr: any) {
+      console.error('[Login API] Session secret configuration error:', secErr.message);
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'MISSING_SESSION_SECRET',
+          message: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+        },
+        message: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+      });
+    }
+
+    const { sessionId, token: sessionToken, expiresAt: sessionExpiresAt } = sessionTokenData;
     const newSession: UserSession = {
       id: sessionId,
       token: sessionToken,
@@ -957,7 +999,22 @@ app.post('/api/auth/mfa/challenge', async (req, res) => {
     await adapter.updateUser({ id: user.id, lastLoginAt: user.lastLoginAt, lastLoginIp: user.lastLoginIp }).catch(() => {});
     db.users.set(user.id, user);
 
-    const { sessionId, token: sessionToken, expiresAt: sessionExpiresAt } = createSignedSessionToken(user.id);
+    let sessionTokenData;
+    try {
+      sessionTokenData = createSignedSessionToken(user.id);
+    } catch (secErr: any) {
+      console.error('[MFA API] Session secret configuration error:', secErr.message);
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'MISSING_SESSION_SECRET',
+          message: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+        },
+        message: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+      });
+    }
+
+    const { sessionId, token: sessionToken, expiresAt: sessionExpiresAt } = sessionTokenData;
     const newSession: UserSession = {
       id: sessionId,
       token: sessionToken,
@@ -1011,6 +1068,18 @@ app.post('/api/auth/mfa/challenge', async (req, res) => {
 // POST /api/auth/demo-session - Explicit Demo Mode Entry
 app.post('/api/auth/demo-session', (req, res) => {
   try {
+    const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+    if (isProd && process.env.DEMO_MODE !== 'true') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'DEMO_MODE_DISABLED',
+          message: 'Demo login is disabled in production environments without explicit DEMO_MODE=true configuration.',
+        },
+        message: 'Demo login is disabled in production environments.',
+      });
+    }
+
     const demoUserId = 'usr-demo-fintech-01';
     let demoUser = db.users.get(demoUserId);
 
@@ -1019,7 +1088,22 @@ app.post('/api/auth/demo-session', (req, res) => {
       demoUser = db.users.get(demoUserId)!;
     }
 
-    const { sessionId, token: sessionToken } = createSignedSessionToken(demoUserId);
+    let sessionTokenData;
+    try {
+      sessionTokenData = createSignedSessionToken(demoUserId);
+    } catch (secErr: any) {
+      console.error('[Demo Login] Session secret configuration error:', secErr.message);
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'MISSING_SESSION_SECRET',
+          message: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+        },
+        message: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+      });
+    }
+
+    const { sessionId, token: sessionToken } = sessionTokenData;
     const newSession: UserSession = {
       id: sessionId,
       token: sessionToken,
@@ -1535,630 +1619,9 @@ app.get('/api/dashboard', authenticate, (req, res) => {
 });
 
 /* ==========================================================================
-   4. TRANSACTION MANAGEMENT ENDPOINTS (ATOMIC CASCADE)
+   4, 5, 6. TRANSACTIONS, BUDGETS & SAVINGS GOALS
+   (Handled via modular routers: transactionsRouter, budgetsRouter, goalsRouter)
    ========================================================================== */
-
-app.get('/api/transactions', authenticate, (req, res) => {
-  try {
-    const userId = (req as any).userId;
-    let list = db.getUserTransactions(userId);
-
-    const {
-      search,
-      category,
-      type,
-      paymentMethod,
-      accountId,
-      startDate,
-      endDate,
-      minAmount,
-      maxAmount,
-      sortBy = 'date',
-      sortOrder = 'desc',
-      page = '1',
-      limit = '15',
-    } = req.query as Record<string, string>;
-
-    if (search) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        t =>
-          t.description.toLowerCase().includes(q) ||
-          t.merchant.toLowerCase().includes(q) ||
-          t.category.toLowerCase().includes(q)
-      );
-    }
-
-    if (accountId && accountId !== 'ALL') {
-      list = list.filter(t => t.accountId === accountId);
-    }
-
-    if (category && category !== 'ALL') {
-      list = list.filter(t => t.category.toLowerCase() === category.toLowerCase());
-    }
-
-    if (type && type !== 'ALL') {
-      list = list.filter(t => t.type === type.toUpperCase());
-    }
-
-    if (paymentMethod && paymentMethod !== 'ALL') {
-      list = list.filter(t => t.paymentMethod === paymentMethod);
-    }
-
-    if (startDate) {
-      list = list.filter(t => t.date >= startDate);
-    }
-
-    if (endDate) {
-      list = list.filter(t => t.date <= endDate);
-    }
-
-    if (minAmount) {
-      list = list.filter(t => t.amount >= Number(minAmount));
-    }
-
-    if (maxAmount) {
-      list = list.filter(t => t.amount <= Number(maxAmount));
-    }
-
-    // Sorting
-    list.sort((a: any, b: any) => {
-      const valA = a[sortBy];
-      const valB = b[sortBy];
-      if (typeof valA === 'string') {
-        return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-      }
-      return sortOrder === 'asc' ? valA - valB : valB - valA;
-    });
-
-    const pageNum = Math.max(1, parseInt(page, 10));
-    const limitNum = Math.max(1, parseInt(limit, 10));
-    const totalCount = list.length;
-    const totalPages = Math.ceil(totalCount / limitNum);
-    const paginatedItems = list.slice((pageNum - 1) * limitNum, pageNum * limitNum);
-
-    return res.json({
-      transactions: paginatedItems,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        totalCount,
-        totalPages,
-      },
-    });
-  } catch (err) {
-    return res.status(500).json({ error: 'We could not retrieve your transactions. Please try again.' });
-  }
-});
-
-// Categorization preview
-app.post('/api/transactions/categorize-preview', (req, res) => {
-  const { description = '', amount = 0, type = 'EXPENSE' } = req.body;
-  const { cleaned, extractedMerchant } = cleanTransactionDescription(description);
-  const prediction = predictTransactionCategory(cleaned, Number(amount), type);
-
-  return res.json({
-    cleanDescription: cleaned,
-    extractedMerchant,
-    predictedCategory: prediction.predictedCategory,
-    subcategory: prediction.subcategory,
-    confidence: prediction.confidence,
-    isUncertain: prediction.isUncertain,
-    reasons: prediction.reasons,
-    explanation: prediction.explanation,
-  });
-});
-
-// POST /api/transactions - Create transaction with atomic account balance & blockchain anchor cascade
-app.post('/api/transactions', authenticate, async (req, res) => {
-  try {
-    const userId = (req as any).userId;
-    const {
-      description,
-      amount,
-      type = 'EXPENSE',
-      category: manualCategory,
-      paymentMethod = 'Credit Card',
-      merchant,
-      date = new Date().toISOString().split('T')[0],
-      notes = '',
-      isRecurring = false,
-      recurringFrequency,
-      accountId,
-      receiptId,
-      billId,
-      source = 'MANUAL',
-    } = req.body;
-
-    if (!description || !amount) {
-      return res.status(400).json({ error: 'Description and amount are required.' });
-    }
-
-    const numAmount = Number(amount);
-    if (isNaN(numAmount) || numAmount <= 0) {
-      return res.status(400).json({ error: 'Amount must be a positive number.' });
-    }
-
-    const { cleaned, extractedMerchant } = cleanTransactionDescription(description);
-    const prediction = predictTransactionCategory(cleaned, numAmount, type);
-    const finalCategory: TransactionCategory = manualCategory || prediction.predictedCategory;
-    const finalMerchant = merchant || extractedMerchant;
-
-    const txId = 'tx-' + crypto.randomBytes(8).toString('hex');
-    const canonicalData = {
-      id: txId,
-      userId,
-      date,
-      amount: numAmount,
-      type,
-      category: finalCategory,
-      merchant: finalMerchant,
-    };
-
-    // Calculate canonical SHA-256 hash and anchor to Hyperledger Fabric
-    const blockchainHash = blockchainAdapter.computeCanonicalTransactionHash(canonicalData);
-    const onChainRecord = blockchainAdapter.recordTransactionHash(txId, blockchainHash);
-
-    const targetAccount = accountId ? db.accounts.get(accountId) : undefined;
-
-    const newTx: Transaction = {
-      id: txId,
-      userId,
-      accountId: targetAccount?.id,
-      accountName: targetAccount?.name,
-      receiptId,
-      billId,
-      source,
-      date,
-      description: description.trim(),
-      cleanDescription: cleaned,
-      amount: numAmount,
-      type,
-      category: finalCategory,
-      paymentMethod,
-      merchant: finalMerchant,
-      notes,
-      isRecurring,
-      recurringFrequency: isRecurring ? (recurringFrequency || 'MONTHLY') : undefined,
-      aiConfidence: manualCategory ? 100 : prediction.confidence,
-      aiPredictedCategory: prediction.predictedCategory,
-      userCorrected: manualCategory && manualCategory !== prediction.predictedCategory,
-      blockchainHash,
-      blockNumber: onChainRecord.blockNumber,
-      blockchainVerified: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Save transaction to private DB
-    db.transactions.set(txId, newTx);
-
-    // Adjust Account Balance (Atomic Cascade)
-    if (targetAccount) {
-      db.updateAccountBalance(targetAccount.id, newTx.amount, newTx.type === 'INCOME');
-    }
-
-    // Link receipt if provided
-    if (receiptId) {
-      const rcpt = db.receipts.get(receiptId);
-      if (rcpt && rcpt.userId === userId) {
-        rcpt.linkedTransactionId = txId;
-        rcpt.processingStatus = 'LINKED';
-        rcpt.updatedAt = new Date().toISOString();
-      }
-    }
-
-    // Mark bill paid if provided
-    if (billId) {
-      const bill = db.bills.get(billId);
-      if (bill && bill.userId === userId) {
-        bill.status = 'PAID';
-        bill.linkedTransactionId = txId;
-        bill.updatedAt = new Date().toISOString();
-      }
-    }
-
-    // Record user correction feedback
-    if (manualCategory && manualCategory !== prediction.predictedCategory) {
-      recordCategoryFeedback(description, manualCategory);
-    }
-
-    const adapter = getDatabaseAdapter();
-    let account = targetAccount;
-    if (!account && accountId) {
-      account = (await adapter.getAccountForUser(accountId, userId)) || undefined;
-    }
-    if (account) {
-      await adapter.createTransactionAtomic({
-        transaction: newTx,
-        account,
-        newBalance: account.currentBalance,
-        auditEvent: {
-          id: 'aud-' + crypto.randomBytes(6).toString('hex'),
-          userId,
-          eventType: 'TRANSACTION_CREATED',
-          description: `Recorded ${newTx.type} of ₹${newTx.amount} for ${newTx.description}`,
-          timestamp: new Date().toISOString(),
-          ipAddress: req.ip || '127.0.0.1',
-          userAgent: (req.headers['user-agent'] as string) || 'Modern Web Client',
-          blockchainTxId: blockchainHash,
-        },
-        ledgerRecord: onChainRecord,
-      }).catch(err => {
-        console.error('[Create Transaction] Atomic persistence warning:', err);
-      });
-    } else {
-      await adapter.execute(
-        `INSERT INTO transactions (id, user_id, account_id, receipt_id, bill_id, source, date, description, clean_description, amount, type, category, payment_method, merchant, notes, is_recurring, recurring_frequency, ai_confidence, ai_predicted_category, user_corrected, blockchain_hash, block_number, blockchain_verified, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25);`,
-        [
-          newTx.id,
-          newTx.userId,
-          newTx.accountId || null,
-          newTx.receiptId || null,
-          newTx.billId || null,
-          newTx.source || 'MANUAL',
-          newTx.date,
-          newTx.description,
-          newTx.cleanDescription || newTx.description,
-          newTx.amount,
-          newTx.type,
-          newTx.category,
-          newTx.paymentMethod,
-          newTx.merchant,
-          newTx.notes || null,
-          newTx.isRecurring ? 1 : 0,
-          newTx.recurringFrequency || null,
-          newTx.aiConfidence || 95,
-          newTx.aiPredictedCategory || newTx.category,
-          newTx.userCorrected ? 1 : 0,
-          newTx.blockchainHash,
-          newTx.blockNumber || 0,
-          newTx.blockchainVerified ? 1 : 0,
-          newTx.createdAt,
-          newTx.updatedAt,
-        ]
-      ).catch(err => {
-        console.error('[Create Transaction] Direct transaction persistence warning:', err);
-      });
-    }
-
-    await adapter.syncFromMemoryDb(db);
-    persistentSqlite.syncFromMemoryDb(db);
-
-    return res.status(201).json({
-      message: 'Transaction recorded and verified on blockchain ledger.',
-      transaction: newTx,
-      blockchainRecord: onChainRecord,
-    });
-  } catch (err) {
-    return res.status(500).json({ error: 'We could not save the transaction. Please try again.' });
-  }
-});
-
-// GET /api/transactions/:id - Retrieve single transaction with strict IDOR ownership check
-app.get('/api/transactions/:id', authenticate, (req, res) => {
-  const userId = (req as any).userId;
-  const txId = req.params.id;
-  const tx = db.transactions.get(txId);
-
-  if (!tx || tx.userId !== userId) {
-    return res.status(404).json({ error: 'Transaction not found.' });
-  }
-
-  return res.json({ transaction: tx });
-});
-
-// PATCH /api/transactions/:id - Edit transaction with balance reversion & re-anchoring
-app.patch('/api/transactions/:id', authenticate, async (req, res) => {
-  try {
-    const userId = (req as any).userId;
-    const txId = req.params.id;
-    const tx = db.transactions.get(txId);
-
-    if (!tx || tx.userId !== userId) {
-      return res.status(404).json({ error: 'Transaction not found.' });
-    }
-
-    const { description, amount, type, category, paymentMethod, merchant, date, notes, isRecurring, accountId } = req.body;
-
-    // Reverse previous account balance impact if amount, type, or account changed
-    if (tx.accountId && (amount !== undefined || type !== undefined || accountId !== undefined)) {
-      db.updateAccountBalance(tx.accountId, tx.amount, tx.type === 'EXPENSE'); // Reverse old
-    }
-
-    if (description !== undefined) tx.description = description;
-    if (amount !== undefined) tx.amount = Number(amount);
-    if (type !== undefined) tx.type = type;
-    if (paymentMethod !== undefined) tx.paymentMethod = paymentMethod;
-    if (merchant !== undefined) tx.merchant = merchant;
-    if (date !== undefined) tx.date = date;
-    if (notes !== undefined) tx.notes = notes;
-    if (isRecurring !== undefined) tx.isRecurring = isRecurring;
-    if (accountId !== undefined) {
-      tx.accountId = accountId;
-      const acc = db.accounts.get(accountId);
-      tx.accountName = acc?.name;
-    }
-
-    // Apply new account balance impact
-    if (tx.accountId) {
-      db.updateAccountBalance(tx.accountId, tx.amount, tx.type === 'INCOME'); // Apply new
-    }
-
-    if (category && category !== tx.category) {
-      recordCategoryFeedback(tx.description, category);
-      tx.category = category;
-      tx.userCorrected = true;
-    }
-
-    tx.updatedAt = new Date().toISOString();
-
-    // Re-anchor updated hash on blockchain
-    const canonicalData = {
-      id: tx.id,
-      userId: tx.userId,
-      date: tx.date,
-      amount: tx.amount,
-      type: tx.type,
-      category: tx.category,
-      merchant: tx.merchant,
-    };
-    const newHash = blockchainAdapter.computeCanonicalTransactionHash(canonicalData);
-    const onChainRecord = blockchainAdapter.recordTransactionHash(tx.id, newHash);
-
-    tx.blockchainHash = newHash;
-    tx.blockNumber = onChainRecord.blockNumber;
-    tx.blockchainVerified = true;
-
-    const adapter = getDatabaseAdapter();
-    await adapter.execute(
-      `UPDATE transactions SET
-         description = $1, amount = $2, type = $3, category = $4, payment_method = $5,
-         merchant = $6, date = $7, notes = $8, is_recurring = $9, account_id = $10,
-         blockchain_hash = $11, block_number = $12, updated_at = $13
-       WHERE id = $14 AND user_id = $15;`,
-      [
-        tx.description, tx.amount, tx.type, tx.category, tx.paymentMethod,
-        tx.merchant, tx.date, tx.notes || null, tx.isRecurring ? 1 : 0, tx.accountId || null,
-        tx.blockchainHash, tx.blockNumber, tx.updatedAt,
-        tx.id, tx.userId
-      ]
-    ).catch(() => {});
-
-    persistentSqlite.syncFromMemoryDb(db);
-
-    return res.json({ message: 'Transaction updated and re-anchored on blockchain.', transaction: tx });
-  } catch (err) {
-    return res.status(500).json({ error: 'We could not update the transaction. Please try again.' });
-  }
-});
-
-// DELETE /api/transactions/:id - Delete transaction with balance reversion
-app.delete('/api/transactions/:id', authenticate, async (req, res) => {
-  const userId = (req as any).userId;
-  const txId = req.params.id;
-  const tx = db.transactions.get(txId);
-
-  if (!tx || tx.userId !== userId) {
-    return res.status(404).json({ error: 'Transaction not found.' });
-  }
-
-  // If receipt was linked, unlink it
-  if (tx.receiptId) {
-    const rcpt = db.receipts.get(tx.receiptId);
-    if (rcpt) {
-      rcpt.linkedTransactionId = undefined;
-      rcpt.processingStatus = 'UNLINKED';
-    }
-  }
-
-  // If account was linked, reverse balance impact
-  if (tx.accountId) {
-    db.updateAccountBalance(tx.accountId, tx.amount, tx.type === 'EXPENSE'); // Reverse
-  }
-
-  db.transactions.delete(txId);
-  const adapter = getDatabaseAdapter();
-  await adapter.deleteTransaction(txId).catch(() => {});
-  persistentSqlite.deleteTransaction(txId);
-  persistentSqlite.syncFromMemoryDb(db);
-  return res.json({ success: true, message: 'Transaction deleted successfully.' });
-});
-
-// Batch CSV/JSON Import
-app.post('/api/transactions/import', authenticate, (req, res) => {
-  try {
-    const ip = req.ip || '127.0.0.1';
-    const rateCheck = uploadRateLimiter.check(`import:${ip}`);
-    if (!rateCheck.allowed) {
-      return res.status(429).json({
-        error: `Too many import requests. Please try again in ${rateCheck.retryAfterSeconds} seconds.`,
-      });
-    }
-
-    const userId = (req as any).userId;
-    const { items = [] } = req.body;
-
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'No transaction records provided in import payload.' });
-    }
-
-    const imported: Transaction[] = [];
-
-    for (const raw of items) {
-      const desc = raw.description || raw.desc || 'Imported Transaction';
-      const amount = Math.abs(Number(raw.amount) || 100);
-      const type = (raw.type || 'EXPENSE').toUpperCase() as 'INCOME' | 'EXPENSE';
-      const date = raw.date || new Date().toISOString().split('T')[0];
-
-      const { cleaned, extractedMerchant } = cleanTransactionDescription(desc);
-      const prediction = predictTransactionCategory(cleaned, amount, type);
-      const category = raw.category || prediction.predictedCategory;
-      const merchant = raw.merchant || extractedMerchant;
-
-      const txId = 'tx-imp-' + crypto.randomBytes(6).toString('hex');
-      const canonicalData = {
-        id: txId,
-        userId,
-        date,
-        amount,
-        type,
-        category,
-        merchant,
-      };
-
-      const hash = blockchainAdapter.computeCanonicalTransactionHash(canonicalData);
-      const onChainRecord = blockchainAdapter.recordTransactionHash(txId, hash);
-
-      const newTx: Transaction = {
-        id: txId,
-        userId,
-        date,
-        description: desc,
-        cleanDescription: cleaned,
-        amount,
-        type,
-        category,
-        paymentMethod: raw.paymentMethod || 'Credit Card',
-        merchant,
-        notes: raw.notes || 'Imported statement record',
-        aiConfidence: prediction.confidence,
-        aiPredictedCategory: prediction.predictedCategory,
-        userCorrected: false,
-        blockchainHash: hash,
-        blockNumber: onChainRecord.blockNumber,
-        blockchainVerified: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      db.transactions.set(txId, newTx);
-      imported.push(newTx);
-    }
-
-    return res.json({
-      message: `Successfully imported and verified ${imported.length} transactions on blockchain.`,
-      count: imported.length,
-      sample: imported.slice(0, 5),
-    });
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to parse and import transactions.' });
-  }
-});
-
-/* ==========================================================================
-   5. BUDGET MANAGEMENT ENDPOINTS
-   ========================================================================== */
-
-app.get('/api/budgets', authenticate, (req, res) => {
-  const userId = (req as any).userId;
-  const list = Array.from(db.budgets.values()).filter(b => b.userId === userId);
-  return res.json({ budgets: list });
-});
-
-app.post('/api/budgets', authenticate, (req, res) => {
-  const userId = (req as any).userId;
-  const { month = '2026-08', totalBudget = 80000, categoryBudgets = [], rolloverEnabled = true, alertThresholds } = req.body;
-
-  const budgetId = 'bgt-' + crypto.randomBytes(6).toString('hex');
-  const newBudget = {
-    id: budgetId,
-    userId,
-    month,
-    totalBudget: Number(totalBudget),
-    categoryBudgets,
-    rolloverEnabled,
-    alertThresholds: alertThresholds || { normal: 70, high: 90, exceeded: 100 },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  db.budgets.set(budgetId, newBudget);
-  persistentSqlite.syncFromMemoryDb(db);
-  return res.status(201).json({ message: 'Budget configured successfully.', budget: newBudget });
-});
-
-app.patch('/api/budgets/:id', authenticate, (req, res) => {
-  const userId = (req as any).userId;
-  const budgetId = req.params.id;
-  const budget = db.budgets.get(budgetId);
-
-  if (!budget || budget.userId !== userId) {
-    return res.status(404).json({ error: 'Budget not found.' });
-  }
-
-  const { totalBudget, categoryBudgets, rolloverEnabled, alertThresholds } = req.body;
-  if (totalBudget !== undefined) budget.totalBudget = Number(totalBudget);
-  if (categoryBudgets !== undefined) budget.categoryBudgets = categoryBudgets;
-  if (rolloverEnabled !== undefined) budget.rolloverEnabled = rolloverEnabled;
-  if (alertThresholds !== undefined) budget.alertThresholds = alertThresholds;
-  budget.updatedAt = new Date().toISOString();
-  persistentSqlite.syncFromMemoryDb(db);
-
-  return res.json({ message: 'Budget updated successfully.', budget });
-});
-
-/* ==========================================================================
-   6. SAVINGS GOALS ENDPOINTS
-   ========================================================================== */
-
-app.get('/api/goals', authenticate, (req, res) => {
-  const userId = (req as any).userId;
-  const goals = Array.from(db.goals.values()).filter(g => g.userId === userId);
-  return res.json({ goals });
-});
-
-app.post('/api/goals', authenticate, (req, res) => {
-  const userId = (req as any).userId;
-  const { title, targetAmount, currentAmount = 0, targetDate, monthlyContribution = 5000, priority = 'MEDIUM', category } = req.body;
-
-  if (!title || !targetAmount) {
-    return res.status(400).json({ error: 'Title and target amount are required.' });
-  }
-
-  const remaining = Math.max(0, Number(targetAmount) - Number(currentAmount));
-  const monthsNeeded = monthlyContribution > 0 ? Math.ceil(remaining / Number(monthlyContribution)) : 12;
-  const estDate = new Date();
-  estDate.setMonth(estDate.getMonth() + monthsNeeded);
-
-  const goalId = 'goal-' + crypto.randomBytes(6).toString('hex');
-  const newGoal: any = {
-    id: goalId,
-    userId,
-    title,
-    targetAmount: Number(targetAmount),
-    currentAmount: Number(currentAmount),
-    targetDate: targetDate || estDate.toISOString().split('T')[0],
-    monthlyContribution: Number(monthlyContribution),
-    priority,
-    category: category || 'General Savings',
-    estimatedCompletionDate: estDate.toISOString().split('T')[0],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  db.goals.set(goalId, newGoal);
-  persistentSqlite.syncFromMemoryDb(db);
-  return res.status(201).json({ message: 'Savings goal created.', goal: newGoal });
-});
-
-app.post('/api/goals/:id/contribute', authenticate, (req, res) => {
-  const userId = (req as any).userId;
-  const goalId = req.params.id;
-  const { amount } = req.body;
-
-  const goal = db.goals.get(goalId);
-  if (!goal || goal.userId !== userId) {
-    return res.status(404).json({ error: 'Goal not found' });
-  }
-
-  goal.currentAmount += Number(amount);
-  goal.updatedAt = new Date().toISOString();
-  persistentSqlite.syncFromMemoryDb(db);
-
-  return res.json({ message: 'Contribution added successfully!', goal });
-});
 
 /* ==========================================================================
    7. AI INSIGHTS, ANOMALIES, FORECASTS & WHAT-IF SIMULATOR
@@ -3195,6 +2658,15 @@ export async function initDb() {
     throw new Error(
       '[PRODUCTION DATABASE ERROR] Production deployment on Vercel requires a durable managed PostgreSQL database (e.g. Neon). DATABASE_URL is missing or invalid.'
     );
+  }
+
+  if (isProd) {
+    const sessionSecret = process.env.SESSION_SECRET || process.env.AUTH_SECRET;
+    if (!sessionSecret || sessionSecret.trim() === '' || sessionSecret === 'aegis_fintech_session_hmac_secret_2026' || sessionSecret.length < 32) {
+      throw new Error(
+        '[PRODUCTION SECURITY ERROR] Production deployment on Vercel requires SESSION_SECRET to be configured with at least 32 characters in environment variables.'
+      );
+    }
   }
 
   const adapter = getDatabaseAdapter();

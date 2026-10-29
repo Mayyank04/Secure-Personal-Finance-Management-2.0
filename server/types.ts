@@ -230,6 +230,8 @@ export interface Budget {
   updatedAt: string;
 }
 
+export type GoalPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+
 export interface SavingsGoal {
   id: string;
   userId: string;
@@ -238,7 +240,7 @@ export interface SavingsGoal {
   currentAmount: number;
   targetDate: string;
   monthlyContribution: number;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  priority: GoalPriority;
   category?: string;
   estimatedCompletionDate: string;
   createdAt: string;
@@ -683,7 +685,7 @@ export interface UserSession {
 }
 
 export type KycStatus = 'NOT_STARTED' | 'PENDING' | 'UNDER_REVIEW' | 'VERIFIED' | 'REJECTED';
-export type KycDocumentType = 'PASSPORT' | 'DRIVING_LICENSE' | 'NATIONAL_ID' | 'VOTER_ID';
+export type KycDocumentType = 'PASSPORT' | 'DRIVING_LICENSE' | 'NATIONAL_ID' | 'VOTER_ID' | 'PAN' | 'AADHAAR';
 
 export interface KycRecord {
   id: string;

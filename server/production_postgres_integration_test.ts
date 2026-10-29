@@ -60,7 +60,7 @@ async function runProductionPostgresVerification() {
   const health = await adapter.healthCheck();
   assert(health.status === 'ok' && health.connected, 'Database health check reports connected');
   assert(health.provider === 'postgresql', 'Health check reports provider as postgresql');
-  assert(health.migrationVersion === '004', `Migration version is up-to-date (${health.migrationVersion})`);
+  assert(health.migrationVersion === '005', `Migration version is up-to-date (${health.migrationVersion})`);
 
   // --------------------------------------------------------------------------
   // Phase 8: Authentication & Session Lifecycle

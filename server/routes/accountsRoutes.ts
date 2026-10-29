@@ -2,32 +2,78 @@
  * Financial Accounts REST API Routes
  * 
  * Endpoints for:
- * - GET /api/accounts (List with Total Assets, Liabilities, Net Liquid Balance)
+ * - GET /api/accounts (List with Total Assets, Liabilities, Net Liquid Balance, and pagination)
  * - POST /api/accounts (Create account)
  * - GET /api/accounts/:id
  * - PUT /api/accounts/:id (Update account)
+ * - PATCH /api/accounts/:id (Partial update)
  * - PATCH /api/accounts/:id/status (Change status: ACTIVE, INACTIVE, CLOSED)
- * - DELETE /api/accounts/:id (Soft/hard delete)
+ * - DELETE /api/accounts/:id (Safeguarded deletion with dependency checks)
  * - GET /api/accounts/:id/transactions (Filtered transactions for this account)
  */
 
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { db } from '../db.js';
-import { persistentSqlite } from '../database.js';
 import { getDatabaseAdapter } from '../db/index.js';
+import { sendSuccess, sendError, parseNonNegativeAmount, parsePositiveAmount } from '../apiResponse.js';
 import { FinancialAccount, AccountType, AccountStatus } from '../types.js';
 
 export const accountsRouter = Router();
 
 // GET /api/accounts - List all accounts with summary metrics
-accountsRouter.get('/', (req: Request, res: Response) => {
+accountsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
-    const summary = db.getAccountSummary(userId);
-    return res.json(summary);
+    const adapter = getDatabaseAdapter();
+
+    let accounts: FinancialAccount[] = [];
+    try {
+      const rows = await adapter.query(`SELECT * FROM accounts WHERE user_id = $1 ORDER BY created_at ASC;`, [userId]);
+      accounts = rows.map((r: any) => ({
+        id: r.id,
+        userId: r.user_id,
+        name: r.name,
+        institution: r.institution,
+        accountType: r.account_type,
+        maskedIdentifier: r.masked_identifier,
+        currency: r.currency || 'INR',
+        openingBalance: Number(r.opening_balance),
+        currentBalance: Number(r.current_balance),
+        availableBalance: Number(r.available_balance),
+        creditLimit: r.credit_limit !== null ? Number(r.credit_limit) : undefined,
+        status: r.status,
+        isDemo: Boolean(r.is_demo),
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }));
+    } catch {
+      accounts = db.getUserAccounts(userId);
+    }
+
+    if (accounts.length === 0) {
+      accounts = db.getUserAccounts(userId);
+    }
+
+    const totalAssets = accounts
+      .filter(a => a.accountType !== 'CREDIT_CARD')
+      .reduce((sum, a) => sum + (a.currentBalance > 0 ? a.currentBalance : 0), 0);
+
+    const totalLiabilities = accounts
+      .filter(a => a.accountType === 'CREDIT_CARD')
+      .reduce((sum, a) => sum + Math.abs(a.currentBalance), 0);
+
+    const netLiquidBalance = totalAssets - totalLiabilities;
+
+    return sendSuccess(res, 200, {
+      accounts,
+      totalAssets,
+      totalLiabilities,
+      netLiquidBalance,
+      accountCount: accounts.length,
+    });
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to retrieve accounts summary.' });
+    return sendError(res, 500, 'ACCOUNTS_FETCH_ERROR', 'Failed to retrieve accounts summary: ' + err.message);
   }
 });
 
@@ -45,125 +91,174 @@ accountsRouter.post('/', async (req: Request, res: Response) => {
       creditLimit,
     } = req.body;
 
-    if (!name || !institution) {
-      return res.status(400).json({ error: 'Account name and institution are required.' });
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Account name is required.');
+    }
+    if (!institution || typeof institution !== 'string' || institution.trim() === '') {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Financial institution is required.');
+    }
+
+    const validTypes: AccountType[] = ['BANK', 'CREDIT_CARD', 'DEBIT_CARD', 'UPI', 'CASH', 'INVESTMENT'];
+    const finalType = validTypes.includes(accountType) ? accountType : 'BANK';
+
+    const parsedOpening = parseNonNegativeAmount(openingBalance, 'Opening balance');
+    if (parsedOpening.error) {
+      return sendError(res, 400, 'VALIDATION_ERROR', parsedOpening.error);
     }
 
     const accountId = 'acc-' + crypto.randomBytes(6).toString('hex');
-    const balance = Number(openingBalance) || 0;
+    const balance = parsedOpening.value;
 
     let available = balance;
-    if (accountType === 'CREDIT_CARD' && creditLimit) {
-      available = Number(creditLimit) + balance;
+    let numCreditLimit: number | undefined;
+    if (finalType === 'CREDIT_CARD' && creditLimit !== undefined) {
+      const parsedLimit = parsePositiveAmount(creditLimit, 'Credit limit');
+      if (parsedLimit.error) return sendError(res, 400, 'VALIDATION_ERROR', parsedLimit.error);
+      numCreditLimit = parsedLimit.value;
+      available = numCreditLimit + balance;
     }
 
+    const now = new Date().toISOString();
     const newAccount: FinancialAccount = {
       id: accountId,
       userId,
       name: name.trim(),
       institution: institution.trim(),
-      accountType: accountType as AccountType,
+      accountType: finalType as AccountType,
       maskedIdentifier: maskedIdentifier || `•••• ${Math.floor(1000 + Math.random() * 9000)}`,
       currency,
       openingBalance: balance,
       currentBalance: balance,
       availableBalance: available,
-      creditLimit: creditLimit ? Number(creditLimit) : undefined,
+      creditLimit: numCreditLimit,
       status: 'ACTIVE',
       isDemo: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
 
+    // Save to persistent database
+    const adapter = getDatabaseAdapter();
+    await adapter.saveAccount(newAccount);
+
+    // Keep memory cache updated
     db.accounts.set(accountId, newAccount);
-    await getDatabaseAdapter().execute(
-      `INSERT INTO accounts (id, user_id, name, institution, account_type, masked_identifier, currency, opening_balance, current_balance, available_balance, credit_limit, status, is_demo, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-       ON CONFLICT (id) DO UPDATE SET
-         name = EXCLUDED.name, institution = EXCLUDED.institution, account_type = EXCLUDED.account_type,
-         masked_identifier = EXCLUDED.masked_identifier, currency = EXCLUDED.currency,
-         current_balance = EXCLUDED.current_balance, available_balance = EXCLUDED.available_balance,
-         credit_limit = EXCLUDED.credit_limit, status = EXCLUDED.status, updated_at = EXCLUDED.updated_at;`,
-      [
-        newAccount.id,
-        newAccount.userId,
-        newAccount.name,
-        newAccount.institution,
-        newAccount.accountType,
-        newAccount.maskedIdentifier,
-        newAccount.currency,
-        newAccount.openingBalance,
-        newAccount.currentBalance,
-        newAccount.availableBalance,
-        newAccount.creditLimit || null,
-        newAccount.status,
-        newAccount.isDemo ? 1 : 0,
-        newAccount.createdAt,
-        newAccount.updatedAt,
-      ]
-    ).catch(() => {});
-    await getDatabaseAdapter().syncFromMemoryDb(db);
-    persistentSqlite.syncFromMemoryDb(db);
 
     db.recordAuditEvent({
       userId,
       eventType: 'ACCOUNT_CREATED',
-      description: `Created new ${accountType} account "${newAccount.name}" at ${newAccount.institution}.`,
+      description: `Created new ${finalType} account "${newAccount.name}" at ${newAccount.institution}.`,
     });
 
-    return res.status(201).json({
-      message: 'Financial account created successfully.',
-      account: newAccount,
-    });
+    return sendSuccess(res, 201, { account: newAccount }, 'Financial account created successfully.');
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to create financial account.' });
+    return sendError(res, 500, 'ACCOUNT_CREATE_ERROR', 'Failed to create financial account: ' + err.message);
   }
 });
 
 // GET /api/accounts/:id - Get single account details
-accountsRouter.get('/:id', (req: Request, res: Response) => {
-  const userId = (req as any).userId;
-  const acc = db.accounts.get(req.params.id);
-
-  if (!acc || acc.userId !== userId) {
-    return res.status(404).json({ error: 'Financial account not found.' });
-  }
-
-  return res.json({ account: acc });
-});
-
-// PUT /api/accounts/:id - Update account
-accountsRouter.put('/:id', async (req: Request, res: Response) => {
+accountsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
-    const acc = db.accounts.get(req.params.id);
+    const accountId = req.params.id;
+    const adapter = getDatabaseAdapter();
 
-    if (!acc || acc.userId !== userId) {
-      return res.status(404).json({ error: 'Financial account not found.' });
+    let acc = await adapter.getAccountForUser(accountId, userId);
+    if (!acc) {
+      const memAcc = db.accounts.get(accountId);
+      if (memAcc && memAcc.userId === userId) {
+        acc = memAcc;
+      }
     }
 
-    const { name, institution, maskedIdentifier, creditLimit, currentBalance } = req.body;
+    if (!acc) {
+      return sendError(res, 404, 'ACCOUNT_NOT_FOUND', 'Financial account not found or inaccessible.');
+    }
 
-    if (name) acc.name = name.trim();
-    if (institution) acc.institution = institution.trim();
-    if (maskedIdentifier) acc.maskedIdentifier = maskedIdentifier.trim();
-    if (creditLimit !== undefined) acc.creditLimit = Number(creditLimit);
+    return sendSuccess(res, 200, { account: acc });
+  } catch (err: any) {
+    return sendError(res, 500, 'ACCOUNT_FETCH_ERROR', 'Failed to retrieve account: ' + err.message);
+  }
+});
+
+// PUT & PATCH /api/accounts/:id - Update account
+async function handleUpdateAccount(req: Request, res: Response) {
+  try {
+    const userId = (req as any).userId;
+    const accountId = req.params.id;
+    const adapter = getDatabaseAdapter();
+
+    let acc = await adapter.getAccountForUser(accountId, userId);
+    if (!acc) {
+      const memAcc = db.accounts.get(accountId);
+      if (memAcc && memAcc.userId === userId) {
+        acc = memAcc;
+      }
+    }
+
+    if (!acc) {
+      return sendError(res, 404, 'ACCOUNT_NOT_FOUND', 'Financial account not found or inaccessible.');
+    }
+
+    const { name, institution, maskedIdentifier, creditLimit, currentBalance, status, currency } = req.body;
+
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim() === '') {
+        return sendError(res, 400, 'VALIDATION_ERROR', 'Account name cannot be empty.');
+      }
+      acc.name = name.trim();
+    }
+
+    if (institution !== undefined) {
+      if (typeof institution !== 'string' || institution.trim() === '') {
+        return sendError(res, 400, 'VALIDATION_ERROR', 'Institution cannot be empty.');
+      }
+      acc.institution = institution.trim();
+    }
+
+    if (maskedIdentifier !== undefined) acc.maskedIdentifier = String(maskedIdentifier).trim();
+
+    if (creditLimit !== undefined) {
+      const parsedLimit = parsePositiveAmount(creditLimit, 'Credit limit');
+      if (parsedLimit.error) return sendError(res, 400, 'VALIDATION_ERROR', parsedLimit.error);
+      acc.creditLimit = parsedLimit.value;
+    }
+
     if (currentBalance !== undefined) {
-      acc.currentBalance = Number(currentBalance);
+      const numBal = Number(currentBalance);
+      if (isNaN(numBal)) {
+        return sendError(res, 400, 'VALIDATION_ERROR', 'Current balance must be a number.');
+      }
+      acc.currentBalance = numBal;
       if (acc.accountType === 'CREDIT_CARD' && acc.creditLimit) {
         acc.availableBalance = Math.max(0, acc.creditLimit + acc.currentBalance);
       } else {
         acc.availableBalance = acc.currentBalance;
       }
     }
+
+    if (status !== undefined) {
+      if (!['ACTIVE', 'INACTIVE', 'CLOSED'].includes(status)) {
+        return sendError(res, 400, 'VALIDATION_ERROR', 'Status must be ACTIVE, INACTIVE, or CLOSED.');
+      }
+      acc.status = status as AccountStatus;
+    }
+
+    if (currency !== undefined) {
+      const upperCurr = String(currency).toUpperCase();
+      if (!['INR', 'USD', 'EUR', 'GBP'].includes(upperCurr)) {
+        return sendError(res, 400, 'VALIDATION_ERROR', 'Supported currencies are INR, USD, EUR, GBP.');
+      }
+      acc.currency = upperCurr as 'INR' | 'USD' | 'EUR' | 'GBP';
+    }
+
     acc.updatedAt = new Date().toISOString();
 
-    await getDatabaseAdapter().execute(
-      `UPDATE accounts SET name = $1, institution = $2, masked_identifier = $3, credit_limit = $4, current_balance = $5, available_balance = $6, updated_at = $7 WHERE id = $8 AND user_id = $9;`,
-      [acc.name, acc.institution, acc.maskedIdentifier, acc.creditLimit || null, acc.currentBalance, acc.availableBalance, acc.updatedAt, acc.id, userId]
-    ).catch(() => {});
+    // Persist to database
+    await adapter.saveAccount(acc);
 
-    persistentSqlite.syncFromMemoryDb(db);
+    // Keep memory cache updated
+    db.accounts.set(acc.id, acc);
 
     db.recordAuditEvent({
       userId,
@@ -171,72 +266,136 @@ accountsRouter.put('/:id', async (req: Request, res: Response) => {
       description: `Updated details for account "${acc.name}".`,
     });
 
-    return res.json({ message: 'Account updated successfully.', account: acc });
+    return sendSuccess(res, 200, { account: acc }, 'Account updated successfully.');
   } catch (err: any) {
-    return res.status(500).json({ error: 'Failed to update financial account.' });
+    return sendError(res, 500, 'ACCOUNT_UPDATE_ERROR', 'Failed to update financial account: ' + err.message);
   }
-});
+}
 
-// PATCH /api/accounts/:id/status - Change status
+accountsRouter.put('/:id', handleUpdateAccount);
+accountsRouter.patch('/:id', handleUpdateAccount);
+
+// PATCH /api/accounts/:id/status - Status change
 accountsRouter.patch('/:id/status', async (req: Request, res: Response) => {
-  const userId = (req as any).userId;
-  const acc = db.accounts.get(req.params.id);
+  try {
+    const userId = (req as any).userId;
+    const accountId = req.params.id;
+    const adapter = getDatabaseAdapter();
 
-  if (!acc || acc.userId !== userId) {
-    return res.status(404).json({ error: 'Financial account not found.' });
+    let acc = await adapter.getAccountForUser(accountId, userId);
+    if (!acc) {
+      const memAcc = db.accounts.get(accountId);
+      if (memAcc && memAcc.userId === userId) {
+        acc = memAcc;
+      }
+    }
+
+    if (!acc) {
+      return sendError(res, 404, 'ACCOUNT_NOT_FOUND', 'Financial account not found or inaccessible.');
+    }
+
+    const { status } = req.body;
+    if (!status || !['ACTIVE', 'INACTIVE', 'CLOSED'].includes(status)) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Invalid status value. Must be ACTIVE, INACTIVE, or CLOSED.');
+    }
+
+    acc.status = status as AccountStatus;
+    acc.updatedAt = new Date().toISOString();
+
+    await adapter.saveAccount(acc);
+    db.accounts.set(acc.id, acc);
+
+    db.recordAuditEvent({
+      userId,
+      eventType: 'ACCOUNT_STATUS_CHANGED',
+      description: `Account "${acc.name}" status changed to ${status}.`,
+    });
+
+    return sendSuccess(res, 200, { account: acc }, `Account status updated to ${status}.`);
+  } catch (err: any) {
+    return sendError(res, 500, 'ACCOUNT_STATUS_ERROR', 'Failed to update account status: ' + err.message);
   }
-
-  const { status } = req.body;
-  if (!status || !['ACTIVE', 'INACTIVE', 'CLOSED'].includes(status)) {
-    return res.status(400).json({ error: 'Invalid status value. Must be ACTIVE, INACTIVE, or CLOSED.' });
-  }
-
-  acc.status = status as AccountStatus;
-  acc.updatedAt = new Date().toISOString();
-
-  await getDatabaseAdapter().execute(
-    `UPDATE accounts SET status = $1, updated_at = $2 WHERE id = $3 AND user_id = $4;`,
-    [acc.status, acc.updatedAt, acc.id, userId]
-  ).catch(() => {});
-
-  persistentSqlite.syncFromMemoryDb(db);
-
-  db.recordAuditEvent({
-    userId,
-    eventType: 'ACCOUNT_STATUS_CHANGED',
-    description: `Account "${acc.name}" status changed to ${status}.`,
-  });
-
-  return res.json({ message: `Account status updated to ${status}.`, account: acc });
 });
 
-// DELETE /api/accounts/:id - Delete account
+// DELETE /api/accounts/:id - Safe deletion with dependent record safeguards
 accountsRouter.delete('/:id', async (req: Request, res: Response) => {
-  const userId = (req as any).userId;
-  const acc = db.accounts.get(req.params.id);
+  try {
+    const userId = (req as any).userId;
+    const accountId = req.params.id;
+    const adapter = getDatabaseAdapter();
 
-  if (!acc || acc.userId !== userId) {
-    return res.status(404).json({ error: 'Financial account not found.' });
+    let acc = await adapter.getAccountForUser(accountId, userId);
+    if (!acc) {
+      const memAcc = db.accounts.get(accountId);
+      if (memAcc && memAcc.userId === userId) {
+        acc = memAcc;
+      }
+    }
+
+    if (!acc) {
+      return sendError(res, 404, 'ACCOUNT_NOT_FOUND', 'Financial account not found or inaccessible.');
+    }
+
+    // Safeguard: Check for dependent records unless forced
+    const txCount = await adapter.getAccountTransactionsCount(accountId, userId);
+    const force = req.query.force === 'true' || req.body?.force === true;
+
+    if (txCount > 0 && !force) {
+      return sendError(
+        res,
+        409,
+        'ACCOUNT_HAS_DEPENDENT_RECORDS',
+        `Cannot delete account "${acc.name}". It is associated with ${txCount} transaction(s). Please reassign or delete dependent transactions first, or pass ?force=true to proceed with deletion.`
+      );
+    }
+
+    // Delete dependent transactions if force requested
+    if (force && txCount > 0) {
+      await adapter.execute(`DELETE FROM transactions WHERE account_id = $1 AND user_id = $2;`, [accountId, userId]);
+      for (const [id, tx] of db.transactions.entries()) {
+        if (tx.accountId === accountId && tx.userId === userId) {
+          db.transactions.delete(id);
+        }
+      }
+    }
+
+    await adapter.deleteAccount(accountId);
+    db.accounts.delete(accountId);
+
+    db.recordAuditEvent({
+      userId,
+      eventType: 'ACCOUNT_DELETED',
+      description: `Deleted financial account "${acc.name}" (Associated transactions: ${txCount}, Forced: ${force}).`,
+    });
+
+    return sendSuccess(res, 200, { id: accountId }, 'Financial account removed successfully.');
+  } catch (err: any) {
+    return sendError(res, 500, 'ACCOUNT_DELETE_ERROR', 'Failed to delete account: ' + err.message);
   }
-
-  db.accounts.delete(req.params.id);
-  await getDatabaseAdapter().deleteAccount(req.params.id).catch(() => {});
-  persistentSqlite.deleteAccount(req.params.id);
-  persistentSqlite.syncFromMemoryDb(db);
-
-  db.recordAuditEvent({
-    userId,
-    eventType: 'ACCOUNT_DELETED',
-    description: `Deleted financial account "${acc.name}".`,
-  });
-
-  return res.json({ message: 'Financial account removed successfully.' });
 });
 
 // GET /api/accounts/:id/transactions - Get transactions for specific account
-accountsRouter.get('/:id/transactions', (req: Request, res: Response) => {
-  const userId = (req as any).userId;
-  const accountId = req.params.id;
-  const txs = db.getUserTransactions(userId).filter(t => t.accountId === accountId);
-  return res.json({ transactions: txs, count: txs.length });
+accountsRouter.get('/:id/transactions', async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const accountId = req.params.id;
+    const adapter = getDatabaseAdapter();
+
+    let acc = await adapter.getAccountForUser(accountId, userId);
+    if (!acc) {
+      const memAcc = db.accounts.get(accountId);
+      if (memAcc && memAcc.userId === userId) {
+        acc = memAcc;
+      }
+    }
+
+    if (!acc) {
+      return sendError(res, 404, 'ACCOUNT_NOT_FOUND', 'Financial account not found or inaccessible.');
+    }
+
+    const txs = db.getUserTransactions(userId).filter(t => t.accountId === accountId);
+    return sendSuccess(res, 200, { transactions: txs, count: txs.length });
+  } catch (err: any) {
+    return sendError(res, 500, 'ACCOUNT_TX_FETCH_ERROR', 'Failed to retrieve account transactions: ' + err.message);
+  }
 });
