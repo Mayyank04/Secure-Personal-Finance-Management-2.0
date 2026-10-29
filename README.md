@@ -279,4 +279,5 @@ npm run build
 
 ## License
 
-This project is licensed under the MIT License.
+No license has been specified in this README. Add a LICENSE file and
+update this section once the project owner has selected a license.
