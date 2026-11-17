@@ -459,55 +459,55 @@ export const TransactionsView: React.FC = () => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[760px]">
                 <thead>
-                  <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="pb-3 pl-2 cursor-pointer" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+                  <tr className="border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-wider bg-slate-50/60">
+                    <th className="py-2.5 pl-4 pr-3 w-28 cursor-pointer" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
                       <div className="flex items-center gap-1">
                         <span>Date</span>
                         <ArrowUpDown className="w-3 h-3 text-slate-400" />
                       </div>
                     </th>
-                    <th className="pb-3">Description & Merchant</th>
-                    <th className="pb-3">Category</th>
-                    <th className="pb-3">AI Confidence</th>
-                    <th className="pb-3">Blockchain Digest</th>
-                    <th className="pb-3 text-right">Amount</th>
-                    <th className="pb-3 text-right pr-2">Actions</th>
+                    <th className="py-2.5 px-3">Description & Merchant</th>
+                    <th className="py-2.5 px-3 w-28">Category</th>
+                    <th className="py-2.5 px-3 w-28">AI Confidence</th>
+                    <th className="py-2.5 px-3 w-44">Blockchain Digest</th>
+                    <th className="py-2.5 px-3 text-right w-32">Amount</th>
+                    <th className="py-2.5 pl-3 pr-4 text-right w-24">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {transactions.map((tx) => {
                     const colors = CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.Other;
                     return (
-                      <tr key={tx.id} className="hover:bg-slate-50 transition-colors group">
-                        <td className="py-3 pl-2 font-mono text-slate-500 whitespace-nowrap">
+                      <tr key={tx.id} className="hover:bg-slate-50/80 transition-colors group">
+                        <td className="py-3 pl-4 pr-3 font-mono text-slate-500 whitespace-nowrap text-xs">
                           {formatDate(tx.date)}
                         </td>
-                        <td className="py-3 pr-2">
-                          <div className="font-semibold text-slate-900 truncate max-w-xs">{tx.description}</div>
-                          <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1.5 flex-wrap">
-                            <span>{tx.merchant}</span>
+                        <td className="py-3 px-3">
+                          <div className="font-medium text-slate-900 truncate max-w-sm">{tx.description}</div>
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 flex-wrap mt-0.5">
+                            <span className="text-slate-600">{tx.merchant}</span>
                             <span>•</span>
                             <span>{tx.paymentMethod}</span>
                             {tx.accountId && (
-                              <span className="px-1.5 py-0.2 rounded text-[9px] bg-slate-100 text-slate-700 border border-slate-200">
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-slate-100 text-slate-700 border border-slate-200">
                                 {accounts.find(a => a.id === tx.accountId)?.name || 'Account'}
                               </span>
                             )}
                             {tx.isRecurring && <span className="text-indigo-600 font-medium">• Recurring</span>}
                           </div>
                         </td>
-                        <td className="py-3 whitespace-nowrap">
+                        <td className="py-3 px-3 whitespace-nowrap">
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${colors.bg} ${colors.text} ${colors.border}`}
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium border ${colors.bg} ${colors.text} ${colors.border}`}
                           >
                             {tx.category}
                           </span>
                         </td>
-                        <td className="py-3 whitespace-nowrap">
+                        <td className="py-3 px-3 whitespace-nowrap">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium border ${
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border ${
                               (tx.aiConfidence || 95) >= 90
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                 : (tx.aiConfidence || 95) >= 70
@@ -519,24 +519,24 @@ export const TransactionsView: React.FC = () => {
                             {tx.aiConfidence || 95}% match
                           </span>
                         </td>
-                        <td className="py-3 whitespace-nowrap font-mono text-[11px] text-slate-500">
+                        <td className="py-3 px-3 whitespace-nowrap font-mono text-[11px] text-slate-500">
                           <div className="flex items-center gap-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                             <span title={tx.blockchainHash} className="text-slate-700">{truncateHash(tx.blockchainHash, 6, 4)}</span>
-                            <span className="text-[9px] text-slate-400 font-mono">(Blk #{tx.blockNumber})</span>
+                            <span className="text-[10px] text-slate-400 font-mono">#{tx.blockNumber}</span>
                           </div>
                         </td>
-                        <td className="py-3 text-right whitespace-nowrap font-mono font-bold">
-                          <span className={tx.type === 'INCOME' ? 'text-emerald-700' : 'text-slate-900'}>
+                        <td className="py-3 px-3 text-right whitespace-nowrap font-mono font-semibold tabular-nums text-xs">
+                          <span className={tx.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900'}>
                             {tx.type === 'INCOME' ? '+' : '-'}
                             {formatCurrency(tx.amount, currency)}
                           </span>
                         </td>
-                        <td className="py-3 text-right pr-2 whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1.5">
+                        <td className="py-3 pl-3 pr-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => openVerifyModal(tx)}
-                              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-medium text-[11px] border border-slate-200 transition-all flex items-center gap-1 group/btn"
+                              className="px-2 py-1 rounded bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-medium text-[10px] border border-slate-200 transition-colors flex items-center gap-1 group/btn"
                               title="Audit SHA-256 On Blockchain"
                             >
                               <ShieldCheck className="w-3 h-3 text-indigo-600 group-hover/btn:text-white" />
@@ -544,14 +544,14 @@ export const TransactionsView: React.FC = () => {
                             </button>
                             <button
                               onClick={() => handleOpenEditModal(tx)}
-                              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                               title="Edit"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDeleteTransaction(tx.id)}
-                              className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="w-3.5 h-3.5" />

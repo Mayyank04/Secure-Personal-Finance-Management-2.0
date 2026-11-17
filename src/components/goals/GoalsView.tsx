@@ -103,7 +103,7 @@ export const GoalsView: React.FC = () => {
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition-all self-start"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-all self-start"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Create New Goal</span>

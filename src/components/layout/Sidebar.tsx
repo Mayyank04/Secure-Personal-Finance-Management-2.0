@@ -32,10 +32,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
     id: NavigationTab;
     label: string;
     icon: React.ElementType;
-    badge?: string;
   }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'accounts', label: 'Accounts & Sandbox', icon: Building2, badge: 'Demo' },
+    { id: 'accounts', label: 'Accounts & Sandbox', icon: Building2 },
     { id: 'transactions', label: 'Transactions', icon: Receipt },
     { id: 'import', label: 'Import Statement / CSV', icon: FileSpreadsheet },
   ];
@@ -44,25 +43,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
     id: NavigationTab;
     label: string;
     icon: React.ElementType;
-    badge?: string;
   }[] = [
-    { id: 'calendar', label: 'Financial Calendar', icon: Calendar, badge: 'ICS' },
+    { id: 'calendar', label: 'Financial Calendar', icon: Calendar },
     { id: 'bills', label: 'Bills & Utilities', icon: Receipt },
-    { id: 'subscriptions', label: 'Subscriptions', icon: Flame, badge: 'Burn' },
+    { id: 'subscriptions', label: 'Subscriptions', icon: Flame },
     { id: 'debt', label: 'Debt & Loans', icon: TrendingDown },
-    { id: 'receipts', label: 'Receipt Vault', icon: Receipt, badge: 'OCR' },
+    { id: 'receipts', label: 'Receipt Vault', icon: Receipt },
   ];
 
   const intelligenceItems: {
     id: NavigationTab;
     label: string;
     icon: React.ElementType;
-    badge?: string;
   }[] = [
-    { id: 'assistant', label: 'AI Assistant', icon: Sparkles, badge: 'Copilot' },
+    { id: 'assistant', label: 'AI Assistant', icon: Sparkles },
     { id: 'budgets', label: 'Budgets', icon: PiggyBank },
     { id: 'goals', label: 'Savings Goals', icon: Target },
-    { id: 'insights', label: 'AI Intelligence', icon: BrainCircuit, badge: 'XAI' },
+    { id: 'insights', label: 'AI Intelligence', icon: BrainCircuit },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
@@ -70,17 +67,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
     id: NavigationTab;
     label: string;
     icon: React.ElementType;
-    badge?: string;
   }[] = [
-    { id: 'blockchain', label: 'Blockchain Audit', icon: ShieldCheck, badge: 'Fabric' },
+    { id: 'blockchain', label: 'Blockchain Audit', icon: ShieldCheck },
     { id: 'security', label: 'Security & Privacy', icon: Lock },
-    { id: 'kyc', label: 'Identity & KYC', icon: ShieldCheck, badge: 'Demo' },
+    { id: 'kyc', label: 'Identity & KYC', icon: ShieldCheck },
     { id: 'reports', label: 'Financial Reports', icon: FileText },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   const renderNavGroup = (items: typeof accountItems) => (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       {items.map(item => {
         const Icon = item.icon;
         const isActive = activeTab === item.id;
@@ -91,33 +87,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
               setActiveTab(item.id);
               if (onClose) onClose();
             }}
-            className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
               isActive
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs font-semibold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
+                ? 'bg-slate-900 text-white font-medium shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-normal'
             }`}
           >
             <div className="flex items-center gap-2.5 truncate">
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
               <span className="truncate">{item.label}</span>
             </div>
-            {item.badge && (
-              <span
-                className={`px-1.5 py-0.2 rounded text-[9px] font-mono border shrink-0 ${
-                  item.badge === 'OCR'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : item.badge === 'Burn'
-                    ? 'bg-rose-50 text-rose-700 border-rose-200'
-                    : item.badge === 'XAI'
-                    ? 'bg-purple-50 text-purple-700 border-purple-200'
-                    : item.badge === 'Demo'
-                    ? 'bg-amber-50 text-amber-700 border-amber-200'
-                    : 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                }`}
-              >
-                {item.badge}
-              </span>
-            )}
           </button>
         );
       })}
@@ -129,16 +108,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden"
         />
       )}
 
       <aside
-        className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-200 ease-in-out md:translate-x-0 ${
+        className={`fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-4 flex items-center justify-between border-b border-slate-200 md:hidden">
+        <div className="p-4 flex items-center justify-between border-b border-slate-200 lg:hidden">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-indigo-600" />
             <span className="font-bold text-slate-900 text-sm">AegisFinance</span>

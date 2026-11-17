@@ -77,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={onToggleSidebar}
-            className="md:hidden p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="lg:hidden p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -86,24 +86,24 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             onClick={() => setActiveTab('dashboard')}
             className="flex items-center gap-2.5 text-left group"
           >
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 shadow-xs group-hover:bg-indigo-100 transition-all">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white shadow-xs">
+              <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-slate-900 text-sm tracking-tight group-hover:text-indigo-600 transition-colors">
-                  AegisFinance
+                <span className="font-semibold text-slate-900 text-sm tracking-tight">
+                  CipherLedger
                 </span>
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                  AI + LEDGER
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                  v2.0
                 </span>
               </div>
-              <p className="text-[10px] text-slate-500 hidden sm:block">Secure Personal Finance Management</p>
+              <p className="text-[10px] text-slate-500 hidden sm:block">Secure Personal Finance System</p>
             </div>
           </button>
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           <button
             onClick={() => setIsCommandMenuOpen(true)}
             className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-100/80 hover:bg-slate-100 border border-slate-200 text-xs text-slate-500 hover:text-slate-800 transition-all w-64 shadow-2xs"
@@ -164,14 +164,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
           <button
             onClick={() => setIsChatOpen(!isChatOpen)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               isChatOpen
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="hidden sm:inline">AI Financial Copilot</span>
+            <span className="hidden sm:inline">Assistant</span>
             <span className="sm:hidden">AI</span>
           </button>
 

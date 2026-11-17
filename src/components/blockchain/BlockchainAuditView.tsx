@@ -154,7 +154,7 @@ export const BlockchainAuditView: React.FC = () => {
           <button
             onClick={handleRunFullChainAudit}
             disabled={isAuditing}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
           >
             {isAuditing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
             <span>{isAuditing ? 'Auditing Nodes...' : 'Verify Cryptographic Chain'}</span>

@@ -47,6 +47,7 @@ const AppContent: React.FC = () => {
     openAuthModal,
   } = useAuth();
   const [showLanding, setShowLanding] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   if (isLoading) {
     return (
@@ -126,10 +127,10 @@ const AppContent: React.FC = () => {
       {(isDemoMode || user?.id === 'usr-demo-fintech-01') && <DemoBanner />}
 
       <div className="flex-1 flex flex-col">
-        <Navbar />
+        <Navbar onToggleSidebar={() => setIsSidebarOpen(prev => !prev)} />
 
         <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
-          <Sidebar />
+          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
           <main className="flex-1 min-w-0">
             {renderActiveView()}

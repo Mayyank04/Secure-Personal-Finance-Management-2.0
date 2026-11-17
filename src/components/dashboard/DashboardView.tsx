@@ -251,12 +251,12 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100">
+          <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
             {data.financialHealth.components.map((comp, idx) => (
-              <div key={idx} className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="flex justify-between text-[10px] text-slate-500 mb-0.5">
-                  <span className="truncate">{comp.label}</span>
-                  <span className="font-mono text-emerald-700 font-semibold">{comp.score}/{comp.max}</span>
+              <div key={idx} className="p-2 rounded-lg bg-slate-50/80 border border-slate-200/80">
+                <div className="flex items-center justify-between text-[11px] text-slate-600 mb-1">
+                  <span className="font-medium text-slate-700">{comp.label}</span>
+                  <span className="font-mono text-slate-900 font-semibold">{comp.score} / {comp.max}</span>
                 </div>
                 <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
                   <div

@@ -154,7 +154,7 @@ export const BudgetsView: React.FC = () => {
 
         <button
           onClick={() => setIsEditModalOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition-all self-start"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-all self-start"
         >
           <Sliders className="w-3.5 h-3.5" />
           <span>Configure Budget Limits</span>
@@ -273,17 +273,11 @@ export const BudgetsView: React.FC = () => {
           return (
             <div
               key={cb.category}
-              className={`p-5 rounded-3xl bg-white border transition-all flex flex-col justify-between shadow-xs ${
-                isOver
-                  ? 'border-rose-300 bg-rose-50/20'
-                  : ratio >= currentBudget.alertThresholds.high
-                  ? 'border-amber-300 bg-amber-50/20'
-                  : 'border-slate-200'
-              }`}
+              className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition-all flex flex-col justify-between shadow-xs"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colors.bg} ${colors.text} ${colors.border}`}>
+                  <span className="text-xs font-semibold text-slate-800">
                     {cb.category}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold border flex items-center gap-1 ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
@@ -293,20 +287,20 @@ export const BudgetsView: React.FC = () => {
                 </div>
 
                 <div className="flex items-baseline justify-between mt-4">
-                  <span className="text-lg font-bold text-slate-900 font-mono">
+                  <span className="text-lg font-bold text-slate-900 font-mono tabular-nums">
                     {formatCurrency(spent, currency)}
                   </span>
-                  <span className="text-xs text-slate-500 font-mono">
+                  <span className="text-xs text-slate-500 font-mono tabular-nums">
                     Cap: {formatCurrency(cb.allocatedAmount, currency)}
                   </span>
                 </div>
               </div>
 
               <div className="mt-4 space-y-1">
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${
-                      isOver ? 'bg-rose-500' : ratio >= currentBudget.alertThresholds.normal ? 'bg-amber-500' : 'bg-indigo-600'
+                      isOver ? 'bg-rose-500' : ratio >= currentBudget.alertThresholds.normal ? 'bg-amber-500' : 'bg-slate-800'
                     }`}
                     style={{ width: `${Math.min(100, ratio)}%` }}
                   />

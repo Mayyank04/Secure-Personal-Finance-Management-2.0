@@ -211,18 +211,18 @@ export const DebtTrackerView: React.FC = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <TrendingDown className="w-7 h-7 text-indigo-600" />
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <TrendingDown className="w-6 h-6 text-slate-800" />
             Debt & Loan Payoff Tracker
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Track loans, amortization progress, monthly EMI commitments, interest rates, and accelerated payoff milestones.
+          <p className="text-xs text-slate-500 mt-1">
+            Track principal amortization, monthly EMI obligations, weighted interest rates, and accelerated settlement.
           </p>
         </div>
 
         <button
           onClick={handleOpenCreateModal}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-xs self-start md:self-auto"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-xs self-start md:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add Loan / Liability
@@ -233,14 +233,14 @@ export const DebtTrackerView: React.FC = () => {
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Total Outstanding Debt</span>
-            <span className="p-2 rounded-xl bg-rose-50 text-rose-600">
-              <TrendingDown className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <TrendingDown className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="text-2xl font-bold text-rose-600 mt-2 font-mono">
+          <p className="text-2xl font-bold text-rose-600 mt-2 font-mono tabular-nums">
             ₹{summary.totalOutstanding.toLocaleString('en-IN')}
           </p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-[11px] text-slate-400 mt-1 font-mono tabular-nums">
             Principal: ₹{summary.totalPrincipal.toLocaleString('en-IN')}
           </p>
         </div>
@@ -248,24 +248,24 @@ export const DebtTrackerView: React.FC = () => {
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Monthly EMI Commitment</span>
-            <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
-              <Calendar className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <Calendar className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2 font-mono">
+          <p className="text-2xl font-bold text-slate-900 mt-2 font-mono tabular-nums">
             ₹{summary.totalMonthlyEmi.toLocaleString('en-IN')}/mo
           </p>
-          <p className="text-xs text-slate-400 mt-1">Fixed monthly obligations</p>
+          <p className="text-[11px] text-slate-400 mt-1">Fixed monthly obligations</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Weighted Interest Rate</span>
-            <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-              <Percent className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <Percent className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="text-2xl font-bold text-indigo-700 mt-2 font-mono">
+          <p className="text-2xl font-bold text-slate-900 mt-2 font-mono tabular-nums">
             {summary.weightedInterestRate}% p.a.
           </p>
           <p className="text-xs text-slate-400 mt-1">Across all active facilities</p>

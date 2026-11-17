@@ -170,18 +170,18 @@ export const SubscriptionsView: React.FC = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Flame className="w-7 h-7 text-rose-500" />
-            Subscriptions & Recurring Burn
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <Flame className="w-6 h-6 text-slate-800" />
+            Subscriptions & Recurring Outflows
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Track streaming services, cloud software, gym memberships, price increases, and annual burn rates.
+          <p className="text-xs text-slate-500 mt-1">
+            Track active memberships, software licenses, price inflation alerts, and annualized commitments.
           </p>
         </div>
 
         <button
           onClick={handleOpenCreateModal}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-xs self-start md:self-auto"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-xs self-start md:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add Subscription
@@ -192,51 +192,51 @@ export const SubscriptionsView: React.FC = () => {
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Monthly Recurring Burn</span>
-            <span className="p-2 rounded-xl bg-rose-50 text-rose-600">
-              <Flame className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <Flame className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="text-2xl font-bold text-rose-600 mt-2 font-mono">
+          <p className="text-2xl font-bold text-rose-600 mt-2 font-mono tabular-nums">
             ₹{summary.totalMonthlyBurn.toLocaleString('en-IN')}/mo
           </p>
-          <p className="text-xs text-slate-400 mt-1">Direct monthly outflow</p>
+          <p className="text-[11px] text-slate-400 mt-1">Direct monthly outflow</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Annual Run-Rate Cost</span>
-            <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-              <TrendingUp className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <TrendingUp className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2 font-mono">
+          <p className="text-2xl font-bold text-slate-900 mt-2 font-mono tabular-nums">
             ₹{summary.totalAnnualBurn.toLocaleString('en-IN')}/yr
           </p>
-          <p className="text-xs text-slate-400 mt-1">Projected 12-month commitment</p>
+          <p className="text-[11px] text-slate-400 mt-1">Projected 12-month commitment</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
             <span>Active Subscriptions</span>
-            <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-              <CheckCircle2 className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <CheckCircle2 className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{summary.activeCount}</p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-2xl font-bold text-slate-900 mt-2 font-mono tabular-nums">{summary.activeCount}</p>
+          <p className="text-[11px] text-slate-400 mt-1">
             {summary.pausedCount} paused, {summary.cancelledCount} cancelled
           </p>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
-            <span>AI Price Watch Alerts</span>
-            <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
-              <AlertTriangle className="w-4 h-4" />
+            <span>Price Watch Alerts</span>
+            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <AlertTriangle className="w-3.5 h-3.5" />
             </span>
           </div>
-          <p className="text-2xl font-bold text-amber-700 mt-2">{summary.priceChangeAlertsCount}</p>
-          <p className="text-xs text-amber-600 mt-1">Price change detected</p>
+          <p className="text-2xl font-bold text-amber-700 mt-2 font-mono tabular-nums">{summary.priceChangeAlertsCount}</p>
+          <p className="text-[11px] text-amber-600 mt-1">Price change detected</p>
         </div>
       </div>
 
