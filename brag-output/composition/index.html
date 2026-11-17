@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>CipherLedger AI — Launch Video</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #090D16;
+        --surface: #0F172A;
+        --border: #1E293B;
+        --ink: #F8FAFC;
+        --ink-muted: #94A3B8;
+        --emerald: #10B981;
+        --cyan: #38BDF8;
+        --font-main: "Inter", -apple-system, sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--ground);
+        font-family: var(--font-main);
+        color: var(--ink);
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 25%, #131F37 0%, #090D16 75%);
+      }
+
+      /* Ambient cryptographic grid overlay */
+      .grid-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1080px;
+        height: 1920px;
+        background-image: linear-gradient(rgba(30, 41, 59, 0.25) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(30, 41, 59, 0.25) 1px, transparent 1px);
+        background-size: 60px 60px;
+        opacity: 0.5;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      /* Clips container */
+      .clip {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1080px;
+        height: 1920px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Safe-zone content wrapper (bounded strictly to 700px wide and vertically centered) */
+      .scene-content {
+        width: 700px;
+        margin-top: -60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      /* Pill Badge */
+      .pill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 28px;
+        border-radius: 9999px;
+        font-family: var(--font-mono);
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.9);
+        margin-bottom: 24px;
+      }
+      .badge-emerald {
+        color: var(--emerald);
+        border-color: rgba(16, 185, 129, 0.45);
+        box-shadow: 0 0 24px rgba(16, 185, 129, 0.2);
+      }
+      .badge-cyan {
+        color: var(--cyan);
+        border-color: rgba(56, 189, 248, 0.45);
+        box-shadow: 0 0 24px rgba(56, 189, 248, 0.2);
+      }
+
+      /* Typography */
+      .hero-title {
+        font-size: 58px;
+        font-weight: 800;
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        color: #FFFFFF;
+        margin-bottom: 20px;
+        max-width: 680px;
+      }
+      .hero-title span.accent-emerald {
+        color: var(--emerald);
+      }
+      .hero-title span.accent-cyan {
+        color: var(--cyan);
+      }
+      .hero-subtitle {
+        font-size: 28px;
+        font-weight: 400;
+        line-height: 1.35;
+        color: var(--ink-muted);
+        max-width: 660px;
+      }
+
+      /* App Screen Card Mockup */
+      .mockup-container {
+        width: 680px;
+        height: 640px;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 2px solid rgba(56, 189, 248, 0.35);
+        background: var(--surface);
+        box-shadow: 0 32px 64px rgba(0, 0, 0, 0.7), 0 0 40px rgba(16, 185, 129, 0.15);
+        display: flex;
+        flex-direction: column;
+        margin-top: 24px;
+        position: relative;
+      }
+      .mockup-header {
+        height: 44px;
+        background: #1E293B;
+        display: flex;
+        align-items: center;
+        padding: 0 18px;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+      .mockup-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .mockup-dot.red { background: #EF4444; }
+      .mockup-dot.yellow { background: #F59E0B; }
+      .mockup-dot.green { background: #10B981; }
+      .mockup-title {
+        font-family: var(--font-mono);
+        font-size: 16px;
+        color: #94A3B8;
+        margin-left: 10px;
+      }
+      .mockup-body {
+        width: 100%;
+        height: 596px;
+        overflow: hidden;
+        position: relative;
+        background: #0B1120;
+      }
+      .mockup-img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      /* Floating Metric Card */
+      .floating-tag {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(16, 185, 129, 0.55);
+        padding: 12px 24px;
+        border-radius: 12px;
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 26px;
+        font-weight: 700;
+        color: #FFFFFF;
+        white-space: nowrap;
+      }
+      .tag-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--emerald);
+        box-shadow: 0 0 12px var(--emerald);
+        flex-shrink: 0;
+      }
+
+      /* Shield Icon (Scene 1) */
+      .shield-icon {
+        width: 130px;
+        height: 130px;
+        margin-bottom: 24px;
+      }
+
+      /* Scene 5 (Outro) Card */
+      .outro-box {
+        width: 680px;
+        padding: 48px 36px;
+        border-radius: 24px;
+        background: rgba(15, 23, 42, 0.92);
+        border: 2px solid rgba(16, 185, 129, 0.45);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 60px rgba(16, 185, 129, 0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .outro-tags {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin: 28px 0;
+      }
+      .outro-tag-item {
+        font-family: var(--font-mono);
+        font-size: 24px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #1E293B;
+        color: #E2E8F0;
+        border: 1px solid #334155;
+      }
+      .url-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 32px;
+        border-radius: 9999px;
+        background: var(--emerald);
+        color: #090D16;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="20"
+      data-width="1080"
+      data-height="1920"
+    >
+      <!-- Background grid overlay -->
+      <div class="grid-layer"></div>
+
+      <!-- AUDIO TRACKS -->
+      <!-- Main Music Track (royalty free CC BY 4.0 from ende.app) -->
+      <audio
+        id="bgm"
+        data-start="0"
+        data-duration="20"
+        data-track-index="0"
+        data-volume="0.38"
+        src="assets/music/happy-beats.mp3"
+      ></audio>
+
+      <!-- Synchronized UI SFX -->
+      <audio id="sfx-hook" data-start="0.2" data-duration="0.5" data-track-index="1" data-volume="0.55" src="assets/sfx/bong.ogg"></audio>
+      <audio id="sfx-scene2" data-start="3.0" data-duration="0.5" data-track-index="1" data-volume="0.50" src="assets/sfx/drop.ogg"></audio>
+      <audio id="sfx-scene3" data-start="7.5" data-duration="0.5" data-track-index="1" data-volume="0.60" src="assets/sfx/bong.ogg"></audio>
+      <audio id="sfx-scene4" data-start="12.0" data-duration="0.5" data-track-index="1" data-volume="0.45" src="assets/sfx/click.ogg"></audio>
+      <audio id="sfx-outro" data-start="16.5" data-duration="0.5" data-track-index="1" data-volume="0.55" src="assets/sfx/drop.ogg"></audio>
+
+      <!-- SCENE 1: THE CRYPTOGRAPHIC HOOK (0.0s – 3.0s) -->
+      <div id="scene1" class="clip" data-start="0" data-duration="3.0" data-track-index="2" style="z-index: 10;">
+        <div id="scene1-wrap" class="scene-content" data-layout-allow-safe-zone="true">
+          <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          <div class="pill-badge badge-emerald">
+            <span>Security Audit</span>
+          </div>
+          <h1 class="hero-title">
+            Is Your Finance Data<br/><span class="accent-emerald">Truly Tamper-Proof?</span>
+          </h1>
+          <p class="hero-subtitle">
+            Most finance apps store sensitive records on mutable servers.
+          </p>
+        </div>
+      </div>
+
+      <!-- SCENE 2: UNIFIED DASHBOARD (3.0s – 7.5s) -->
+      <div id="scene2" class="clip" data-start="3.0" data-duration="4.5" data-track-index="2" style="z-index: 10;">
+        <div id="scene2-wrap" class="scene-content" style="opacity: 0;" data-layout-allow-safe-zone="true">
+          <div class="pill-badge badge-cyan">
+            <span>Unified Net Worth</span>
+          </div>
+          <h1 class="hero-title">
+            All Your Accounts.<br/><span class="accent-cyan">One Real-Time Ledger.</span>
+          </h1>
+          <div class="mockup-container">
+            <div class="mockup-header">
+              <div class="mockup-dot red"></div>
+              <div class="mockup-dot yellow"></div>
+              <div class="mockup-dot green"></div>
+              <span class="mockup-title" data-layout-ignore="true">cipherledger.ai/dashboard</span>
+            </div>
+            <div class="mockup-body" data-layout-allow-overflow="true">
+              <img class="mockup-img" id="img-dash" src="assets/screens/dashboard.png" alt="Dashboard" />
+              <div class="floating-tag">
+                <div class="tag-indicator"></div>
+                <span>Net Worth: $84,250.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 3: BLOCKCHAIN AUDIT (7.5s – 12.0s) -->
+      <div id="scene3" class="clip" data-start="7.5" data-duration="4.5" data-track-index="2" style="z-index: 10;">
+        <div id="scene3-wrap" class="scene-content" style="opacity: 0;" data-layout-allow-safe-zone="true">
+          <div class="pill-badge badge-emerald">
+            <span>Blockchain Audit Log</span>
+          </div>
+          <h1 class="hero-title">
+            SHA-256 Merkle Chain.<br/><span class="accent-emerald">Mathematically Immutable.</span>
+          </h1>
+          <div class="mockup-container">
+            <div class="mockup-header">
+              <div class="mockup-dot red"></div>
+              <div class="mockup-dot yellow"></div>
+              <div class="mockup-dot green"></div>
+              <span class="mockup-title" data-layout-ignore="true">cipherledger.ai/blockchain-audit</span>
+            </div>
+            <div class="mockup-body" data-layout-allow-overflow="true">
+              <img class="mockup-img" id="img-chain" src="assets/screens/blockchain.png" alt="Blockchain Audit" />
+              <div class="floating-tag" style="border-color: rgba(56, 189, 248, 0.6);">
+                <div class="tag-indicator" style="background: #38BDF8; box-shadow: 0 0 12px #38BDF8;"></div>
+                <span>359 Blocks • Verified</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 4: PREDICTIVE AI INTELLIGENCE (12.0s – 16.5s) -->
+      <div id="scene4" class="clip" data-start="12.0" data-duration="4.5" data-track-index="2" style="z-index: 10;">
+        <div id="scene4-wrap" class="scene-content" style="opacity: 0;" data-layout-allow-safe-zone="true">
+          <div class="pill-badge badge-cyan">
+            <span>Predictive AI Engine</span>
+          </div>
+          <h1 class="hero-title">
+            AI Financial Advisor.<br/><span class="accent-cyan">Proactive Risk Defense.</span>
+          </h1>
+          <div class="mockup-container">
+            <div class="mockup-header">
+              <div class="mockup-dot red"></div>
+              <div class="mockup-dot yellow"></div>
+              <div class="mockup-dot green"></div>
+              <span class="mockup-title" data-layout-ignore="true">cipherledger.ai/insights</span>
+            </div>
+            <div class="mockup-body" data-layout-allow-overflow="true">
+              <img class="mockup-img" id="img-ai" src="assets/screens/insights.png" alt="AI Insights" />
+              <div class="floating-tag">
+                <div class="tag-indicator"></div>
+                <span>⚡ Anomaly Flagged</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 5: OUTRO & CALL TO ACTION (16.5s – 20.0s) -->
+      <div id="scene5" class="clip" data-start="16.5" data-duration="3.5" data-track-index="2" style="z-index: 10;">
+        <div id="scene5-wrap" class="scene-content" style="opacity: 0;" data-layout-allow-safe-zone="true">
+          <div class="outro-box">
+            <svg class="shield-icon" style="width: 90px; height: 90px; margin-bottom: 16px;" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+            <h1 class="hero-title" style="font-size: 54px; margin-bottom: 10px;">
+              CipherLedger AI
+            </h1>
+            <p class="hero-subtitle" style="font-size: 26px; color: #E2E8F0; margin-bottom: 18px;">
+              Cryptographic Trust. Sovereign Control.
+            </p>
+            <div class="outro-tags">
+              <span class="outro-tag-item">Zero-PII On-Chain</span>
+              <span class="outro-tag-item">Client-Side OCR</span>
+              <span class="outro-tag-item">IDOR Protected</span>
+            </div>
+            <div class="url-pill">
+              <span>Open Source on GitHub ↗</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GSAP TIMELINE SCRIPT -->
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1: Hook (0.0s - 3.0s)
+      tl.fromTo("#scene1-wrap", 
+        { scale: 0.98, y: 10 },
+        { scale: 1, y: 0, duration: 0.6, ease: "power2.out" },
+        0
+      );
+      tl.to("#scene1-wrap", 
+        { opacity: 0, scale: 1.04, y: -20, duration: 0.35, ease: "power2.in" },
+        2.65
+      );
+
+      // Scene 2: Dashboard (3.0s - 7.5s)
+      tl.fromTo("#scene2-wrap",
+        { opacity: 0, scale: 0.95, y: 30 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        3.0
+      );
+      tl.fromTo("#img-dash",
+        { y: 0 },
+        { y: -60, duration: 3.6, ease: "none" },
+        3.2
+      );
+      tl.to("#scene2-wrap",
+        { opacity: 0, scale: 1.03, y: -20, duration: 0.35, ease: "power2.in" },
+        7.15
+      );
+
+      // Scene 3: Blockchain Audit (7.5s - 12.0s)
+      tl.fromTo("#scene3-wrap",
+        { opacity: 0, scale: 0.95, y: 30 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        7.5
+      );
+      tl.fromTo("#img-chain",
+        { y: 0 },
+        { y: -80, duration: 3.6, ease: "none" },
+        7.7
+      );
+      tl.to("#scene3-wrap",
+        { opacity: 0, scale: 1.03, y: -20, duration: 0.35, ease: "power2.in" },
+        11.65
+      );
+
+      // Scene 4: Predictive AI (12.0s - 16.5s)
+      tl.fromTo("#scene4-wrap",
+        { opacity: 0, scale: 0.95, y: 30 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        12.0
+      );
+      tl.fromTo("#img-ai",
+        { y: 0 },
+        { y: -50, duration: 3.6, ease: "none" },
+        12.2
+      );
+      tl.to("#scene4-wrap",
+        { opacity: 0, scale: 1.03, y: -20, duration: 0.35, ease: "power2.in" },
+        16.15
+      );
+
+      // Scene 5: Outro (16.5s - 20.0s)
+      tl.fromTo("#scene5-wrap",
+        { opacity: 0, scale: 0.92, y: 25 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.55, ease: "power3.out" },
+        16.5
+      );
+      tl.to("#scene5-wrap",
+        { opacity: 0.96, duration: 2.0 },
+        17.1
+      );
+
+      // Register timeline with Hyperframes
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

@@ -14,7 +14,8 @@
     "test:pg": "tsx server/production_postgres_integration_test.ts",
     "test:vercel": "tsx server/test_vercel_registration_flow.ts",
     "test:crud": "tsx server/tests/comprehensive_crud_acceptance_test.ts",
-    "test": "tsx server/acceptance_production_readiness.ts"
+    "test": "tsx server/acceptance_production_readiness.ts",
+    "brag": "node scripts/generate-brag.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
