@@ -22,6 +22,9 @@ import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { ReportsView } from './components/reports/ReportsView';
 import { SettingsView } from './components/settings/SettingsView';
 import { KycView } from './components/kyc/KycView';
+import { TermsOfServiceView } from './components/legal/TermsOfServiceView';
+import { PrivacyPolicyView } from './components/legal/PrivacyPolicyView';
+import { ProductWalkthrough } from './components/common/ProductWalkthrough';
 import { LandingPage } from './components/landing/LandingPage';
 import { AiAssistantDrawer } from './components/chat/AiAssistantDrawer';
 import { VerifyModal } from './components/common/VerifyModal';
@@ -48,6 +51,7 @@ const AppContent: React.FC = () => {
   } = useAuth();
   const [showLanding, setShowLanding] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [isWalkthroughOpen, setIsWalkthroughOpen] = useState<boolean>(false);
 
   if (isLoading) {
     return (
@@ -56,6 +60,22 @@ const AppContent: React.FC = () => {
           <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
           <span className="text-xs font-mono tracking-wider text-slate-400">INITIALIZING SECURE CLIENT SESSION...</span>
         </div>
+      </div>
+    );
+  }
+
+  if (activeTab === 'terms') {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 p-6 flex flex-col justify-between">
+        <TermsOfServiceView />
+      </div>
+    );
+  }
+
+  if (activeTab === 'privacy') {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 p-6 flex flex-col justify-between">
+        <PrivacyPolicyView />
       </div>
     );
   }
@@ -71,6 +91,8 @@ const AppContent: React.FC = () => {
               openAuthModal?.('login');
             }
           }}
+          onOpenTerms={() => setActiveTab('terms')}
+          onOpenPrivacy={() => setActiveTab('privacy')}
         />
         <AuthModal />
       </>
@@ -117,6 +139,10 @@ const AppContent: React.FC = () => {
         return <KycView />;
       case 'settings':
         return <SettingsView />;
+      case 'terms':
+        return <TermsOfServiceView />;
+      case 'privacy':
+        return <PrivacyPolicyView />;
       default:
         return <DashboardView />;
     }
@@ -136,7 +162,39 @@ const AppContent: React.FC = () => {
             {renderActiveView()}
           </main>
         </div>
+
+        <footer className="border-t border-slate-200 bg-white py-4 px-4 sm:px-6 lg:px-8 mt-auto">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-700">CipherLedger</span>
+              <span>•</span>
+              <span>Zero-PII On-Chain Personal Finance Ledger</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsWalkthroughOpen(true)}
+                className="text-slate-600 hover:text-slate-900 transition-colors font-medium cursor-pointer"
+              >
+                Guided Tour
+              </button>
+              <button
+                onClick={() => setActiveTab('terms')}
+                className="text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                Terms of Service
+              </button>
+              <button
+                onClick={() => setActiveTab('privacy')}
+                className="text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+            </div>
+          </div>
+        </footer>
       </div>
+
+      <ProductWalkthrough isOpen={isWalkthroughOpen} onClose={() => setIsWalkthroughOpen(false)} />
 
       <AiAssistantDrawer />
       <VerifyModal />

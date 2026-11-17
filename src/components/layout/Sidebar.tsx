@@ -10,7 +10,7 @@ import {
   Lock,
   FileText,
   Settings,
-  Sparkles,
+  Bot,
   X,
   Building2,
   Calendar,
@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
     label: string;
     icon: React.ElementType;
   }[] = [
-    { id: 'assistant', label: 'AI Assistant', icon: Sparkles },
+    { id: 'assistant', label: 'Financial Assistant', icon: Bot },
     { id: 'budgets', label: 'Budgets', icon: PiggyBank },
     { id: 'goals', label: 'Savings Goals', icon: Target },
     { id: 'insights', label: 'AI Intelligence', icon: BrainCircuit },
@@ -180,6 +180,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
                 <span>PII on Chain:</span>
                 <span className="text-emerald-700 font-semibold">0% (Hashes Only)</span>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-sans">
+              <button
+                onClick={() => {
+                  setActiveTab('terms');
+                  if (onClose) onClose();
+                }}
+                className="hover:text-slate-800 transition-colors cursor-pointer"
+              >
+                Terms
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => {
+                  setActiveTab('privacy');
+                  if (onClose) onClose();
+                }}
+                className="hover:text-slate-800 transition-colors cursor-pointer"
+              >
+                Privacy
+              </button>
+              <span>•</span>
+              <span className="text-slate-400">v2.1</span>
             </div>
           </div>
         </div>

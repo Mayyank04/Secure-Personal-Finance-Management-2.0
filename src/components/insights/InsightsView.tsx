@@ -52,6 +52,7 @@ import {
 import { api } from '../../lib/api';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
+import { MetricCardsGridSkeleton, ChartCardSkeleton } from '../common/Skeleton';
 
 export const InsightsView: React.FC = () => {
   const { currency, openExplainModal, openVerifyModal } = useAuth();
@@ -161,6 +162,22 @@ export const InsightsView: React.FC = () => {
       setIsRunningTestBench(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pb-12 animate-in fade-in duration-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="h-6 w-72 rounded bg-slate-200 animate-pulse" />
+            <div className="h-3.5 w-96 rounded bg-slate-100 animate-pulse" />
+          </div>
+          <div className="h-9 w-24 rounded-xl bg-slate-200 animate-pulse" />
+        </div>
+        <MetricCardsGridSkeleton count={4} />
+        <ChartCardSkeleton height="h-64" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">

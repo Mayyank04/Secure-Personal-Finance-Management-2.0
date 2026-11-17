@@ -21,6 +21,7 @@ import { Budget, TransactionCategory } from '../../types';
 import { api } from '../../lib/api';
 import { formatCurrency, CATEGORY_COLORS } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
+import { MetricCardsGridSkeleton } from '../common/Skeleton';
 
 export const BudgetsView: React.FC = () => {
   const { currency, openExplainModal } = useAuth();
@@ -141,6 +142,22 @@ export const BudgetsView: React.FC = () => {
     }
     return { label: 'On Track', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle2 };
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pb-12 animate-in fade-in duration-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="h-6 w-56 rounded bg-slate-200 animate-pulse" />
+            <div className="h-3.5 w-72 rounded bg-slate-100 animate-pulse" />
+          </div>
+          <div className="h-9 w-40 rounded-xl bg-slate-200 animate-pulse" />
+        </div>
+        <MetricCardsGridSkeleton count={2} />
+        <MetricCardsGridSkeleton count={6} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">

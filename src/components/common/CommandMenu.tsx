@@ -5,7 +5,8 @@ import {
   PlusCircle,
   Camera,
   Mic,
-  Sparkles,
+  Bot,
+  BrainCircuit,
   ShieldCheck,
   FileText,
   PieChart,
@@ -82,7 +83,7 @@ export const CommandMenu: React.FC = () => {
     {
       label: 'Ask AI Financial Assistant',
       subtitle: 'Grounded copilot spending & budget query',
-      icon: Sparkles,
+      icon: Bot,
       action: () => {
         setIsCommandMenuOpen(false);
         setActiveTab('assistant');
@@ -111,10 +112,10 @@ export const CommandMenu: React.FC = () => {
   const navigationItems: { label: string; tab: NavigationTab; icon: any }[] = [
     { label: 'Overview Dashboard', tab: 'dashboard', icon: TrendingUp },
     { label: 'Transactions & Ledger', tab: 'transactions', icon: CreditCard },
-    { label: 'AI Assistant (Copilot)', tab: 'assistant', icon: Sparkles },
+    { label: 'AI Assistant (Copilot)', tab: 'assistant', icon: Bot },
     { label: 'Budgets & Envelopes', tab: 'budgets', icon: PieChart },
     { label: 'Savings Goals', tab: 'goals', icon: Target },
-    { label: 'AI Insights & Forecasts', tab: 'insights', icon: Sparkles },
+    { label: 'AI Insights & Forecasts', tab: 'insights', icon: BrainCircuit },
     { label: 'Advanced Analytics', tab: 'analytics', icon: Layers },
     { label: 'Blockchain Audit Explorer', tab: 'blockchain', icon: ShieldCheck },
     { label: 'Security & Privacy Center', tab: 'security', icon: ShieldCheck },

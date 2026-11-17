@@ -208,3 +208,30 @@ Based on an 8pt grid with 4pt half-steps:
 ❌ No decorative icons before every single sentence.  
 ❌ No ungrounded statistics or fabricated testimonial avatars.  
 ❌ No low-contrast gray text on dark surfaces failing accessibility checks.  
+
+---
+
+## 21. Asynchronous Loading States & Skeleton Specifications
+- **No Flashing Blank Screens:** Views must never flash empty white canvases or raw lone spinners during data resolution.
+- **Geometric Matching:** Skeleton blocks must replicate the exact aspect ratios and grid spans of incoming content (`MetricCardSkeleton`, `TableSkeleton`, `ChartCardSkeleton`).
+- **Pulse Animation:** Skeletons use subtle opacity pulsing (`animate-pulse bg-slate-200/80`) with rounded corners matching component radius tokens.
+
+---
+
+## 22. Product Walkthrough & Interactive Demo Architecture
+- **Real Working Flows:** Walkthrough modals must navigate real operational application routes (`accounts`, `transactions`, `blockchain`, `insights`, `budgets`) rather than displaying static screenshot mockups.
+- **Explicit Demo Labels:** Synthetic banking connectors and demonstration states must clearly state: "SYNTHETIC / DEMO ENVIRONMENT: Zero live banking credentials or real money."
+
+---
+
+## 23. Legal, Compliance & Privacy Architecture
+- **Persistent Compliance Navigation:** Terms of Service and Privacy Policy must be accessible from the landing page, application footer, sidebar, and user dropdown.
+- **Zero-PII On-Chain Guarantee:** Distributed ledger blocks contain solely cryptographic hashes (`SHA-256`) and numerical amounts. Identifiable personal data resides exclusively off-chain in encrypted storage.
+- **Transparent Placeholders:** Items requiring jurisdiction-specific legal review must be explicitly identified without inventing fictional certifications.
+
+---
+
+## 24. Cross-Viewport Responsiveness & Accessibility Specifications
+- **Target Viewports:** Certified for `1440×900` (desktop wide), `1280×800` (laptop), `1024×768` (desktop compact), `768×1024` (tablet portrait), `390×844` (mobile iPhone), and `360×800` (mobile Android).
+- **Responsive Drawer Breakpoint:** `< 1024px` transitions the persistent sidebar into an overlay slide-out drawer, preserving full canvas width for data tables and preventing horizontal overflow.
+- **Zero Horizontal Overflow:** `scrollWidth` must never exceed `innerWidth` across any supported device resolution.  

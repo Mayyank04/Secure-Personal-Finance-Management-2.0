@@ -5,7 +5,6 @@ import {
   TrendingDown,
   PiggyBank,
   ShieldCheck,
-  Sparkles,
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
@@ -35,6 +34,7 @@ import { DashboardData, Transaction } from '../../types';
 import { api } from '../../lib/api';
 import { formatCurrency, formatDate, truncateHash, CATEGORY_COLORS } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
+import { MetricCardsGridSkeleton, ChartCardSkeleton, TableSkeleton } from '../common/Skeleton';
 
 export const DashboardView: React.FC = () => {
   const { currency, setActiveTab, openVerifyModal, openExplainModal } = useAuth();
@@ -61,9 +61,24 @@ export const DashboardView: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-        <p className="text-xs text-slate-500 font-mono">Decrypting tenant records and verifying ledger state...</p>
+      <div className="space-y-6 pb-12 animate-in fade-in duration-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="h-6 w-56 rounded bg-slate-200 animate-pulse" />
+            <div className="h-3.5 w-80 rounded bg-slate-100 animate-pulse" />
+          </div>
+          <div className="h-9 w-36 rounded-xl bg-slate-200 animate-pulse" />
+        </div>
+        <MetricCardsGridSkeleton count={5} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <ChartCardSkeleton height="h-64" />
+          </div>
+          <div>
+            <ChartCardSkeleton height="h-64" />
+          </div>
+        </div>
+        <TableSkeleton rows={5} />
       </div>
     );
   }
@@ -206,7 +221,7 @@ export const DashboardView: React.FC = () => {
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
+                <Activity className="w-4 h-4 text-slate-700" />
                 <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                   Financial Health Index
                 </h3>

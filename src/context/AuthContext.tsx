@@ -23,7 +23,9 @@ export type NavigationTab =
   | 'security'
   | 'reports'
   | 'kyc'
-  | 'settings';
+  | 'settings'
+  | 'terms'
+  | 'privacy';
 
 interface AuthContextType {
   user: User | null;

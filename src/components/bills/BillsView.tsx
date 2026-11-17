@@ -18,6 +18,7 @@ import {
 import { api } from '../../lib/api';
 import { Bill, BillStatus, BillFrequency, TransactionCategory, FinancialAccount } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { TableSkeleton } from '../common/Skeleton';
 
 export const BillsView: React.FC = () => {
   const { currency, openVerifyModal } = useAuth();
@@ -314,10 +315,7 @@ export const BillsView: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
-          <p className="text-sm font-medium">Loading bills and recurring payables...</p>
-        </div>
+        <TableSkeleton rows={6} />
       ) : filteredBills.length === 0 ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-3" />

@@ -9,7 +9,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export const LandingPage: React.FC<{ onEnterApp: () => void }> = ({ onEnterApp }) => {
+export const LandingPage: React.FC<{
+  onEnterApp: () => void;
+  onOpenTerms?: () => void;
+  onOpenPrivacy?: () => void;
+}> = ({ onEnterApp, onOpenTerms, onOpenPrivacy }) => {
   const { openAuthModal } = useAuth();
 
   return (
@@ -159,13 +163,17 @@ export const LandingPage: React.FC<{ onEnterApp: () => void }> = ({ onEnterApp }
             CipherLedger AI • Secure Personal Finance Management System
           </p>
           <div className="flex items-center gap-4">
-            <button onClick={onEnterApp} className="text-slate-600 hover:text-slate-900 font-medium">
-              Launch App
+            <button onClick={onOpenTerms} className="text-slate-600 hover:text-slate-900 transition-colors">
+              Terms of Service
             </button>
             <span className="text-slate-300">•</span>
-            <span className="text-slate-500">
-              Auditable Integrity
-            </span>
+            <button onClick={onOpenPrivacy} className="text-slate-600 hover:text-slate-900 transition-colors">
+              Privacy Policy
+            </button>
+            <span className="text-slate-300">•</span>
+            <button onClick={onEnterApp} className="text-slate-900 font-semibold hover:text-indigo-600 transition-colors">
+              Launch App
+            </button>
           </div>
         </div>
       </footer>

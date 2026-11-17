@@ -22,6 +22,7 @@ import {
 import { api } from '../../lib/api';
 import { Loan, LoanType, LoanStatus, FinancialAccount } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { MetricCardsGridSkeleton } from '../common/Skeleton';
 
 export const DebtTrackerView: React.FC = () => {
   const { currency } = useAuth();
@@ -288,10 +289,7 @@ export const DebtTrackerView: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
-          <p className="text-sm font-medium">Loading loans and liabilities...</p>
-        </div>
+        <MetricCardsGridSkeleton count={4} />
       ) : loans.length === 0 ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-3" />

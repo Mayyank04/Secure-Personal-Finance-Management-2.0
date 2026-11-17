@@ -3,7 +3,6 @@ import {
   Target,
   Plus,
   TrendingUp,
-  Sparkles,
   Calendar,
   CheckCircle2,
   AlertCircle,
@@ -16,6 +15,7 @@ import { SavingsGoal } from '../../types';
 import { api } from '../../lib/api';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
+import { MetricCardsGridSkeleton } from '../common/Skeleton';
 
 export const GoalsView: React.FC = () => {
   const { currency } = useAuth();
@@ -91,6 +91,22 @@ export const GoalsView: React.FC = () => {
   const totalSaved = goals.reduce((s, g) => s + g.currentAmount, 0);
   const overallPct = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0;
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pb-12 animate-in fade-in duration-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="h-6 w-56 rounded bg-slate-200 animate-pulse" />
+            <div className="h-3.5 w-72 rounded bg-slate-100 animate-pulse" />
+          </div>
+          <div className="h-9 w-36 rounded-xl bg-slate-200 animate-pulse" />
+        </div>
+        <MetricCardsGridSkeleton count={2} />
+        <MetricCardsGridSkeleton count={6} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -113,7 +129,7 @@ export const GoalsView: React.FC = () => {
       {celebrationMsg && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between animate-in fade-in">
           <div className="flex items-center gap-2 font-semibold">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>{celebrationMsg}</span>
           </div>
           <button onClick={() => setCelebrationMsg(null)} className="text-emerald-700 hover:text-emerald-900">

@@ -26,6 +26,7 @@ import { Transaction, TransactionCategory, TransactionType, PaymentMethod, Finan
 import { api } from '../../lib/api';
 import { formatCurrency, formatDate, truncateHash, CATEGORY_COLORS } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
+import { TableSkeleton } from '../common/Skeleton';
 
 export const TransactionsView: React.FC = () => {
   const { currency, openVerifyModal, setIsReceiptModalOpen, setIsVoiceModalOpen } = useAuth();
@@ -442,12 +443,9 @@ export const TransactionsView: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs">
+      <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
         {isLoading ? (
-          <div className="py-16 text-center space-y-3">
-            <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
-            <p className="text-xs text-slate-500 font-mono">Loading encrypted transaction vault...</p>
-          </div>
+          <TableSkeleton rows={8} />
         ) : transactions.length === 0 ? (
           <div className="py-16 text-center space-y-3">
             <FileText className="w-10 h-10 text-slate-300 mx-auto" />

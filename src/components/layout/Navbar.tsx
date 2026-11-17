@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   ShieldCheck,
   Bell,
-  Sparkles,
+  FileText,
   User as UserIcon,
   LogOut,
   Settings,
@@ -339,7 +339,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors text-left"
                   >
                     <Settings className="w-4 h-4 text-slate-500" />
-                    <span>Preferences & Privacy</span>
+                    <span>Preferences & Security</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab('terms');
+                      setShowUserMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors text-left"
+                  >
+                    <FileText className="w-4 h-4 text-slate-500" />
+                    <span>Terms of Service</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab('privacy');
+                      setShowUserMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors text-left"
+                  >
+                    <Lock className="w-4 h-4 text-slate-500" />
+                    <span>Privacy Policy</span>
                   </button>
                 </div>
 

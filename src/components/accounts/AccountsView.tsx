@@ -7,7 +7,6 @@ import {
   ArrowDownLeft,
   Plus,
   RefreshCw,
-  Sparkles,
   ShieldCheck,
   CheckCircle2,
   AlertTriangle,
@@ -26,6 +25,7 @@ import {
 import { api } from '../../lib/api';
 import { FinancialAccount, AccountType, AccountStatus, Transaction } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { MetricCardsGridSkeleton } from '../common/Skeleton';
 
 export const AccountsView: React.FC = () => {
   const { currency, openVerifyModal } = useAuth();
@@ -359,10 +359,7 @@ export const AccountsView: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500 mb-2" />
-          <p className="text-sm font-medium">Loading financial accounts...</p>
-        </div>
+        <MetricCardsGridSkeleton count={6} />
       ) : filteredAccounts.length === 0 ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <Wallet className="w-10 h-10 text-slate-300 mx-auto mb-3" />
@@ -567,14 +564,14 @@ export const AccountsView: React.FC = () => {
           <div className="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 shadow-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-purple-100 text-purple-700">
-                  <Sparkles className="w-5 h-5" />
+                <div className="p-2 rounded-xl bg-slate-100 text-slate-700">
+                  <Landmark className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
                     Synthetic Bank & UPI Sandbox Connector
                   </h3>
-                  <p className="text-xs text-purple-700 font-medium">
+                  <p className="text-xs text-slate-500 font-medium">
                     SYNTHETIC / DEMO ENVIRONMENT: Zero live banking credentials or real money.
                   </p>
                 </div>
