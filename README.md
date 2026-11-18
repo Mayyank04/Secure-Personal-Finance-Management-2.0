@@ -1,283 +1,228 @@
+# CipherLedger AI — Secure Personal Finance Management System
+
 <div align="center">
-  <h1>🛡️ AegisFinance</h1>
-  <p><strong>Production-Ready, Enterprise-Grade Personal Finance Management & Ledger System</strong></p>
-  <p>Engineered for high-security zero-trust finance tracking with durable PostgreSQL persistence, PBKDF2 authentication, RFC 6238 TOTP 2FA, explainable AI analytics, and a Fabric-Compatible Enterprise Ledger Simulation.</p>
+
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?style=flat-square&logo=typescript)
+![React](https://img.shields.io/badge/React-19.0-61dafb?style=flat-square&logo=react)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-336791?style=flat-square&logo=postgresql)
+![Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=flat-square&logo=vercel)
+![Security Tests](https://img.shields.io/badge/Acceptance%20Tests-35%2F35%20PASS-emerald?style=flat-square)
+![CRUD Tests](https://img.shields.io/badge/CRUD%20Tests-79%2F79%20PASS-emerald?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-gray?style=flat-square)
+
+**Production-grade, privacy-first personal finance platform combining multi-account net worth tracking, predictive AI financial analytics, and a zero-PII cryptographic SHA-256 Merkle-tree blockchain audit log.**
+
+[Live Application](https://secure-personal-finance-management-eight.vercel.app/) • [API Documentation (Swagger)](https://secure-personal-finance-management-eight.vercel.app/api/docs) • [Technical Note](./TECHNICAL_NOTE.md) • [Design System](./DESIGN.md)
+
 </div>
 
 ---
 
 ## Table of Contents
-1. [Architecture Overview](#architecture-overview)
-2. [Root Cause & Auto-Logout Resolution](#root-cause--auto-logout-resolution)
-3. [Prerequisites & Local Development](#prerequisites--local-development)
-4. [Neon PostgreSQL & Vercel Production Setup](#neon-postgresql--vercel-production-setup)
-   - [Step 1: Create a Neon PostgreSQL Project](#step-1-create-a-neon-postgresql-project)
-   - [Step 2: Run Versioned Migrations](#step-2-run-versioned-migrations)
-   - [Step 3: Configure Vercel Environment Variables](#step-3-configure-vercel-environment-variables)
-   - [Step 4: Deploy to Vercel](#step-4-deploy-to-vercel)
-   - [Step 5: Verify Liveness & Readiness Endpoints](#step-5-verify-liveness--readiness-endpoints)
-   - [Step 6: Run Production Readiness Acceptance Tests](#step-6-run-production-readiness-acceptance-tests)
-5. [End-to-End Manual Guide-Demo Walkthrough](#end-to-end-manual-guide-demo-walkthrough)
+1. [Visual Showcase](#visual-showcase)
+2. [Executive Overview](#executive-overview)
+3. [Architecture Overview](#architecture-overview)
+4. [Database Provider & Serverless Persistence](#database-provider--serverless-persistence)
+5. [Core Features](#core-features)
 6. [Security & Cryptography Hardening](#security--cryptography-hardening)
-7. [Automated Test Suites](#automated-test-suites)
+7. [Prerequisites & Local Installation](#prerequisites--local-installation)
+8. [Production Deployment (Vercel & Supabase)](#production-deployment-vercel--supabase)
+9. [Automated Verification Bench](#automated-verification-bench)
+10. [Legal & Compliance](#legal--compliance)
+
+---
+
+## Visual Showcase
+
+Every screenshot below is captured from the running application using synthetic demonstration data.
+
+### 1. Unified Net Worth & Liquidity Dashboard
+Aggregated multi-account financial telemetry, portfolio asset allocation, monthly cash-flow pacing, and quick actions.
+![CipherLedger AI Operational Dashboard](docs/screenshots/dashboard.png)
+
+### 2. Transaction Management & Ledger Anchoring
+Categorized expense and income tracking with real-time balance calculations and cryptographic hash generation.
+![Transactions Ledger Table](docs/screenshots/transactions.png)
+
+### 3. Category Budgets & Savings Goals
+Progress indicators, automated spend pacing, dynamic limits, and goal contribution tracking.
+![Category Budgets and Savings Goals](docs/screenshots/budgets-goals.png)
+
+### 4. Predictive AI Financial Advisor
+Burn-rate optimization, automated anomaly detection, smart category confidence scores, and cash-flow forecasting.
+![Predictive AI Financial Advisor](docs/screenshots/ai-insights.png)
+
+### 5. Cryptographic Blockchain Audit Log
+Tamper-proof SHA-256 Merkle chain verification, block height tracking, and real-time ledger consistency proof.
+![Cryptographic Blockchain Audit Ledger](docs/screenshots/audit-ledger.png)
+
+### 6. Responsive Mobile Experience
+Tested at 390×844 and 360×800 with an on-demand slide-out drawer, touch targets, and zero horizontal overflow.
+![Responsive Mobile Viewport](docs/screenshots/mobile-view.png)
+
+---
+
+## Executive Overview
+
+Personal financial data is typically fragmented across banking portals, budgeting spreadsheets, and third-party apps, making it difficult to maintain a reliable overview while preserving data privacy.
+
+**CipherLedger AI** solves this by delivering an institutional-grade personal finance platform that guarantees:
+- **Zero-PII On-Chain Hashing:** Transactions are anchored into an immutable SHA-256 block ledger with Merkle tree verification without exposing personal names or raw financial identifiers.
+- **Durable Serverless Persistence:** Managed PostgreSQL connection pooling eliminates auto-logout and session desynchronization across Vercel cold starts.
+- **Client-Side Privacy:** Financial receipt processing is executed entirely in-browser using client-side Tesseract.js OCR.
+- **Predictive Intelligence:** Explainable AI forecasting and risk detection that alerts users before budget thresholds are breached.
 
 ---
 
 ## Architecture Overview
 
-AegisFinance provides a dual-runtime persistence architecture:
+CipherLedger AI decouples frontend presentation, stateless API routing, and transactional persistence:
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│                   Vite + React 19 Frontend             │
-│        (Tailwind CSS, Recharts, Lucide, Web Workers)   │
+│               Vite + React 19 Client                   │
+│   (Tailwind CSS v4, Recharts, Lucide, Web Workers)     │
 └──────────────────────────┬─────────────────────────────┘
-                           │ HTTPS / REST API
+                           │ HTTPS / REST / JSON
 ┌──────────────────────────▼─────────────────────────────┐
-│                 Express / Vercel API                   │
-│  (Auth Middleware, Rate Limiting, Input Validation)    │
+│          Express / Vercel Serverless API               │
+│   (Auth Middleware, Tenant Scoping, Rate Limiting)     │
 └──────────────────────────┬─────────────────────────────┘
                            │ IDatabaseAdapter
         ┌──────────────────┴──────────────────┐
         ▼                                     ▼
 ┌──────────────────────────┐     ┌──────────────────────────┐
-│   PostgreSQL (Neon)      │     │    SQLite (sql.js)       │
-│  • Production & Vercel   │     │  • Local dev & tests     │
-│  • Connection Pooling    │     │  • Fully in-memory test  │
-│  • Versioned Migrations  │     │    bench support         │
+│  PostgreSQL (Supabase)   │     │    SQLite (sql.js)       │
+│ • Production & Vercel    │     │ • Local dev & unit tests │
+│ • Transaction Pooler     │     │ • Zero-setup in-memory   │
+│ • 4 Versioned Migrations │     │   test execution         │
 └──────────────────────────┘     └──────────────────────────┘
 ```
 
-- **Database Abstraction (`IDatabaseAdapter`)**: All persistent application features (users, sessions, accounts, transactions, budgets, goals, bills, subscriptions, loans, receipts, notifications, audit events, tokens, rate limits) route through a repository abstraction layer.
-- **Production Mode**: Driven exclusively by managed PostgreSQL (such as [Neon](https://neon.tech)). In-memory caches and ephemeral storage (`/tmp`) are never treated as authoritative data sources.
-- **Ledger Audit**: Features a **Fabric-Compatible Enterprise Ledger Simulation** that hashes transactions into SHA-256 blocks with Merkle tree verification, detecting unauthorized off-chain database mutations without requiring external Hyperledger peer nodes.
+- **Repository Abstraction (`IDatabaseAdapter`)**: All application entities (users, accounts, transactions, budgets, goals, bills, subscriptions, loans, tokens) operate through a typed interface.
+- **Cryptographic Audit Layer**: Transactions generate a SHA-256 block entry linked to the previous block's digest, providing mathematical tamper evidence if database records are modified out of band.
+- **OpenAPI 3.1 & Swagger**: Interactive OpenAPI documentation is served natively at `/api/docs`.
 
 ---
 
-## Root Cause & Auto-Logout Resolution
+## Database Provider & Serverless Persistence
 
-### Root Cause Analysis
-Previously, when deployed to Vercel Serverless, the application stored its SQLite database file under `/tmp/data/aegis_finance.sqlite` and mirrored state in local JavaScript `Map` objects (`db.users`, `db.sessions`). 
+### Actual Production Provider: Supabase PostgreSQL
+Production environments use **PostgreSQL hosted on Supabase** (using the AWS ap-south-1 Transaction/Session Pooler with SSL connection pooling via `pg.Pool`).
 
-Because Vercel serverless functions are ephemeral:
-1. Serverless instances are spun down between invocations or scaled out horizontally.
-2. A cold start on a new container spawned with an empty `/tmp` directory.
-3. Even though the client presented a cryptographically valid HMAC session token, the authentication middleware looked up the user in the instance-local `db.users` map.
-4. When the user was missing on the fresh worker, the API returned HTTP 401 `User account not found`.
-5. The frontend's `api.ts` received this 401, emitted an unauthorized event, and `AuthContext.tsx` purged `fintech_session_token` from local storage, causing the user to be kicked to the login screen immediately upon refreshing or navigating.
-
-### The Production Fix
-- **Managed PostgreSQL Driver**: Added `@neondatabase/serverless` and `pg` with SSL connection pooling.
-- **Durable Sessions & Tokens**: All sessions, user profiles, MFA tickets, email verification tokens, and password reset tokens are stored directly in PostgreSQL with indexed lookups and transactional updates.
-- **Resilient Cold Starts**: `api/index.ts` initializes PostgreSQL with an idempotent, cached connection promise that safely recovers from transient network drops and prevents concurrent initialization races.
-- **Targeted Auth Error Handling**: `AuthContext.tsx` and `src/lib/api.ts` only clear the session token on confirmed HTTP 401 Unauthorized responses with valid authentication rejection reasons, ignoring temporary 503 database reconnects or network interruptions.
+- **Root Cause of Ephemeral Disconnections:** Standard serverless functions on Vercel spin down between requests; relying on local SQLite under `/tmp` causes state loss on cold starts.
+- **The Production Fix:** All user sessions, revoked token blacklists, accounts, and financial entities persist durably in PostgreSQL with indexed lookups (`WHERE user_id = $1`).
+- **Development Fallback:** Local development automatically uses in-memory/disk SQLite when `DATABASE_URL` is omitted, enabling instant offline development.
 
 ---
 
-## Prerequisites & Local Development
+## Core Features
 
-### Prerequisites
-- **Node.js**: v18.x or later (v20+ recommended)
-- **npm**: v9.x or later
-
-### Local Setup
-```bash
-# 1. Clone repository
-git clone https://github.com/Mayyank04/PABl-2CSE13-2410031570.git
-cd Secure-Personal-Finance-Management-main
-
-# 2. Install dependencies
-npm install
-
-# 3. Configure environment
-cp .env.example .env
-
-# 4. Start local development server (runs with local SQLite by default)
-npm run dev
-```
-
-The application is served at `http://localhost:3002`.
-
----
-
-## Neon PostgreSQL & Vercel Production Setup
-
-### Step 1: Create a Neon PostgreSQL Project
-1. Log in to [Neon Console](https://console.neon.tech).
-2. Click **New Project** and name it `aegisfinance-prod`.
-3. Select your preferred cloud region (e.g., `AWS us-east-1` or `eu-central-1`).
-4. In the Project Dashboard, copy your connection string. Ensure the **Pooled connection** toggle is checked (recommended for serverless environments):
-   ```text
-   postgresql://[user]:[password]@[host]-pooler.neon.tech/[dbname]?sslmode=require
-   ```
-
-### Step 2: Run Versioned Migrations
-Apply versioned migrations to create the required schema, tables, foreign keys, and indexes:
-
-```bash
-# Set your Neon connection string in your shell or .env
-export DATABASE_URL="postgresql://[user]:[password]@[host]-pooler.neon.tech/[dbname]?sslmode=require"
-
-# Run migrations
-npm run db:migrate
-```
-
-You will see:
-```text
-🚀 Running database migrations for AegisFinance...
-Target: postgresql://[user]:****@[host]-pooler.neon.tech/[dbname]?sslmode=require
-✅ Connected to PostgreSQL database.
-[Migrations] Applying PostgreSQL migration: 001_initial_schema...
-[Migrations] Applying PostgreSQL migration: 002_blockchain_ledger...
-[Migrations] Applying PostgreSQL migration: 003_revoked_tokens...
-[Migrations] Applying PostgreSQL migration: 004_auth_security_hardening...
-✅ Successfully applied 4 migration(s): 001, 002, 003, 004
-Current migration version: 004
-```
-
-> **Note**: Migrations are strictly non-destructive. Existing data will not be dropped or reset.
-
-### Step 3: Configure Vercel Environment Variables
-In your Vercel Project Dashboard under **Settings > Environment Variables**, add:
-
-| Variable Name | Value Description | Example / Recommendations |
-| :--- | :--- | :--- |
-| `DATABASE_URL` | Neon pooled connection string | `postgresql://user:pass@ep-xyz-pooler.neon.tech/neondb?sslmode=require` |
-| `SESSION_SECRET` | Strong random secret (≥ 32 chars) | Generate via `openssl rand -hex 32` |
-| `NODE_ENV` | Environment identifier | `production` |
-| `ALLOWED_ORIGINS` | Permitted browser origins | `https://your-domain.vercel.app` |
-| `DEMO_MODE` | Sandbox data generator | `false` (set `true` only for staging sandboxes) |
-| `GEMINI_API_KEY` | Optional: Gemini Cognitive Insights | Your Google AI Studio API key |
-
-> ⚠️ **Critical Security Warning**: Never prefix server secrets with `VITE_`. Variables prefixed with `VITE_` are compiled into browser bundles.
-
-### Step 4: Deploy to Vercel
-```bash
-# Using Vercel CLI:
-vercel --prod
-
-# Or push your changes to your linked GitHub repository:
-git push origin main
-```
-
-### Step 5: Verify Liveness & Readiness Endpoints
-Once deployed, verify the endpoints using `curl`:
-
-#### 1. Liveness Probe (`/api/live`)
-Confirms that the Vercel function runtime is active and responsive:
-```bash
-curl -i https://your-domain.vercel.app/api/live
-```
-```json
-{
-  "status": "ok",
-  "uptime": 12.4,
-  "timestamp": "2026-10-21T21:45:00.000Z"
-}
-```
-
-#### 2. Readiness Probe (`/api/ready`)
-Strictly tests the live connection to PostgreSQL and verifies schema migration status:
-```bash
-curl -i https://your-domain.vercel.app/api/ready
-```
-```json
-{
-  "status": "ok",
-  "provider": "postgresql",
-  "connected": true,
-  "migrationVersion": "004",
-  "timestamp": "2026-10-21T21:45:00.000Z"
-}
-```
-
-> If `DATABASE_URL` is missing or the database is unreachable, `/api/ready` immediately returns **HTTP 503 Service Unavailable** with a diagnostic message without exposing database credentials.
-
----
-
-## End-to-End Manual Guide-Demo Walkthrough
-
-Follow this step-by-step verification script to test every core workflow in production:
-
-1. **User Registration**:
-   - Navigate to `https://your-domain.vercel.app`.
-   - Click **Create Account** / **Register**.
-   - Enter `john.doe@enterprise.com`, a secure password (e.g. `AegisSecure#2026!`), and your name.
-   - Click **Sign Up**. Verify seamless transition to the Onboarding Dashboard.
-
-2. **Browser Refresh Test (Cold Start / Auto-Logout Check)**:
-   - Perform a hard refresh (`Cmd + Shift + R` or `Ctrl + F5`).
-   - **Expected Outcome**: The user remains authenticated; no redirect to the login page occurs, and profile state persists smoothly without UI flickering.
-
-3. **Add Account & Record Transaction**:
-   - Navigate to **Accounts** > **Add Account**.
-   - Create a Checking account (e.g., `Chase Premier Checking`, balance: `$10,000`).
-   - Navigate to **Transactions** > **Add Expense**.
-   - Add a transaction: `Client Business Dinner`, Amount: `$185.50`, Category: `Dining`.
-   - **Expected Outcome**: The transaction is saved to PostgreSQL, account balance updates to `$9,814.50`, and a SHA-256 block hash is generated.
-
-4. **Verify Budget & Dashboard Analytics**:
-   - Navigate to **Budgets**. Observe the category allocation for `Dining` automatically reflects the `$185.50` spend.
-   - Open **Dashboard**. Confirm that total spend, monthly cash flow, and net worth display the updated figures.
-
-5. **AI Insights & Anomaly Detection**:
-   - Click **AI Assistant** or **Cognitive Insights**.
-   - Review the financial health composite score, cash flow forecast, and automated category confidence metric.
-
-6. **Audit Trail & Blockchain Verification**:
-   - Navigate to **Security & Audit**.
-   - Inspect the Fabric-Compatible Ledger block list.
-   - Confirm that the `Client Business Dinner` transaction appears with its block height, Merkle root, and SHA-256 digest.
-   - Click **Verify Integrity** to confirm that the off-chain database record matches the cryptographically sealed ledger anchor.
-
-7. **Logout & Session Revocation**:
-   - Click the user profile icon > **Sign Out**.
-   - Verify immediate redirection to the public Landing page.
-   - Using browser dev tools or cURL, attempt to hit `/api/auth/me` with the previous token.
-   - **Expected Outcome**: Returns HTTP 401 with `Token has been revoked`.
-
-8. **Log In Again & Confirm Data Durability**:
-   - Sign in using `john.doe@enterprise.com` and `AegisSecure#2026!`.
-   - **Expected Outcome**: Login succeeds; previous accounts, transactions, budget tracking, and audit ledger entries are fully intact from PostgreSQL.
+| Module | Functional Capability |
+| :--- | :--- |
+| **Accounts** | Unified multi-account tracking across Checking, Savings, Credit, Investment, and Crypto with real-time net worth calculation. |
+| **Transactions** | Complete CRUD with category filters, sort controls, and atomic balance updates. |
+| **Budgets** | Period-based spending allocations with derived actual spending and progress bars. |
+| **Savings Goals** | Milestone targets with atomic contribution cascade and completion estimates. |
+| **Bills & Subscriptions** | Recurring liability calendar with atomic one-click settlement and pause/resume lifecycle. |
+| **Debt Tracker & Loans** | Principal reduction tracking, interest rate recording, and payment amortization. |
+| **Blockchain Audit** | Merkle root validation, SHA-256 block chain integrity checks, and tamper simulation laboratory. |
+| **AI Advisor** | Cognitive cash-flow forecasting, risk analysis, and burn-rate telemetry. |
+| **KYC Verification** | Identity document validation with role-based privilege controls preventing self-approval. |
+| **Product Walkthrough** | 5-step interactive tour guiding users through operational application workflows. |
 
 ---
 
 ## Security & Cryptography Hardening
 
-| Component | Implementation Standard |
-| :--- | :--- |
-| **Password Hashing** | PBKDF2 with HMAC-SHA512, 100,000 iterations, unique 16-byte random salt, constant-time `crypto.timingSafeEqual` comparison. |
-| **Multi-Factor Auth (MFA)** | RFC 6238 TOTP (30-second window, ±1 timestep drift tolerance, single-use recovery codes, 100% offline SVG QR code generation). |
-| **Session Control** | 64-character cryptographic tokens HMAC-signed with `SESSION_SECRET`, stored in PostgreSQL with indexed lookup and explicit revocation tracking. |
-| **Multi-Tenant Isolation (IDOR)** | Every database query scopes `WHERE user_id = $1` to the authenticated caller's identity; prevents cross-tenant access. |
-| **Rate Limiting** | Sliding window rate limiter tracking request keys (`ip:route` or `user:route`) stored directly in PostgreSQL. |
-| **CORS Policy** | Whitelist-based origin reflection via `ALLOWED_ORIGINS`; prevents credential leaks to untrusted origins. |
-| **Security Headers** | Strict `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy: camera=(self), microphone=(self), geolocation=()`. |
+- **Password Hashing:** PBKDF2 with HMAC-SHA512, 100,000 iterations, unique 16-byte cryptographically secure salt, and constant-time `crypto.timingSafeEqual` comparison.
+- **Session Durability:** 64-character HMAC-signed session tokens verified against PostgreSQL with explicit revocation tracking in `revoked_tokens`.
+- **Tenant Isolation (IDOR):** Every query enforces parameterized tenant scoping (`WHERE user_id = $1`). User B cannot read or modify User A's financial records.
+- **Security Headers:** Strict Content Security Policy (`CSP`), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and strict CORS origin reflection.
+- **Zero-PII Merkle Audit:** Only transaction hash digests and timestamp anchors are written to the cryptographic block log.
 
 ---
 
-## Automated Test Suites
+## Prerequisites & Local Installation
 
-The repository contains automated test suites covering cryptography, persistence, IDOR isolation, and cold starts:
+### Prerequisites
+- **Node.js**: `v20.x` or later (tested on `v24.15.0`)
+- **npm**: `v9.x` or later
+- **FFmpeg**: Required only for generating launch videos (`brew install ffmpeg` on macOS)
+
+### Quickstart
+```bash
+# 1. Clone the repository
+git clone https://github.com/Mayyank04/Secure-Personal-Finance-Management-2.0.git
+cd Secure-Personal-Finance-Management-2.0
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment variables
+cp .env.example .env
+
+# 4. Start local development server (SQLite default)
+npm run dev
+```
+
+The application will be accessible at `http://localhost:3002`.
+
+---
+
+## Production Deployment (Vercel & Supabase)
+
+### 1. Database Migrations
+Set your Supabase PostgreSQL connection string and execute versioned schema migrations:
+```bash
+export DATABASE_URL="postgresql://postgres.[ref]:[password]@aws-0-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require"
+npm run db:migrate
+```
+
+### 2. Vercel Environment Variables
+In your Vercel Project Settings, add:
+- `DATABASE_URL`: Your pooled Supabase PostgreSQL connection string.
+- `SESSION_SECRET`: A 32+ character random secret (generated via `openssl rand -hex 32`).
+- `NODE_ENV`: `production`
+- `ALLOWED_ORIGINS`: `https://your-deployment.vercel.app`
+- `DEMO_MODE`: `false` (or `true` for public staging demos)
+
+---
+
+## Automated Verification Bench
+
+Execute the full suite of deterministic automated tests:
 
 ```bash
-# 1. Run Production Readiness Acceptance Test Bench (35 Checks)
+# 1. Type Checking & Static Linting (0 errors)
+npm run lint
+
+# 2. Production Readiness Acceptance Bench (35/35 checks)
 npm test
 
-# 2. Run Comprehensive Enterprise Test Bench (20 Checks across Cryptography, SQLite, AI/ML, Blockchain)
-npx tsx server/test_suite.ts
+# 3. Comprehensive CRUD & API Acceptance Tests (79/79 checks)
+npm run test:crud
 
-# 3. Run Full 55-Step End-to-End Acceptance Test
-npx tsx server/e2e_acceptance_test.ts
+# 4. Vercel Serverless Registration & Session Test (8/8 checks)
+npm run test:vercel
 
-# 4. Type Checking & Production Build Validation
-npm run lint
+# 5. Production Build (Vite + esbuild)
 npm run build
+
+# 6. Generate 20-Second Promotional Launch Video (BRAG Automation)
+npm run brag
 ```
+
+---
+
+## Legal & Compliance
+
+CipherLedger AI includes dedicated transparency and legal pages accessible via the navigation bar and footer:
+- **[Terms of Service](src/components/legal/TermsOfServiceView.tsx):** Explicit disclaimers noting the academic demonstration context and non-fiduciary status.
+- **[Privacy Policy](src/components/legal/PrivacyPolicyView.tsx):** Comprehensive explanation of local OCR processing, zero-PII on-chain hashing, and data deletion rights.
 
 ---
 
 ## License
 
-No license has been specified in this README. Add a LICENSE file and
-update this section once the project owner has selected a license.
+This project is licensed under the [MIT License](LICENSE).

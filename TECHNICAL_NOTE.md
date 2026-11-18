@@ -64,7 +64,7 @@ The reported technology stack includes:
 | **Build system** | Vite |
 | **Backend** | Node.js and TypeScript (Express / Serverless) |
 | **Database** | PostgreSQL |
-| **Database platform** | Supabase |
+| **Database platform** | Supabase (AWS ap-south-1 Transaction Pooler with SSL) |
 | **Deployment** | Vercel |
 | **Audit mechanism** | SHA-256-based Merkle chain |
 | **API documentation** | OpenAPI 3.1 and Swagger UI (`/api/docs`) |
