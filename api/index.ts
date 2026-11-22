@@ -14,19 +14,40 @@ async function ensureInitialized(): Promise<void> {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // 1. Fast-path liveness check (does not require persistent database connectivity)
+  const isLivenessProbe =
+    req.url === '/api/live' ||
+    req.url === '/live' ||
+    req.url?.startsWith('/api/live?') ||
+    req.headers['x-forwarded-uri'] === '/api/live' ||
+    (req.query && (req.query.__path === 'live' || req.query.__path === 'health/live'));
+
+  if (isLivenessProbe) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+      status: 'ok',
+      service: 'aegis-finance-api',
+      probe: 'liveness',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // 2. Ensure durable database is connected & migrated
   try {
     await ensureInitialized();
   } catch (err: any) {
     console.error('[Vercel Serverless] Durable Database Initialization Failed:', err?.message || err);
     res.setHeader('Content-Type', 'application/json');
     return res.status(503).json({
-      error: 'Service Unavailable',
+      error: 'Database Service Unavailable',
       message: 'Persistent database initialization failed. Please ensure DATABASE_URL is configured and reachable in Vercel settings.',
       code: 'DATABASE_INITIALIZATION_FAILED',
       timestamp: new Date().toISOString(),
     });
   }
 
+  // 3. Mark req._body = true if @vercel/node already parsed the request body
   if (req.body && typeof req.body === 'object') {
     (req as any)._body = true;
   } else if (typeof req.body === 'string' && req.body.trim().startsWith('{')) {

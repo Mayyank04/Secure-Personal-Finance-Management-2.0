@@ -563,19 +563,36 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
 
     const { email, password, name, currency = 'INR' } = req.body || {};
     if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
+      return res.status(400).json({
+        error: 'Name, email, and password are required.',
+        code: 'MISSING_REQUIRED_FIELDS',
+      });
     }
 
     if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string') {
-      return res.status(400).json({ error: 'Invalid input format.' });
+      return res.status(400).json({
+        error: 'Invalid input format.',
+        code: 'INVALID_INPUT_FORMAT',
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      return res.status(400).json({
+        error: 'Please enter a valid email address.',
+        code: 'INVALID_EMAIL',
+      });
     }
 
     const strength = validatePasswordStrength(password);
     if (!strength.isValid) {
-      return res.status(400).json({ error: strength.error });
+      return res.status(400).json({
+        error: strength.error,
+        code: 'WEAK_PASSWORD',
+      });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
     const adapter = getDatabaseAdapter();
 
     let existingInDb: User | null = null;
@@ -594,7 +611,10 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
 
     const existingInMemory = Array.from(db.users.values()).find(u => u.email.toLowerCase() === normalizedEmail);
     if (existingInDb || existingInMemory) {
-      return res.status(409).json({ error: 'An account with this email address already exists.' });
+      return res.status(409).json({
+        error: 'An account with this email address already exists.',
+        code: 'DUPLICATE_EMAIL',
+      });
     }
 
     const userId = 'usr-' + crypto.randomBytes(8).toString('hex');
@@ -632,15 +652,20 @@ app.post(['/api/auth/register', '/api/register', '/auth/register', '/register'],
     };
 
     try {
-      await adapter.createUser(newUser);
-      await adapter.createProfile(newProfile);
+      await adapter.withTransaction(async tx => {
+        await tx.createUser(newUser);
+        await tx.createProfile(newProfile);
+      });
     } catch (saveErr: any) {
       console.error('[Register API] Database persist error while creating user/profile:', {
         message: saveErr.message,
         code: saveErr.code,
       });
-      if (saveErr.code === '23505') {
-        return res.status(409).json({ error: 'An account with this email address already exists.' });
+      if (saveErr.code === '23505' || saveErr.message?.includes('UNIQUE')) {
+        return res.status(409).json({
+          error: 'An account with this email address already exists.',
+          code: 'DUPLICATE_EMAIL',
+        });
       }
       return res.status(503).json({
         error: 'Failed to write user account to persistent storage.',

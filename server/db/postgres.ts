@@ -54,9 +54,16 @@ export class PostgresAdapter implements IDatabaseAdapter {
       this.connectionString.includes('127.0.0.1') ||
       this.connectionString.includes('::1');
 
-    const cleanConnectionString = this.connectionString
-      .replace(/[?&]sslmode=[^&]+/g, '')
-      .replace(/\?$/, '');
+    let cleanConnectionString = this.connectionString;
+    try {
+      const parsed = new URL(this.connectionString);
+      parsed.searchParams.delete('sslmode');
+      cleanConnectionString = parsed.toString();
+    } catch {
+      cleanConnectionString = this.connectionString
+        .replace(/[?&]sslmode=[^&]+/g, '')
+        .replace(/\?$/, '');
+    }
 
     const useSsl =
       this.connectionString.includes('sslmode=require') ||
@@ -67,10 +74,32 @@ export class PostgresAdapter implements IDatabaseAdapter {
       ssl: useSsl ? { rejectUnauthorized: false } : undefined,
       max: process.env.VERCEL ? 5 : 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
+      connectionTimeoutMillis: 8000,
     });
 
-    const client = await this.pool.connect();
+    this.pool.on('error', (err) => {
+      console.error('[PostgresAdapter] Unexpected idle client error:', err.message);
+    });
+
+    // Connection retry loop with backoff for transient cold-start network / DNS handshakes
+    let client: pg.PoolClient | null = null;
+    let lastErr: any = null;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        client = await this.pool.connect();
+        break;
+      } catch (err: any) {
+        lastErr = err;
+        if (attempt === 1) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+    }
+
+    if (!client) {
+      throw lastErr || new Error('[PostgresAdapter] Failed to establish connection to PostgreSQL pool.');
+    }
+
     try {
       await client.query('SET search_path TO public;');
       await client.query('SELECT 1');

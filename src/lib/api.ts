@@ -44,6 +44,7 @@ class ApiClient {
         const text = await res.text();
         try {
           const errorData = JSON.parse(text);
+          if (errorData.code) errCode = errorData.code;
           if (errorData.error) {
             if (typeof errorData.error === 'string') {
               errMessage = errorData.error;
@@ -63,13 +64,28 @@ class ApiClient {
           } else if (res.status === 404) {
             errMessage = 'The requested endpoint was not found (404). Please check serverless routing.';
           } else if (res.status === 503) {
-            errMessage = 'Service unavailable (503). Database initialization is in progress or unreachable.';
+            errMessage = 'Database service is temporarily unavailable. Please try again in a few moments.';
           } else if (res.status === 500) {
             errMessage = 'An internal server error occurred (500). Please check server logs and try again.';
           }
         }
       } catch {
         // ignore read error
+      }
+
+      // Safe, actionable error message mapping
+      if (errCode === 'DATABASE_INITIALIZATION_FAILED' || errCode === 'DATABASE_QUERY_ERROR' || errCode === 'DATABASE_WRITE_ERROR' || res.status === 503) {
+        errMessage = 'Database service is temporarily unavailable. Please try again in a few moments.';
+      } else if (errCode === 'MISSING_SESSION_SECRET') {
+        errMessage = 'Authentication service is temporarily unavailable. Please contact administrator.';
+      } else if (errCode === 'DUPLICATE_EMAIL' || res.status === 409) {
+        errMessage = 'An account with this email address already exists. Please sign in or use a different email.';
+      } else if (errCode === 'INVALID_EMAIL') {
+        errMessage = 'Please enter a valid email address.';
+      } else if (errCode === 'WEAK_PASSWORD') {
+        errMessage = errMessage || 'Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters.';
+      } else if (errCode === 'MISSING_REQUIRED_FIELDS' || (res.status === 400 && !errMessage)) {
+        errMessage = 'Please complete all required fields with valid information.';
       }
 
       if (res.status === 401) {

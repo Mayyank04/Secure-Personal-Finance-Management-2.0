@@ -188,14 +188,68 @@ async function runTest() {
   await handler(req5, res5 as any);
   const result5 = await p5;
   console.log(`  Response Status: ${result5.status}`);
-  if (result5.status !== 400) {
-    console.error('  FAILED: Expected 400 Bad Request, got:', result5.status, result5.body);
+  if (result5.status !== 400 || result5.body.code !== 'WEAK_PASSWORD') {
+    console.error('  FAILED: Expected 400 Bad Request with WEAK_PASSWORD, got:', result5.status, result5.body);
     process.exit(1);
   }
   console.log('  ✓ [PASS] Weak password returned HTTP 400 with message:', result5.body.error);
 
-  // Test 6: Simulated Vercel POST /api/auth/login
-  console.log('\n--> Step 6: Simulated Vercel POST /api/auth/login...');
+  // Test 6: Missing required fields rejection
+  console.log('\n--> Step 6: Missing required fields rejection (400 Bad Request)...');
+  const { res: res6a, promise: p6a } = createMockResponse();
+  const req6a: any = {
+    method: 'POST',
+    url: '/api/index?__path=auth/register',
+    query: { __path: 'auth/register' },
+    headers: {
+      'content-type': 'application/json',
+      'x-matched-path': '/api/index',
+    },
+    body: {
+      email: `missing_${Date.now()}@test.com`,
+      // password missing
+      name: 'Missing Field User',
+    },
+  };
+
+  await handler(req6a, res6a as any);
+  const result6a = await p6a;
+  console.log(`  Response Status: ${result6a.status}`);
+  if (result6a.status !== 400 || result6a.body.code !== 'MISSING_REQUIRED_FIELDS') {
+    console.error('  FAILED: Expected 400 Bad Request with MISSING_REQUIRED_FIELDS, got:', result6a.status, result6a.body);
+    process.exit(1);
+  }
+  console.log('  ✓ [PASS] Missing required fields returned HTTP 400 with code:', result6a.body.code);
+
+  // Test 7: Invalid email rejection
+  console.log('\n--> Step 7: Invalid email address rejection (400 Bad Request)...');
+  const { res: res7a, promise: p7a } = createMockResponse();
+  const req7a: any = {
+    method: 'POST',
+    url: '/api/index?__path=auth/register',
+    query: { __path: 'auth/register' },
+    headers: {
+      'content-type': 'application/json',
+      'x-matched-path': '/api/index',
+    },
+    body: {
+      email: 'not-a-valid-email-address',
+      password: 'StrongPassword!2026',
+      name: 'Invalid Email User',
+    },
+  };
+
+  await handler(req7a, res7a as any);
+  const result7a = await p7a;
+  console.log(`  Response Status: ${result7a.status}`);
+  if (result7a.status !== 400 || result7a.body.code !== 'INVALID_EMAIL') {
+    console.error('  FAILED: Expected 400 Bad Request with INVALID_EMAIL, got:', result7a.status, result7a.body);
+    process.exit(1);
+  }
+  console.log('  ✓ [PASS] Invalid email returned HTTP 400 with code:', result7a.body.code);
+
+  // Test 8: Simulated Vercel POST /api/auth/login
+  console.log('\n--> Step 8: Simulated Vercel POST /api/auth/login...');
   const { res: res6, promise: p6 } = createMockResponse();
   const req6: any = {
     method: 'POST',
@@ -220,8 +274,8 @@ async function runTest() {
   }
   console.log('  ✓ [PASS] Login succeeded with HTTP 200 and fresh session token');
 
-  // Test 7: Simulated Vercel POST /api/auth/logout
-  console.log('\n--> Step 7: Simulated Vercel POST /api/auth/logout...');
+  // Test 9: Simulated Vercel POST /api/auth/logout
+  console.log('\n--> Step 9: Simulated Vercel POST /api/auth/logout...');
   const { res: res7, promise: p7 } = createMockResponse();
   const req7: any = {
     method: 'POST',
@@ -243,14 +297,59 @@ async function runTest() {
   }
   console.log('  ✓ [PASS] Logout succeeded with HTTP 200');
 
+  // Test 10: Subsequent Re-login after logout
+  console.log('\n--> Step 10: Subsequent Re-login with registered credentials...');
+  const { res: res10, promise: p10 } = createMockResponse();
+  const req10: any = {
+    method: 'POST',
+    url: '/api/index?__path=auth/login',
+    query: { __path: 'auth/login' },
+    headers: {
+      'content-type': 'application/json',
+      'x-matched-path': '/api/index',
+    },
+    body: {
+      email: testEmail,
+      password: testPassword,
+    },
+  };
+
+  await handler(req10, res10 as any);
+  const result10 = await p10;
+  console.log(`  Response Status: ${result10.status}`);
+  if (result10.status !== 200 || !result10.body.token) {
+    console.error('  FAILED: Subsequent re-login failed:', result10.body);
+    process.exit(1);
+  }
+  console.log('  ✓ [PASS] Subsequent re-login succeeded with fresh session token');
+
+  // Test 11: Fast-path Liveness Probe verification
+  console.log('\n--> Step 11: Verifying Serverless Liveness Probe (/api/live)...');
+  const { res: res11, promise: p11 } = createMockResponse();
+  const req11: any = {
+    method: 'GET',
+    url: '/api/live',
+    headers: {
+      'x-forwarded-uri': '/api/live',
+    },
+  };
+  await handler(req11, res11 as any);
+  const result11 = await p11;
+  console.log(`  Response Status: ${result11.status}`);
+  if (result11.status !== 200 || result11.body.probe !== 'liveness') {
+    console.error('  FAILED: Liveness probe failed:', result11.body);
+    process.exit(1);
+  }
+  console.log('  ✓ [PASS] Serverless liveness probe responded with HTTP 200 without blocking on DB');
+
   // Clean up test user
-  console.log('\n--> Step 8: Cleaning up test user...');
+  console.log('\n--> Step 12: Cleaning up test user...');
   await (adapter as any).execute('DELETE FROM users WHERE id = $1;', [dbUser.id]).catch(() => {});
   console.log('  ✓ [PASS] Test user cleaned up');
 
 
   console.log('\n================================================================');
-  console.log('  ALL VERCEL SERVERLESS AUTHENTICATION FLOW CHECKS PASSED (8/8)');
+  console.log('  ALL VERCEL SERVERLESS AUTHENTICATION FLOW CHECKS PASSED (12/12)');
   console.log('================================================================\n');
   process.exit(0);
 }
