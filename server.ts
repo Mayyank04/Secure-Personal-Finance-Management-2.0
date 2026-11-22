@@ -772,29 +772,58 @@ app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req,
     if (!rateCheck.allowed) {
       return res.status(429).json({
         error: `Too many sign in attempts. Please try again in ${rateCheck.retryAfterSeconds} seconds.`,
+        code: 'RATE_LIMIT_EXCEEDED',
       });
     }
 
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
+      return res.status(400).json({
+        error: 'Email and password are required.',
+        code: 'MISSING_CREDENTIALS',
+      });
+    }
+
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({
+        error: 'Invalid input format.',
+        code: 'INVALID_INPUT_FORMAT',
+      });
     }
 
     const normalizedEmail = email.toLowerCase().trim();
     const adapter = getDatabaseAdapter();
-    let user = await adapter.getUserByEmail(normalizedEmail);
+
+    let user: User | null = null;
+    try {
+      user = await adapter.getUserByEmail(normalizedEmail);
+    } catch (dbErr: any) {
+      console.error('[Login API] Database query error while retrieving user:', dbErr.message);
+      return res.status(503).json({
+        error: 'Database service is temporarily unavailable. Please try again in a few moments.',
+        code: 'DATABASE_QUERY_ERROR',
+      });
+    }
+
     if (!user) {
       user = Array.from(db.users.values()).find(u => u.email.toLowerCase() === normalizedEmail) || null;
     }
 
     if (!user || !verifyPassword(password, user.passwordHash, user.salt)) {
-      return res.status(401).json({ error: 'Invalid email or password credentials.' });
+      return res.status(401).json({
+        error: 'Invalid email or password.',
+        code: 'INVALID_CREDENTIALS',
+      });
     }
 
     if (user.mfaEnabled) {
       const mfaTicket = createSignedMfaTicket(user.id);
       const mfaExpiresAt = Date.now() + 5 * 60 * 1000;
-      await adapter.saveMfaChallengeTicket(mfaTicket, user.id, mfaExpiresAt);
+      try {
+        await adapter.saveMfaChallengeTicket(mfaTicket, user.id, mfaExpiresAt);
+      } catch (ticketErr: any) {
+        console.warn('[Login API] Non-fatal MFA ticket save warning:', ticketErr.message);
+      }
       mfaChallengeTickets.set(mfaTicket, {
         userId: user.id,
         expiresAt: mfaExpiresAt,
@@ -810,7 +839,11 @@ app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req,
 
     user.lastLoginAt = new Date().toISOString();
     user.lastLoginIp = ip;
-    await adapter.updateUser({ id: user.id, lastLoginAt: user.lastLoginAt, lastLoginIp: user.lastLoginIp }).catch(() => {});
+    try {
+      await adapter.updateUser({ id: user.id, lastLoginAt: user.lastLoginAt, lastLoginIp: user.lastLoginIp });
+    } catch (updateErr: any) {
+      console.warn('[Login API] Non-fatal user activity update warning:', updateErr.message);
+    }
     db.users.set(user.id, user);
 
     let sessionTokenData;
@@ -819,12 +852,8 @@ app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req,
     } catch (secErr: any) {
       console.error('[Login API] Session secret configuration error:', secErr.message);
       return res.status(503).json({
-        success: false,
-        error: {
-          code: 'MISSING_SESSION_SECRET',
-          message: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
-        },
-        message: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+        error: 'Server authentication configuration incomplete. Missing SESSION_SECRET in Vercel environment variables.',
+        code: 'MISSING_SESSION_SECRET',
       });
     }
 
@@ -842,22 +871,65 @@ app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req,
       expiresAt: sessionExpiresAt,
       isCurrent: true,
     };
-    await adapter.createSession(newSession);
-    db.sessions.set(sessionId, newSession);
-    await adapter.hydrateUserTenantData(user.id, db);
-    persistentSqlite.syncFromMemoryDb(db);
 
-    let profile = await adapter.getProfileForUser(user.id);
-    if (!profile) {
-      profile = db.profiles.get(user.id);
+    try {
+      await adapter.createSession(newSession);
+    } catch (sessErr: any) {
+      console.warn('[Login API] Non-fatal session persistence warning:', sessErr.message);
+    }
+    db.sessions.set(sessionId, newSession);
+
+    try {
+      await adapter.hydrateUserTenantData(user.id, db);
+    } catch (hydrateErr: any) {
+      console.warn('[Login API] Non-fatal tenant data hydration warning:', hydrateErr.message);
     }
 
-    db.recordAuditEvent({
-      userId: user.id,
-      eventType: 'USER_LOGIN_SUCCESS',
-      description: 'Authenticated successfully with password verification.',
-      ipAddress: ip,
-    });
+    try {
+      persistentSqlite.syncFromMemoryDb(db);
+    } catch {}
+
+    let profile: UserProfile | null = null;
+    try {
+      profile = await adapter.getProfileForUser(user.id);
+    } catch (profErr: any) {
+      console.warn('[Login API] Non-fatal profile query warning:', profErr.message);
+    }
+
+    if (!profile) {
+      profile = db.profiles.get(user.id) || null;
+    }
+
+    // Safely generate and persist fallback profile if missing
+    if (!profile) {
+      profile = {
+        userId: user.id,
+        preferredCurrency: 'INR',
+        monthlyIncomeRange: '₹50,000 - ₹100,000',
+        majorCategories: ['Food', 'Groceries', 'Transport', 'Rent', 'Subscriptions', 'Utilities'],
+        budgetThresholds: { normalWarning: 70, highWarning: 90, critical: 100 },
+        privacySettings: {
+          aiPersonalizationConsent: true,
+          dataSharingConsent: false,
+          analyticsPermission: true,
+          blockchainAuditConsent: true,
+        },
+        onboardingCompleted: false,
+      };
+      adapter.createProfile(profile).catch((profSaveErr) => {
+        console.warn('[Login API] Non-fatal fallback profile creation warning:', profSaveErr.message);
+      });
+      db.profiles.set(user.id, profile);
+    }
+
+    try {
+      db.recordAuditEvent({
+        userId: user.id,
+        eventType: 'USER_LOGIN_SUCCESS',
+        description: 'Authenticated successfully with password verification.',
+        ipAddress: ip,
+      });
+    } catch {}
 
     return res.json({
       message: 'Authentication successful',
@@ -873,8 +945,11 @@ app.post(['/api/auth/login', '/api/login', '/auth/login', '/login'], async (req,
       profile,
     });
   } catch (err: any) {
-    console.error('[Login API] Error:', err);
-    return res.status(500).json({ error: 'We could not sign you in. Please try again.' });
+    console.error('[Login API] Unhandled exception:', err);
+    return res.status(500).json({
+      error: 'We could not sign you in. Please try again.',
+      code: 'LOGIN_INTERNAL_ERROR',
+    });
   }
 });
 
@@ -1126,17 +1201,50 @@ app.post(['/api/auth/logout', '/api/logout', '/auth/logout', '/logout'], async (
 app.get(['/api/auth/me', '/api/me', '/auth/me', '/me'], authenticate, async (req, res) => {
   const userId = (req as any).userId;
   const adapter = getDatabaseAdapter();
-  let user = await adapter.getUserById(userId);
+  let user: User | null = null;
+  try {
+    user = await adapter.getUserById(userId);
+  } catch (userErr: any) {
+    console.warn('[Auth Me API] Non-fatal user query warning:', userErr.message);
+  }
   if (!user) {
     user = db.users.get(userId) || null;
   }
-  let profile = await adapter.getProfileForUser(userId);
+
+  if (!user) {
+    return res.status(404).json({ error: 'User account not found.', code: 'USER_NOT_FOUND' });
+  }
+
+  let profile: UserProfile | null = null;
+  try {
+    profile = await adapter.getProfileForUser(userId);
+  } catch (profErr: any) {
+    console.warn('[Auth Me API] Non-fatal profile query warning:', profErr.message);
+  }
   if (!profile) {
     profile = db.profiles.get(userId) || null;
   }
 
-  if (!user) {
-    return res.status(404).json({ error: 'User profile not found.' });
+  // Safe fallback profile generation if missing so authenticated sessions remain functional
+  if (!profile) {
+    profile = {
+      userId: user.id,
+      preferredCurrency: 'INR',
+      monthlyIncomeRange: '₹50,000 - ₹100,000',
+      majorCategories: ['Food', 'Groceries', 'Transport', 'Rent', 'Subscriptions', 'Utilities'],
+      budgetThresholds: { normalWarning: 70, highWarning: 90, critical: 100 },
+      privacySettings: {
+        aiPersonalizationConsent: true,
+        dataSharingConsent: false,
+        analyticsPermission: true,
+        blockchainAuditConsent: true,
+      },
+      onboardingCompleted: false,
+    };
+    adapter.createProfile(profile).catch((profSaveErr) => {
+      console.warn('[Auth Me API] Non-fatal fallback profile creation warning:', profSaveErr.message);
+    });
+    db.profiles.set(user.id, profile);
   }
 
   return res.json({

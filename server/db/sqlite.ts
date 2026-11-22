@@ -1637,6 +1637,7 @@ export class SqliteAdapter implements IDatabaseAdapter {
     const cleanRow = (params: any[]): any[] => params.map(v => (v === undefined ? null : v));
 
     try {
+      this.db.run('PRAGMA foreign_keys = OFF;');
       await this.withTransaction(async () => {
       for (const [, user] of dbInstance.users || []) {
         this.db.run(
@@ -1934,6 +1935,7 @@ export class SqliteAdapter implements IDatabaseAdapter {
         );
       }
       });
+      this.db.run('PRAGMA foreign_keys = ON;');
       this.saveToDisk();
     } catch (err) {
       console.error('[SqliteAdapter] syncFromMemoryDb failed:', err);

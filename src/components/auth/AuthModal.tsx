@@ -175,7 +175,10 @@ export const AuthModal: React.FC = () => {
                       required
                       disabled={isLoading}
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        if (error) setError(null);
+                      }}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed"
                       placeholder="e.g. Sarah Jenkins"
                     />
@@ -194,7 +197,10 @@ export const AuthModal: React.FC = () => {
                         required
                         disabled={isLoading}
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (error) setError(null);
+                        }}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed"
                         placeholder="name@example.com"
                       />
@@ -223,7 +229,10 @@ export const AuthModal: React.FC = () => {
                           required
                           disabled={isLoading}
                           value={password}
-                          onChange={(e) => setPassword(e.target.value)}
+                          onChange={(e) => {
+                            setPassword(e.target.value);
+                            if (error) setError(null);
+                          }}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 font-mono disabled:opacity-60 disabled:cursor-not-allowed"
                           placeholder="••••••••••••"
                         />

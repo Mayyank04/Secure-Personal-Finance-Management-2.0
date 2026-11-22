@@ -698,6 +698,7 @@ export class SQLiteDatabase {
     const cleanRow = (params: any[]): any[] => params.map(v => (v === undefined ? null : v));
 
     try {
+      this.db.run('PRAGMA foreign_keys = OFF;');
       this.db.run('BEGIN TRANSACTION;');
 
       for (const [, user] of dbInstance.users || []) {
@@ -997,6 +998,7 @@ export class SQLiteDatabase {
       }
 
       this.db.run('COMMIT;');
+      this.db.run('PRAGMA foreign_keys = ON;');
       this.saveToDisk();
 
       const adapter = getDatabaseAdapter();
@@ -1564,6 +1566,7 @@ export class SQLiteDatabase {
     try {
       this.db.run(`DELETE FROM users WHERE id = ?;`, [userId]);
       this.db.run('COMMIT;');
+      this.db.run('PRAGMA foreign_keys = ON;');
       this.saveToDisk();
 
       blockchainAdapter.recordAuditEvent(
