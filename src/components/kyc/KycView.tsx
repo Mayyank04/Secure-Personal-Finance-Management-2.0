@@ -217,13 +217,13 @@ export const KycView: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-2xs">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs">
               <UserCheck className="w-4 h-4" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 Identity & KYC Verification Portal
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                   DEMO WORKFLOW
                 </span>
               </h1>
@@ -247,11 +247,11 @@ export const KycView: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex items-start gap-3">
-        <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-indigo-900 space-y-1">
+      <div className="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-100 flex items-start gap-3">
+        <Info className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+        <div className="text-xs text-emerald-950 space-y-1">
           <div className="font-bold">Educational & Academic Transparency Notice</div>
-          <p className="text-indigo-700 leading-relaxed">
+          <p className="text-emerald-800 leading-relaxed">
             This module represents an authentic <strong>KYC / Identity Verification Simulation Workflow</strong>. In compliance with security principles, no real government databases (Aadhaar/UIDAI, Passport Seva, DigiLocker) are contacted; all verification records are anchored into the Hyperledger Fabric-compatible ledger simulation for full audit integrity.
           </p>
         </div>
@@ -319,7 +319,7 @@ export const KycView: React.FC = () => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Alex Morgan"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-2xs"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all shadow-2xs"
                   />
                 </div>
 
@@ -330,7 +330,7 @@ export const KycView: React.FC = () => {
                     required
                     value={dateOfBirth}
                     onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-2xs"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all shadow-2xs"
                   />
                 </div>
               </div>
@@ -341,7 +341,7 @@ export const KycView: React.FC = () => {
                   <select
                     value={documentType}
                     onChange={(e) => setDocumentType(e.target.value as KycDocumentType)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-2xs cursor-pointer"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="NATIONAL_ID">National ID / Aadhaar Card (Demo)</option>
                     <option value="PASSPORT">International Passport</option>
@@ -356,7 +356,7 @@ export const KycView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowMasked(!showMasked)}
-                      className="text-[10px] text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-semibold"
+                      className="text-[10px] text-emerald-700 hover:text-emerald-900 flex items-center gap-1 font-semibold"
                     >
                       {showMasked ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                       <span>{showMasked ? 'Show' : 'Mask'}</span>
@@ -368,7 +368,7 @@ export const KycView: React.FC = () => {
                     value={documentNumber}
                     onChange={(e) => setDocumentNumber(e.target.value)}
                     placeholder="e.g. 5421 9802 1204"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-2xs"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all shadow-2xs"
                   />
                 </div>
               </div>
@@ -380,7 +380,7 @@ export const KycView: React.FC = () => {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Street, City, Postal Code"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-2xs"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all shadow-2xs"
                 />
               </div>
 
@@ -397,7 +397,7 @@ export const KycView: React.FC = () => {
                     className="hidden"
                   />
                   <label htmlFor="kyc-upload-input" className="cursor-pointer block space-y-2">
-                    <div className="w-10 h-10 mx-auto rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-2xs">
+                    <div className="w-10 h-10 mx-auto rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs">
                       <Upload className="w-5 h-5" />
                     </div>
                     <div className="text-xs font-semibold text-slate-700">
@@ -410,14 +410,14 @@ export const KycView: React.FC = () => {
 
               <div className="pt-3 flex items-center justify-between border-t border-slate-100">
                 <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                  <Lock className="w-3.5 h-3.5 text-indigo-500" />
+                  <Lock className="w-3.5 h-3.5 text-emerald-600" />
                   <span>256-bit Encrypted Ledger Anchoring</span>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
                 >
                   <FileCheck className="w-4 h-4" />
                   <span>{isSubmitting ? 'Submitting...' : 'Submit for Verification'}</span>
@@ -459,7 +459,7 @@ export const KycView: React.FC = () => {
 
             <div className="pt-3 border-t border-slate-100 space-y-3">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
+                <Sparkles className="w-4 h-4 text-emerald-700" />
                 <span>Simulated Compliance Workbench</span>
               </div>
               <p className="text-[11px] text-slate-500">
@@ -472,7 +472,7 @@ export const KycView: React.FC = () => {
                   rows={2}
                   value={reviewerNotes}
                   onChange={(e) => setReviewerNotes(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600"
                 />
               </div>
 

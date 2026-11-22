@@ -325,7 +325,7 @@ export const BillsView: React.FC = () => {
           </p>
           <button
             onClick={handleOpenCreateModal}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800"
           >
             <Plus className="w-4 h-4" />
             Add Bill
@@ -338,7 +338,7 @@ export const BillsView: React.FC = () => {
             return (
               <div
                 key={bill.id}
-                className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between">
@@ -346,7 +346,7 @@ export const BillsView: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-slate-900 text-sm">{bill.name}</h4>
                         {bill.autoPaid && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                             AUTO-PAY
                           </span>
                         )}
@@ -376,7 +376,7 @@ export const BillsView: React.FC = () => {
                     <div>
                       <div className="text-[11px] text-slate-500 font-medium">Due Date</div>
                       <div className="text-xs font-bold font-mono text-slate-900 mt-0.5 flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                        <Calendar className="w-3.5 h-3.5 text-emerald-700" />
                         {bill.dueDate}
                       </div>
                     </div>
@@ -480,7 +480,7 @@ export const BillsView: React.FC = () => {
                   id="recordTx"
                   checked={recordTx}
                   onChange={e => setRecordTx(e.target.checked)}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-emerald-700 focus:ring-emerald-600"
                 />
                 <label htmlFor="recordTx" className="text-xs text-slate-700 font-medium cursor-pointer">
                   Generate transaction in ledger and anchor with SHA-256 state hash on blockchain
@@ -538,7 +538,7 @@ export const BillsView: React.FC = () => {
                   placeholder="e.g. Electricity Bill, Apartment Rent, Broadband"
                   value={formState.name}
                   onChange={e => setFormState({ ...formState, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
 
@@ -620,7 +620,7 @@ export const BillsView: React.FC = () => {
                   id="autoPaidCheck"
                   checked={formState.autoPaid}
                   onChange={e => setFormState({ ...formState, autoPaid: e.target.checked })}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-emerald-700 focus:ring-emerald-600"
                 />
                 <label htmlFor="autoPaidCheck" className="text-xs text-slate-700 font-medium cursor-pointer">
                   Auto-debit / Auto-pay enabled with biller
@@ -637,7 +637,7 @@ export const BillsView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs"
+                  className="px-4 py-2 rounded-xl font-semibold bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs"
                 >
                   {editingBill ? 'Save Changes' : 'Create Bill Reminder'}
                 </button>

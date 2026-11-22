@@ -53,7 +53,7 @@ export const PrivacyPolicyView: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
               <div className="font-semibold text-slate-900 flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-indigo-600" />
+                <Database className="w-3.5 h-3.5 text-emerald-700" />
                 Off-Chain Tenant Isolation
               </div>
               <p className="text-[11px] text-slate-500">
@@ -62,7 +62,7 @@ export const PrivacyPolicyView: React.FC = () => {
             </div>
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
               <div className="font-semibold text-slate-900 flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-indigo-600" />
+                <Key className="w-3.5 h-3.5 text-emerald-700" />
                 Cryptographic Hashing
               </div>
               <p className="text-[11px] text-slate-500">

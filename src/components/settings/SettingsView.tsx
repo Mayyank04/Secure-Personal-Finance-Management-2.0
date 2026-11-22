@@ -87,7 +87,7 @@ export const SettingsView: React.FC = () => {
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <div className="p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-100">
                   <User className="w-5 h-5" />
                 </div>
                 <div>
@@ -132,7 +132,7 @@ export const SettingsView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('kyc')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold transition-colors cursor-pointer"
               >
                 <span>Open Identity & KYC Portal</span>
               </button>
@@ -170,7 +170,7 @@ export const SettingsView: React.FC = () => {
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as any)}
-                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-emerald-600/20"
                 >
                   <option value="INR">₹ Indian Rupee (INR)</option>
                   <option value="USD">$ US Dollar (USD)</option>
@@ -186,7 +186,7 @@ export const SettingsView: React.FC = () => {
                 <select
                   value={sessionTimeout}
                   onChange={(e) => setSessionTimeout(Number(e.target.value))}
-                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-emerald-600/20"
                 >
                   <option value={5}>5 Minutes of Inactivity</option>
                   <option value={15}>15 Minutes of Inactivity</option>
@@ -224,7 +224,7 @@ export const SettingsView: React.FC = () => {
                   type="checkbox"
                   checked={allowAiInference}
                   onChange={(e) => setAllowAiInference(e.target.checked)}
-                  className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                  className="w-4 h-4 text-emerald-700 rounded border-slate-300 focus:ring-emerald-600"
                 />
               </label>
 
@@ -241,7 +241,7 @@ export const SettingsView: React.FC = () => {
                   type="checkbox"
                   checked={allowAnomalyAlerts}
                   onChange={(e) => setAllowAnomalyAlerts(e.target.checked)}
-                  className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                  className="w-4 h-4 text-emerald-700 rounded border-slate-300 focus:ring-emerald-600"
                 />
               </label>
             </div>
@@ -251,7 +251,7 @@ export const SettingsView: React.FC = () => {
         <div className="space-y-6">
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5">
-              <Shield className="w-5 h-5 text-indigo-600" />
+              <Shield className="w-5 h-5 text-emerald-700" />
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Multi-Factor Security (MFA)
               </h3>
@@ -273,7 +273,7 @@ export const SettingsView: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   isMfaEnabled
                     ? 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    : 'bg-emerald-700 text-white hover:bg-emerald-800'
                 }`}
               >
                 {isMfaEnabled ? 'Disable' : 'Enable MFA'}
@@ -283,7 +283,7 @@ export const SettingsView: React.FC = () => {
 
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5">
-              <Layers className="w-5 h-5 text-indigo-600" />
+              <Layers className="w-5 h-5 text-emerald-700" />
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Fabric Ledger Node
               </h3>
@@ -318,7 +318,7 @@ export const SettingsView: React.FC = () => {
               onClick={handleExportFullBackup}
               className="w-full p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center justify-center gap-2 shadow-xs transition-colors"
             >
-              <Download className="w-4 h-4 text-indigo-600" />
+              <Download className="w-4 h-4 text-emerald-700" />
               <span>Export Full Encrypted JSON Backup</span>
             </button>
 
@@ -333,7 +333,7 @@ export const SettingsView: React.FC = () => {
 
           <button
             onClick={handleSavePreferences}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Save Security & App Preferences</span>

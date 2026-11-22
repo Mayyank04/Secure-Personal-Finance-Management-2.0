@@ -171,7 +171,7 @@ export const AiAssistantView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900">AI Financial Assistant</h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
               Grounded XAI Engine
             </span>
           </div>
@@ -202,7 +202,7 @@ export const AiAssistantView: React.FC = () => {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[650px] overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+              <div className="w-7 h-7 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
                 <BrainCircuit className="w-4 h-4" />
               </div>
               <div>
@@ -224,7 +224,7 @@ export const AiAssistantView: React.FC = () => {
                 className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'assistant' && (
-                  <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5">
                     <Bot className="w-4.5 h-4.5" />
                   </div>
                 )}
@@ -232,7 +232,7 @@ export const AiAssistantView: React.FC = () => {
                 <div
                   className={`max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed ${
                     msg.sender === 'user'
-                      ? 'bg-indigo-600 text-white rounded-tr-none'
+                      ? 'bg-emerald-700 text-white rounded-tr-none'
                       : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-tl-none'
                   }`}
                 >
@@ -241,7 +241,7 @@ export const AiAssistantView: React.FC = () => {
                   {msg.citations && msg.citations.length > 0 && (
                     <div className="mt-3 pt-2.5 border-t border-slate-200/80 space-y-1.5">
                       <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                        <FileCheck2 className="w-3 h-3 text-indigo-500" />
+                        <FileCheck2 className="w-3 h-3 text-emerald-600" />
                         <span>Verified Citations & Ledger Grounding</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
@@ -259,7 +259,7 @@ export const AiAssistantView: React.FC = () => {
 
                   <div
                     className={`mt-2 text-[10px] ${
-                      msg.sender === 'user' ? 'text-indigo-200 text-right' : 'text-slate-400'
+                      msg.sender === 'user' ? 'text-emerald-200 text-right' : 'text-slate-400'
                     }`}
                   >
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -276,11 +276,11 @@ export const AiAssistantView: React.FC = () => {
 
             {isSending && (
               <div className="flex gap-3 justify-start items-center text-xs text-slate-500 py-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
                   <Bot className="w-4.5 h-4.5 animate-bounce" />
                 </div>
                 <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-700" />
                   <span>Auditing private records & generating grounded response...</span>
                 </div>
               </div>
@@ -303,12 +303,12 @@ export const AiAssistantView: React.FC = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask about spending breakdown, unusual expenses, budget limits, or savings forecast..."
                 disabled={isSending}
-                className="flex-1 px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={isSending || !inputValue.trim()}
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
+                className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Send</span>
@@ -320,7 +320,7 @@ export const AiAssistantView: React.FC = () => {
         <div className="space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-600" />
+              <Sparkles className="w-4 h-4 text-emerald-700" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
                 Suggested Financial Prompts
               </h3>
@@ -337,10 +337,10 @@ export const AiAssistantView: React.FC = () => {
                       <button
                         key={pIdx}
                         onClick={() => handleSend(p)}
-                        className="w-full text-left p-2 rounded-xl text-[11px] text-slate-700 bg-slate-50 hover:bg-indigo-50/50 hover:text-indigo-700 border border-slate-200/60 hover:border-indigo-200 transition-all flex items-center justify-between group"
+                        className="w-full text-left p-2 rounded-xl text-[11px] text-slate-700 bg-slate-50 hover:bg-emerald-50/50 hover:text-emerald-800 border border-slate-200/60 hover:border-emerald-200 transition-all flex items-center justify-between group"
                       >
                         <span className="line-clamp-2">{p}</span>
-                        <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-600 shrink-0 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-emerald-700 shrink-0 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                       </button>
                     ))}
                   </div>
@@ -351,7 +351,7 @@ export const AiAssistantView: React.FC = () => {
 
           <div className="bg-slate-50/80 rounded-2xl border border-slate-200 p-4 space-y-2.5 text-xs text-slate-600">
             <div className="flex items-center gap-2 text-slate-900 font-semibold">
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              <ShieldCheck className="w-4 h-4 text-emerald-700" />
               <span>Grounded Financial Intelligence</span>
             </div>
             <p className="text-[11px] leading-relaxed text-slate-500">

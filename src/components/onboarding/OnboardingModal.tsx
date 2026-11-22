@@ -103,7 +103,7 @@ export const OnboardingModal: React.FC = () => {
             <div
               key={s}
               className={`flex-1 transition-all duration-300 ${
-                s <= step ? 'bg-indigo-600' : 'bg-slate-200'
+                s <= step ? 'bg-emerald-700' : 'bg-slate-200'
               }`}
             />
           ))}
@@ -111,7 +111,7 @@ export const OnboardingModal: React.FC = () => {
 
         <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -125,21 +125,21 @@ export const OnboardingModal: React.FC = () => {
         <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6">
           {step === 1 && (
             <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100">
-                <span className="text-[10px] font-mono font-semibold uppercase text-indigo-700">
+              <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100">
+                <span className="text-[10px] font-mono font-semibold uppercase text-emerald-800">
                   Zero Trust Architecture
                 </span>
                 <h4 className="text-base font-bold text-slate-900 mt-1">
-                  How AegisFinance Protects Your Money & Privacy
+                  How CipherLedger AI Protects Your Money & Privacy
                 </h4>
                 <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                  Unlike traditional finance apps that sell transaction telemetry or expose raw bank feeds, AegisFinance uses a strict tripartite architecture:
+                  Unlike traditional finance apps that sell transaction telemetry or expose raw bank feeds, CipherLedger AI uses a strict tripartite architecture:
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                  <Database className="w-4 h-4 text-indigo-600" />
+                  <Database className="w-4 h-4 text-emerald-700" />
                   <h5 className="text-xs font-semibold text-slate-900">1. Private Encrypted DB</h5>
                   <p className="text-[11px] text-slate-600">
                     Amounts, merchants, and descriptions are stored in tenant-isolated, AES-256 hardware-encrypted vaults.
@@ -147,7 +147,7 @@ export const OnboardingModal: React.FC = () => {
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                  <BrainCircuit className="w-4 h-4 text-indigo-600" />
+                  <BrainCircuit className="w-4 h-4 text-emerald-700" />
                   <h5 className="text-xs font-semibold text-slate-900">2. Explainable AI (XAI)</h5>
                   <p className="text-[11px] text-slate-600">
                     Local machine learning models categorize spending and detect statistical outliers with clear reasoning.
@@ -155,7 +155,7 @@ export const OnboardingModal: React.FC = () => {
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                  <Layers className="w-4 h-4 text-indigo-600" />
+                  <Layers className="w-4 h-4 text-emerald-700" />
                   <h5 className="text-xs font-semibold text-slate-900">3. Hyperledger Audit</h5>
                   <p className="text-[11px] text-slate-600">
                     Only immutable SHA-256 hashes are anchored to the blockchain for tamper-evident proof. Zero PII on-chain.
@@ -186,7 +186,7 @@ export const OnboardingModal: React.FC = () => {
                     onClick={() => setSelectedCurrency(curr.code as any)}
                     className={`p-4 rounded-2xl border text-center transition-all ${
                       selectedCurrency === curr.code
-                        ? 'bg-indigo-50 border-indigo-600 text-indigo-600 shadow-xs'
+                        ? 'bg-emerald-50 border-indigo-600 text-emerald-700 shadow-xs'
                         : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
@@ -221,12 +221,12 @@ export const OnboardingModal: React.FC = () => {
                     onClick={() => setIncomeRange(range)}
                     className={`p-3.5 rounded-xl border text-left flex items-center justify-between transition-all ${
                       incomeRange === range
-                        ? 'bg-indigo-50 border-indigo-600 text-indigo-600 font-semibold shadow-xs'
+                        ? 'bg-emerald-50 border-indigo-600 text-emerald-700 font-semibold shadow-xs'
                         : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
                     <span className="text-xs font-medium">{range}</span>
-                    {incomeRange === range && <Check className="w-4 h-4 text-indigo-600" />}
+                    {incomeRange === range && <Check className="w-4 h-4 text-emerald-700" />}
                   </button>
                 ))}
               </div>
@@ -251,11 +251,11 @@ export const OnboardingModal: React.FC = () => {
                       onClick={() => toggleCategory(cat)}
                       className={`px-3.5 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5 ${
                         isSelected
-                          ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-2xs font-semibold'
+                          ? 'bg-emerald-50 border-indigo-600 text-emerald-800 shadow-2xs font-semibold'
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700" />}
                       <span>{cat}</span>
                     </button>
                   );
@@ -285,7 +285,7 @@ export const OnboardingModal: React.FC = () => {
                     max="80"
                     value={normalWarning}
                     onChange={(e) => setNormalWarning(Number(e.target.value))}
-                    className="w-full accent-indigo-600"
+                    className="w-full accent-emerald-700"
                   />
                 </div>
 
@@ -328,7 +328,7 @@ export const OnboardingModal: React.FC = () => {
                     type="checkbox"
                     checked={aiConsent}
                     onChange={(e) => setAiConsent(e.target.checked)}
-                    className="mt-1 w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+                    className="mt-1 w-4 h-4 accent-emerald-700 rounded cursor-pointer"
                   />
                 </div>
 
@@ -343,7 +343,7 @@ export const OnboardingModal: React.FC = () => {
                     type="checkbox"
                     checked={blockchainConsent}
                     onChange={(e) => setBlockchainConsent(e.target.checked)}
-                    className="mt-1 w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+                    className="mt-1 w-4 h-4 accent-emerald-700 rounded cursor-pointer"
                   />
                 </div>
 
@@ -358,7 +358,7 @@ export const OnboardingModal: React.FC = () => {
                     type="checkbox"
                     disabled
                     checked={dataSharingConsent}
-                    className="mt-1 w-4 h-4 accent-indigo-600 rounded cursor-not-allowed"
+                    className="mt-1 w-4 h-4 accent-emerald-700 rounded cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -367,7 +367,7 @@ export const OnboardingModal: React.FC = () => {
 
           {step === 7 && (
             <div className="space-y-4 text-center py-4 animate-in fade-in duration-200">
-              <div className="w-16 h-16 rounded-3xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 rounded-3xl bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
                 <Sparkles className="w-8 h-8" />
               </div>
 
@@ -379,16 +379,16 @@ export const OnboardingModal: React.FC = () => {
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left text-xs space-y-2 max-w-md mx-auto">
-                <div className="flex items-center gap-2 text-indigo-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                <div className="flex items-center gap-2 text-emerald-800 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                   <span>3-Month Verified Synthetic Baseline Loaded</span>
                 </div>
-                <div className="flex items-center gap-2 text-indigo-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                <div className="flex items-center gap-2 text-emerald-800 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                   <span>2 Anomaly Scenarios Ready for Review</span>
                 </div>
-                <div className="flex items-center gap-2 text-indigo-700 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                <div className="flex items-center gap-2 text-emerald-800 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                   <span>39 Immutable Blockchain Blocks Anchored</span>
                 </div>
               </div>
@@ -412,7 +412,7 @@ export const OnboardingModal: React.FC = () => {
           {step < 7 ? (
             <button
               onClick={() => setStep(step + 1)}
-              className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-all flex items-center gap-2 shadow-xs"
+              className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-all flex items-center gap-2 shadow-xs"
             >
               <span>Continue</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -421,9 +421,9 @@ export const OnboardingModal: React.FC = () => {
             <button
               onClick={handleFinish}
               disabled={isSaving}
-              className="px-6 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-all flex items-center gap-2 shadow-xs disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-all flex items-center gap-2 shadow-xs disabled:opacity-50"
             >
-              <span>{isSaving ? 'Configuring Vault...' : 'Enter AegisFinance'}</span>
+              <span>{isSaving ? 'Configuring Vault...' : 'Enter CipherLedger AI'}</span>
               <Zap className="w-3.5 h-3.5" />
             </button>
           )}

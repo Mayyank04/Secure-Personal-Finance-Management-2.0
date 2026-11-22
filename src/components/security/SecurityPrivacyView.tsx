@@ -500,7 +500,7 @@ export const SecurityPrivacyView: React.FC = () => {
 
             <div className="flex items-center gap-4 shrink-0">
               <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-200 min-w-[120px]">
-                <div className="text-2xl font-bold font-mono text-indigo-600">{securityScore}%</div>
+                <div className="text-2xl font-bold font-mono text-emerald-700">{securityScore}%</div>
                 <div className="text-[10px] text-slate-400 font-mono mt-0.5">COMPLIANCE</div>
               </div>
             </div>
@@ -543,7 +543,7 @@ export const SecurityPrivacyView: React.FC = () => {
                   <button
                     onClick={handleStartMfaSetup}
                     disabled={mfaSubmitting}
-                    className="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition-colors"
+                    className="w-full py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
                   >
                     {mfaSubmitting ? 'Generating Secret...' : 'Enable 2FA Protection'}
                   </button>
@@ -612,7 +612,7 @@ export const SecurityPrivacyView: React.FC = () => {
                     onClick={() => handleUpdateSessionTimeout(mins)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-colors ${
                       sessionTimeout === mins
-                        ? 'bg-indigo-600 text-white shadow-xs'
+                        ? 'bg-emerald-700 text-white shadow-xs'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     }`}
                   >
@@ -757,7 +757,7 @@ export const SecurityPrivacyView: React.FC = () => {
                   type="checkbox"
                   checked={(privacySettings as any)[item.key] || false}
                   onChange={(e) => handlePrivacyToggle(item.key, e.target.checked)}
-                  className="w-5 h-5 accent-indigo-600 rounded cursor-pointer shrink-0"
+                  className="w-5 h-5 accent-emerald-700 rounded cursor-pointer shrink-0"
                 />
               </div>
             ))}
@@ -795,7 +795,7 @@ export const SecurityPrivacyView: React.FC = () => {
                 }}
                 className="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors space-y-2"
               >
-                <Download className="w-5 h-5 text-indigo-600" />
+                <Download className="w-5 h-5 text-emerald-700" />
                 <div>
                   <div className="text-xs font-bold text-slate-900">Export JSON Dossier</div>
                   <div className="text-[10px] text-slate-500 mt-0.5">Full cryptographic machine-readable JSON</div>
@@ -871,7 +871,7 @@ export const SecurityPrivacyView: React.FC = () => {
                 }}
                 placeholder="Paste backup container JSON here..."
                 rows={5}
-                className="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+                className="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
               />
 
               <div className="flex items-center gap-2">
@@ -944,7 +944,7 @@ export const SecurityPrivacyView: React.FC = () => {
             <button
               onClick={handleRunAllTests}
               disabled={isRunningAllTests}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50 shrink-0"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50 shrink-0"
             >
               {isRunningAllTests ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
               <span>{isRunningAllTests ? 'Running Suite...' : 'Run All 8 Security Tests'}</span>
@@ -959,7 +959,7 @@ export const SecurityPrivacyView: React.FC = () => {
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                    <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                       {test.category}
                     </span>
                     <h4 className="text-xs font-bold text-slate-900">{test.title}</h4>
@@ -980,7 +980,7 @@ export const SecurityPrivacyView: React.FC = () => {
                         : test.status === 'FAILED'
                         ? 'bg-rose-100 text-rose-800 border border-rose-300'
                         : test.status === 'RUNNING'
-                        ? 'bg-indigo-100 text-indigo-800 border border-indigo-300 animate-pulse'
+                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 animate-pulse'
                         : 'bg-slate-200 text-slate-600'
                     }`}
                   >
@@ -1039,7 +1039,7 @@ export const SecurityPrivacyView: React.FC = () => {
                 layer: 'Blockchain Layer',
                 impl: 'Hyperledger Fabric Adapter (SHA-256 Merkle Linkage)',
                 status: 'SIMULATED ADAPTER',
-                badgeColor: 'indigo',
+                badgeColor: 'emerald',
                 details: 'Emulates permissioned channel consensus, block chaining, and cryptographic non-repudiation.',
               },
               {
@@ -1064,8 +1064,8 @@ export const SecurityPrivacyView: React.FC = () => {
                     className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold ${
                       item.badgeColor === 'emerald'
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : item.badgeColor === 'indigo'
-                        ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                        : item.badgeColor === 'emerald'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                         : 'bg-purple-50 text-purple-700 border border-purple-200'
                     }`}
                   >
@@ -1143,7 +1143,7 @@ export const SecurityPrivacyView: React.FC = () => {
           <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
@@ -1190,7 +1190,7 @@ export const SecurityPrivacyView: React.FC = () => {
                     setMfaSecretCopied(true);
                     setTimeout(() => setMfaSecretCopied(false), 3000);
                   }}
-                  className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-200 text-indigo-600 hover:bg-indigo-50 transition-colors shrink-0"
+                  className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-200 text-emerald-700 hover:bg-emerald-50 transition-colors shrink-0"
                 >
                   {mfaSecretCopied ? 'Copied!' : 'Copy Key'}
                 </button>
@@ -1210,7 +1210,7 @@ export const SecurityPrivacyView: React.FC = () => {
                     setMfaVerificationCode(e.target.value.replace(/\D/g, ''));
                   }}
                   placeholder="000000"
-                  className="w-full p-3 rounded-xl border border-slate-300 font-mono text-center text-xl tracking-[0.4em] font-bold text-indigo-700 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 transition-all"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-mono text-center text-xl tracking-[0.4em] font-bold text-emerald-800 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 transition-all"
                 />
               </div>
 
@@ -1225,7 +1225,7 @@ export const SecurityPrivacyView: React.FC = () => {
                 <button
                   type="submit"
                   disabled={mfaSubmitting || mfaVerificationCode.length !== 6}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition-all flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition-all flex items-center gap-1.5"
                 >
                   {mfaSubmitting ? 'Verifying...' : 'Activate MFA'}
                 </button>

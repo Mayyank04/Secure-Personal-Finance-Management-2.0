@@ -367,7 +367,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
               <Camera className="w-5 h-5" />
             </div>
             <div>
@@ -391,9 +391,9 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
           </button>
         </div>
 
-        <div className="px-6 py-2 bg-indigo-50/50 border-b border-indigo-100/60 flex items-center justify-between text-[11px] text-indigo-900">
+        <div className="px-6 py-2 bg-emerald-50/40 border-b border-emerald-100/60 flex items-center justify-between text-[11px] text-emerald-950">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
             <span>
               <strong>Privacy First:</strong> Receipts are processed directly in your browser via Tesseract WebAssembly. Images never leave your device.
             </span>
@@ -412,7 +412,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
             <div className="space-y-6">
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-8 text-center bg-slate-50/50 hover:bg-indigo-50/30 cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
+                className="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-8 text-center bg-slate-50/50 hover:bg-emerald-50/30 cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
               >
                 <input
                   ref={fileInputRef}
@@ -430,7 +430,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   className="hidden"
                 />
 
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 group-hover:scale-110 transition-transform">
                   <UploadCloud className="w-6 h-6" />
                 </div>
                 <div>
@@ -443,7 +443,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm hover:border-indigo-300">
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm hover:border-emerald-300">
                     <UploadCloud className="w-3.5 h-3.5" />
                     Browse Photo
                   </span>
@@ -473,7 +473,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                     <button
                       key={idx}
                       onClick={() => handleSampleReceipt(sample)}
-                      className="p-3.5 text-left rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/20 transition-all bg-white shadow-sm flex flex-col justify-between group"
+                      className="p-3.5 text-left rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-emerald-50/20 transition-all bg-white shadow-sm flex flex-col justify-between group"
                     >
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
@@ -485,14 +485,14 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                             {sample.amount.toLocaleString()}
                           </span>
                         </div>
-                        <p className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                        <p className="text-xs font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
                           {sample.title}
                         </p>
                         <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
                           {sample.items.map((i) => i.name).join(', ')}
                         </p>
                       </div>
-                      <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-indigo-600 font-medium">
+                      <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-emerald-700 font-medium">
                         <span>Parse with Local OCR</span>
                         <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </div>
@@ -508,7 +508,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   className="flex items-center justify-between w-full text-xs font-medium text-slate-600 hover:text-slate-900"
                 >
                   <span className="flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                    <FileText className="w-3.5 h-3.5 text-emerald-700" />
                     Paste Raw Receipt Text / Email Invoice
                   </span>
                   {showManualTextInput ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -521,14 +521,14 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                       value={manualText}
                       onChange={(e) => setManualText(e.target.value)}
                       placeholder="Paste printed text or email confirmation lines here (e.g. Starbucks, Date: 2026-08-15, Total: $14.50)..."
-                      className="w-full p-3 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      className="w-full p-3 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                     />
                     <div className="flex justify-end">
                       <button
                         type="button"
                         onClick={handleManualTextSubmit}
                         disabled={!manualText.trim()}
-                        className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-sm transition-all"
+                        className="px-4 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 rounded-xl shadow-sm transition-all"
                       >
                         Extract Fields Locally
                       </button>
@@ -542,7 +542,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
           {step === 'scanning' && (
             <div className="py-12 flex flex-col items-center justify-center text-center space-y-5">
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 animate-pulse">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 animate-pulse">
                   <Sparkles className="w-8 h-8 animate-spin" />
                 </div>
               </div>
@@ -556,7 +556,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
 
                 <div className="mt-4 w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-indigo-600 h-2 rounded-full transition-all duration-300 ease-out"
+                    className="bg-emerald-700 h-2 rounded-full transition-all duration-300 ease-out"
                     style={{ width: `${Math.max(10, ocrProgress.progress)}%` }}
                   />
                 </div>
@@ -608,7 +608,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                     value={merchant}
                     onChange={(e) => setMerchant(e.target.value)}
                     placeholder="e.g. Starbucks, Cafe Coffee Day"
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                   />
                 </div>
 
@@ -621,7 +621,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                   />
                 </div>
 
@@ -636,7 +636,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                     required
                     value={amount || ''}
                     onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 text-sm font-semibold text-slate-900 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 text-sm font-semibold text-slate-900 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                   />
                 </div>
 
@@ -651,7 +651,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                     value={taxAmount || ''}
                     onChange={(e) => setTaxAmount(parseFloat(e.target.value) || 0)}
                     placeholder="0.00 (leave 0 if not stated)"
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                   />
                 </div>
 
@@ -662,7 +662,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as TransactionCategory)}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -679,7 +679,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                   >
                     {paymentMethods.map((pm) => (
                       <option key={pm} value={pm}>
@@ -703,7 +703,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   <button
                     type="button"
                     onClick={handleAddItem}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs"
+                    className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs"
                   >
                     <Plus className="w-3 h-3" />
                     Add Item
@@ -727,7 +727,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                             value={item.name}
                             onChange={(e) => handleUpdateItem(idx, 'name', e.target.value)}
                             placeholder="Item description"
-                            className="w-full px-2.5 py-1 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                            className="w-full px-2.5 py-1 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600"
                           />
                         </div>
                         <div className="col-span-2">
@@ -737,7 +737,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                             value={item.qty || 1}
                             onChange={(e) => handleUpdateItem(idx, 'qty', parseInt(e.target.value) || 1)}
                             placeholder="Qty"
-                            className="w-full px-2 py-1 text-xs text-center border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                            className="w-full px-2 py-1 text-xs text-center border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600"
                           />
                         </div>
                         <div className="col-span-3 sm:col-span-2">
@@ -747,7 +747,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                             value={item.price || ''}
                             onChange={(e) => handleUpdateItem(idx, 'price', parseFloat(e.target.value) || 0)}
                             placeholder="Price"
-                            className="w-full px-2 py-1 text-xs font-mono font-medium text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                            className="w-full px-2 py-1 text-xs font-mono font-medium text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600"
                           />
                         </div>
                         <div className="col-span-1 flex justify-end">
@@ -773,7 +773,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-2 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
                 />
               </div>
 
@@ -800,7 +800,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                         <button
                           type="button"
                           onClick={handleCopyRawText}
-                          className="flex items-center gap-1 text-[11px] text-indigo-600 hover:text-indigo-700"
+                          className="flex items-center gap-1 text-[11px] text-emerald-700 hover:text-emerald-800"
                         >
                           {isCopiedRaw ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                           <span>{isCopiedRaw ? 'Copied' : 'Copy Text'}</span>
@@ -846,7 +846,7 @@ export const ReceiptScannerModal: React.FC<ReceiptScannerModalProps> = ({
                   type="button"
                   onClick={handleConfirmTransaction}
                   disabled={isProcessing || amount <= 0}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2"
                 >
                   {isProcessing ? (
                     <>

@@ -102,13 +102,13 @@ export const AiAssistantDrawer: React.FC = () => {
     <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[440px] bg-white border-l border-slate-200 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
       <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <h3 className="text-sm font-semibold text-slate-900">Grounded Financial Copilot</h3>
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-100">
                 XAI
               </span>
             </div>
@@ -130,7 +130,7 @@ export const AiAssistantDrawer: React.FC = () => {
             className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {msg.sender === 'assistant' && (
-              <div className="w-7 h-7 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+              <div className="w-7 h-7 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5">
                 <Bot className="w-4 h-4" />
               </div>
             )}
@@ -138,7 +138,7 @@ export const AiAssistantDrawer: React.FC = () => {
             <div
               className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed ${
                 msg.sender === 'user'
-                  ? 'bg-indigo-600 text-white font-medium shadow-xs'
+                  ? 'bg-emerald-700 text-white font-medium shadow-xs'
                   : 'bg-slate-50 border border-slate-200 text-slate-800'
               }`}
             >
@@ -150,7 +150,7 @@ export const AiAssistantDrawer: React.FC = () => {
                   {msg.citations.map((cite, idx) => (
                     <span
                       key={idx}
-                      className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-100"
+                      className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-100"
                     >
                       {cite}
                     </span>
@@ -169,7 +169,7 @@ export const AiAssistantDrawer: React.FC = () => {
 
         {isSending && (
           <div className="flex gap-3 items-center text-xs text-slate-500">
-            <div className="w-7 h-7 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+            <div className="w-7 h-7 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             </div>
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600">
@@ -211,12 +211,12 @@ export const AiAssistantDrawer: React.FC = () => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Ask about spending, budgets, savings goals..."
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           />
           <button
             type="submit"
             disabled={!inputValue.trim() || isSending}
-            className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-40 transition-colors shadow-xs"
+            className="p-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white disabled:opacity-40 transition-colors shadow-xs"
           >
             <Send className="w-4 h-4" />
           </button>

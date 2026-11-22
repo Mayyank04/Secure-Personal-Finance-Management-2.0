@@ -104,7 +104,7 @@ export const AuthModal: React.FC = () => {
       <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
         <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -112,7 +112,7 @@ export const AuthModal: React.FC = () => {
                 {authModalMode === 'login'
                   ? showMfaStep
                     ? 'Two-Factor Authentication'
-                    : 'Sign In to AegisFinance'
+                    : 'Sign In to CipherLedger AI'
                   : authModalMode === 'signup'
                   ? 'Create Secure Account'
                   : 'Account Recovery'}
@@ -159,7 +159,7 @@ export const AuthModal: React.FC = () => {
                   setAuthModalMode('login');
                   setResetSuccess(false);
                 }}
-                className="mt-2 text-xs text-indigo-600 font-semibold underline"
+                className="mt-2 text-xs text-emerald-700 font-semibold underline"
               >
                 Back to Sign In
               </button>
@@ -179,7 +179,7 @@ export const AuthModal: React.FC = () => {
                         setName(e.target.value);
                         if (error) setError(null);
                       }}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed"
                       placeholder="e.g. Sarah Jenkins"
                     />
                     <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -201,7 +201,7 @@ export const AuthModal: React.FC = () => {
                           setEmail(e.target.value);
                           if (error) setError(null);
                         }}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed"
                         placeholder="name@example.com"
                       />
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -217,7 +217,7 @@ export const AuthModal: React.FC = () => {
                             type="button"
                             disabled={isLoading}
                             onClick={() => setAuthModalMode('forgot')}
-                            className="text-[11px] text-indigo-600 font-medium hover:underline disabled:opacity-50"
+                            className="text-[11px] text-emerald-700 font-medium hover:underline disabled:opacity-50"
                           >
                             Forgot Password?
                           </button>
@@ -233,7 +233,7 @@ export const AuthModal: React.FC = () => {
                             setPassword(e.target.value);
                             if (error) setError(null);
                           }}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 font-mono disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-mono disabled:opacity-60 disabled:cursor-not-allowed"
                           placeholder="••••••••••••"
                         />
                         <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -248,7 +248,7 @@ export const AuthModal: React.FC = () => {
                         value={currency}
                         disabled={isLoading}
                         onChange={(e) => setCurrency(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         <option value="INR">₹ Indian Rupee (INR)</option>
                         <option value="USD">$ US Dollar (USD)</option>
@@ -262,8 +262,8 @@ export const AuthModal: React.FC = () => {
 
               {showMfaStep && (
                 <div className="space-y-3">
-                  <div className="p-3 rounded-2xl bg-indigo-50 border border-indigo-100 text-xs text-indigo-900 flex items-start gap-2.5">
-                    <KeyRound className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-950 flex items-start gap-2.5">
+                    <KeyRound className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                     <span>
                       Enter the 6-digit verification code from your Authenticator app (TOTP) or use the prefilled demo code.
                     </span>
@@ -276,7 +276,7 @@ export const AuthModal: React.FC = () => {
                       disabled={isLoading}
                       value={mfaCode}
                       onChange={(e) => setMfaCode(e.target.value)}
-                      className="w-full text-center tracking-[0.5em] font-mono text-base font-bold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-indigo-600 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full text-center tracking-[0.5em] font-mono text-base font-bold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-emerald-700 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -285,7 +285,7 @@ export const AuthModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-xs disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                className="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-xs disabled:opacity-60 disabled:cursor-not-allowed mt-2"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export const AuthModal: React.FC = () => {
                   setEmail('alex.morgan@fintech-demo.com');
                   setPassword('DemoPassword@2026');
                 }}
-                className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 shadow-2xs text-indigo-600 text-[10px] font-mono font-semibold"
+                className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 shadow-2xs text-emerald-700 text-[10px] font-mono font-semibold"
               >
                 Auto-Fill
               </button>
@@ -345,7 +345,7 @@ export const AuthModal: React.FC = () => {
               <button
                 type="button"
                 onClick={switchToSignup}
-                className="text-indigo-600 font-semibold hover:underline"
+                className="text-emerald-700 font-semibold hover:underline"
               >
                 Create one now
               </button>
@@ -356,7 +356,7 @@ export const AuthModal: React.FC = () => {
               <button
                 type="button"
                 onClick={switchToLogin}
-                className="text-indigo-600 font-semibold hover:underline"
+                className="text-emerald-700 font-semibold hover:underline"
               >
                 Sign in to your vault
               </button>

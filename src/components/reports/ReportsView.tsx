@@ -211,7 +211,7 @@ export const ReportsView: React.FC = () => {
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500 shadow-xs"
+            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-emerald-600 shadow-xs"
           >
             {months.map((m) => (
               <option key={m.value} value={m.value}>
@@ -223,7 +223,7 @@ export const ReportsView: React.FC = () => {
           <button
             onClick={handleDownloadPdf}
             disabled={isGeneratingPdf || isLoading}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
           >
             {isGeneratingPdf ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
             <span>{isGeneratingPdf ? 'Compiling PDF...' : 'Download PDF Statement'}</span>
@@ -241,7 +241,7 @@ export const ReportsView: React.FC = () => {
 
       {isLoading ? (
         <div className="py-20 text-center space-y-3 bg-white rounded-3xl border border-slate-200">
-          <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
+          <RefreshCw className="w-8 h-8 text-emerald-700 animate-spin mx-auto" />
           <p className="text-xs text-slate-500 font-mono">Generating cryptographic audit statement from permissioned ledger simulation...</p>
         </div>
       ) : !reportData ? (
@@ -268,7 +268,7 @@ export const ReportsView: React.FC = () => {
 
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-left sm:text-right font-mono text-[11px]">
               <span className="text-slate-500 uppercase block text-[10px]">Hyperledger State Digest</span>
-              <span className="text-indigo-600 font-bold block select-all truncate max-w-xs sm:max-w-none">
+              <span className="text-emerald-700 font-bold block select-all truncate max-w-xs sm:max-w-none">
                 {reportData.cryptographicSeal?.sha256Attestation?.slice(0, 16)}...
               </span>
               <span className="text-slate-400 text-[9px] block">
@@ -292,7 +292,7 @@ export const ReportsView: React.FC = () => {
             </div>
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] text-slate-500 block uppercase">Net Savings</span>
-              <span className="text-base font-bold text-indigo-600 font-mono">
+              <span className="text-base font-bold text-emerald-700 font-mono">
                 {formatCurrency(reportData.summary?.netSavings || 0, currency)}
               </span>
             </div>
@@ -371,7 +371,7 @@ export const ReportsView: React.FC = () => {
               SHA-256 Digest: <span className="text-slate-900 font-bold select-all">{reportData.cryptographicSeal?.sha256Attestation}</span>
             </p>
             <p className="text-[10px] text-slate-400">
-              Anchored to permissioned Hyperledger Fabric channel <code>fintech-audit-channel</code> via 3-peer Raft quorum consensus.
+              Anchored to Fabric-compatible permissioned ledger simulation channel <code>fintech-audit-channel</code> via 3-peer Raft quorum consensus.
             </p>
           </div>
         </div>

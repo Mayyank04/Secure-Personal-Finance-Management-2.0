@@ -21,6 +21,10 @@ import {
   Camera,
   Mic,
   Building2,
+  Eye,
+  Info,
+  Calendar,
+  CreditCard,
 } from 'lucide-react';
 import { Transaction, TransactionCategory, TransactionType, PaymentMethod, FinancialAccount } from '../../types';
 import { api } from '../../lib/api';
@@ -40,12 +44,15 @@ export const TransactionsView: React.FC = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('ALL');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+  const [minAmount, setMinAmount] = useState<string>('');
+  const [maxAmount, setMaxAmount] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [inspectingTx, setInspectingTx] = useState<Transaction | null>(null);
 
   const [accounts, setAccounts] = useState<FinancialAccount[]>([]);
 
@@ -78,6 +85,8 @@ export const TransactionsView: React.FC = () => {
     confidence: number;
     extractedMerchant: string;
     explanation: string;
+    reasons?: string[];
+    subcategory?: string;
   } | null>(null);
   const [isPreviewingAi, setIsPreviewingAi] = useState<boolean>(false);
 
@@ -101,6 +110,8 @@ export const TransactionsView: React.FC = () => {
       if (selectedPaymentMethod !== 'ALL') params.paymentMethod = selectedPaymentMethod;
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
+      if (minAmount) params.minAmount = minAmount;
+      if (maxAmount) params.maxAmount = maxAmount;
 
       const res = await api.getTransactions(params);
       setTransactions(res.transactions);
@@ -124,6 +135,8 @@ export const TransactionsView: React.FC = () => {
     sortOrder,
     startDate,
     endDate,
+    minAmount,
+    maxAmount,
   ]);
 
   useEffect(() => {
@@ -232,6 +245,43 @@ export const TransactionsView: React.FC = () => {
     }
   };
 
+  const handleExport = (format: 'csv' | 'json') => {
+    if (transactions.length === 0) return;
+    if (format === 'csv') {
+      const headers = ['Date', 'Description', 'Amount', 'Type', 'Category', 'PaymentMethod', 'Merchant', 'BlockchainHash', 'BlockNumber'];
+      const rows = transactions.map((t) => [
+        t.date,
+        `"${(t.description || '').replace(/"/g, '""')}"`,
+        t.amount,
+        t.type,
+        t.category,
+        `"${(t.paymentMethod || '').replace(/"/g, '""')}"`,
+        `"${(t.merchant || '').replace(/"/g, '""')}"`,
+        t.blockchainHash || '',
+        t.blockNumber || 0,
+      ]);
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `cipherledger-transactions-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      const jsonStr = JSON.stringify(transactions, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `cipherledger-transactions-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
   const handleBatchImport = async () => {
     if (!importText.trim()) return;
     try {
@@ -296,21 +346,46 @@ export const TransactionsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
+      {/* View Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Financial Transactions Ledger</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Financial Transactions Ledger</h1>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+              Double-Entry Ledger
+            </span>
+          </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Real-time AI categorization & SHA-256 Hyperledger audit anchoring
+            Real-time AI categorization • Fabric-Compatible Ledger Simulation
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Export Buttons */}
+          <button
+            onClick={() => handleExport('csv')}
+            disabled={transactions.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold shadow-xs transition-colors disabled:opacity-40"
+            title="Export filtered transactions as CSV"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <span>CSV</span>
+          </button>
+          <button
+            onClick={() => handleExport('json')}
+            disabled={transactions.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold shadow-xs transition-colors disabled:opacity-40"
+            title="Export filtered transactions as JSON"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <span>JSON</span>
+          </button>
           <button
             onClick={() => setIsReceiptModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold shadow-xs transition-all"
             title="Scan Receipt / Invoice"
           >
-            <Camera className="w-3.5 h-3.5 text-indigo-600" />
+            <Camera className="w-3.5 h-3.5 text-emerald-700" />
             <span>Scan Receipt</span>
           </button>
           <button
@@ -318,7 +393,7 @@ export const TransactionsView: React.FC = () => {
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold shadow-xs transition-all"
             title="Voice Expense Input"
           >
-            <Mic className="w-3.5 h-3.5 text-indigo-600" />
+            <Mic className="w-3.5 h-3.5 text-emerald-700" />
             <span>Voice Entry</span>
           </button>
           <button
@@ -330,7 +405,7 @@ export const TransactionsView: React.FC = () => {
           </button>
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Transaction</span>
@@ -338,7 +413,8 @@ export const TransactionsView: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+      {/* Filter and Search Bar */}
+      <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <div className="relative lg:col-span-2">
             <input
@@ -346,7 +422,7 @@ export const TransactionsView: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search description, merchant, or notes..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-colors"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pl-9 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
@@ -358,7 +434,7 @@ export const TransactionsView: React.FC = () => {
                 setSelectedCategory(e.target.value);
                 setPagination((p) => ({ ...p, page: 1 }));
               }}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white"
             >
               <option value="ALL">All Categories</option>
               {allCategories.map((c) => (
@@ -376,7 +452,7 @@ export const TransactionsView: React.FC = () => {
                 setSelectedType(e.target.value);
                 setPagination((p) => ({ ...p, page: 1 }));
               }}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white"
             >
               <option value="ALL">All Flow Types</option>
               <option value="EXPENSE">Expense Outflows</option>
@@ -391,7 +467,7 @@ export const TransactionsView: React.FC = () => {
                 setSelectedPaymentMethod(e.target.value);
                 setPagination((p) => ({ ...p, page: 1 }));
               }}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white"
             >
               <option value="ALL">All Payment Methods</option>
               <option value="Credit Card">Credit Card</option>
@@ -403,9 +479,10 @@ export const TransactionsView: React.FC = () => {
           </div>
         </div>
 
+        {/* Date and Amount Filters */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-slate-500 font-medium">Date Range:</span>
+            <span className="text-slate-500 font-medium">Date:</span>
             <input
               type="date"
               value={startDate}
@@ -419,7 +496,27 @@ export const TransactionsView: React.FC = () => {
               onChange={(e) => setEndDate(e.target.value)}
               className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700"
             />
-            {(startDate || endDate || selectedCategory !== 'ALL' || selectedType !== 'ALL' || search) && (
+
+            <span className="text-slate-300 mx-1">|</span>
+
+            <span className="text-slate-500 font-medium">Amount:</span>
+            <input
+              type="number"
+              placeholder="Min"
+              value={minAmount}
+              onChange={(e) => setMinAmount(e.target.value)}
+              className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 font-mono"
+            />
+            <span className="text-slate-400">to</span>
+            <input
+              type="number"
+              placeholder="Max"
+              value={maxAmount}
+              onChange={(e) => setMaxAmount(e.target.value)}
+              className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 font-mono"
+            />
+
+            {(startDate || endDate || minAmount || maxAmount || selectedCategory !== 'ALL' || selectedType !== 'ALL' || selectedPaymentMethod !== 'ALL' || search) && (
               <button
                 onClick={() => {
                   setSearch('');
@@ -428,22 +525,25 @@ export const TransactionsView: React.FC = () => {
                   setSelectedPaymentMethod('ALL');
                   setStartDate('');
                   setEndDate('');
+                  setMinAmount('');
+                  setMaxAmount('');
                 }}
-                className="text-indigo-600 hover:text-indigo-700 text-xs underline ml-2 font-medium"
+                className="text-emerald-700 hover:text-emerald-900 text-xs underline ml-2 font-medium"
               >
                 Reset Filters
               </button>
             )}
           </div>
 
-          <div className="text-slate-500 text-xs">
-            Showing <strong className="text-slate-800">{transactions.length}</strong> of{' '}
-            <strong className="text-slate-800">{pagination.totalCount}</strong> records
+          <div className="text-slate-500 text-xs font-mono">
+            Showing <strong className="text-slate-900">{transactions.length}</strong> of{' '}
+            <strong className="text-slate-900">{pagination.totalCount}</strong> records
           </div>
         </div>
       </div>
 
-      <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
+      {/* Main Transactions Table */}
+      <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
         {isLoading ? (
           <TableSkeleton rows={8} />
         ) : transactions.length === 0 ? (
@@ -451,7 +551,7 @@ export const TransactionsView: React.FC = () => {
             <FileText className="w-10 h-10 text-slate-300 mx-auto" />
             <h4 className="text-sm font-semibold text-slate-700">No transactions match your search filter</h4>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Try adjusting your date range, search query, or record a new transaction above.
+              Try adjusting your date range, amount bounds, or search query.
             </p>
           </div>
         ) : (
@@ -460,7 +560,10 @@ export const TransactionsView: React.FC = () => {
               <table className="w-full text-left text-xs min-w-[760px]">
                 <thead>
                   <tr className="border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-wider bg-slate-50/60">
-                    <th className="py-2.5 pl-4 pr-3 w-28 cursor-pointer" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+                    <th
+                      className="py-2.5 pl-4 pr-3 w-28 cursor-pointer select-none"
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    >
                       <div className="flex items-center gap-1">
                         <span>Date</span>
                         <ArrowUpDown className="w-3 h-3 text-slate-400" />
@@ -471,7 +574,7 @@ export const TransactionsView: React.FC = () => {
                     <th className="py-2.5 px-3 w-28">AI Confidence</th>
                     <th className="py-2.5 px-3 w-44">Blockchain Digest</th>
                     <th className="py-2.5 px-3 text-right w-32">Amount</th>
-                    <th className="py-2.5 pl-3 pr-4 text-right w-24">Actions</th>
+                    <th className="py-2.5 pl-3 pr-4 text-right w-28">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -479,21 +582,26 @@ export const TransactionsView: React.FC = () => {
                     const colors = CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.Other;
                     return (
                       <tr key={tx.id} className="hover:bg-slate-50/80 transition-colors group">
-                        <td className="py-3 pl-4 pr-3 font-mono text-slate-500 whitespace-nowrap text-xs">
+                        <td className="py-3 pl-4 pr-3 font-mono tabular-nums text-slate-500 whitespace-nowrap text-xs">
                           {formatDate(tx.date)}
                         </td>
                         <td className="py-3 px-3">
-                          <div className="font-medium text-slate-900 truncate max-w-sm">{tx.description}</div>
+                          <button
+                            onClick={() => setInspectingTx(tx)}
+                            className="font-medium text-slate-900 truncate max-w-sm text-left hover:text-emerald-700 transition-colors block"
+                          >
+                            {tx.description}
+                          </button>
                           <div className="text-[11px] text-slate-500 flex items-center gap-1.5 flex-wrap mt-0.5">
                             <span className="text-slate-600">{tx.merchant}</span>
                             <span>•</span>
                             <span>{tx.paymentMethod}</span>
                             {tx.accountId && (
                               <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-slate-100 text-slate-700 border border-slate-200">
-                                {accounts.find(a => a.id === tx.accountId)?.name || 'Account'}
+                                {accounts.find((a) => a.id === tx.accountId)?.name || 'Account'}
                               </span>
                             )}
-                            {tx.isRecurring && <span className="text-indigo-600 font-medium">• Recurring</span>}
+                            {tx.isRecurring && <span className="text-emerald-700 font-medium">• Recurring</span>}
                           </div>
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap">
@@ -507,10 +615,10 @@ export const TransactionsView: React.FC = () => {
                           <span
                             className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border ${
                               (tx.aiConfidence || 95) >= 90
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                 : (tx.aiConfidence || 95) >= 70
-                                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : 'bg-rose-50 text-rose-700 border-rose-200'
+                                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                : 'bg-rose-50 text-rose-800 border-rose-200'
                             }`}
                             title={`Categorization confidence: ${tx.aiConfidence || 95}%`}
                           >
@@ -519,13 +627,15 @@ export const TransactionsView: React.FC = () => {
                         </td>
                         <td className="py-3 px-3 whitespace-nowrap font-mono text-[11px] text-slate-500">
                           <div className="flex items-center gap-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                            <span title={tx.blockchainHash} className="text-slate-700">{truncateHash(tx.blockchainHash, 6, 4)}</span>
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0"></span>
+                            <span title={tx.blockchainHash} className="text-slate-700">
+                              {truncateHash(tx.blockchainHash, 6, 4)}
+                            </span>
                             <span className="text-[10px] text-slate-400 font-mono">#{tx.blockNumber}</span>
                           </div>
                         </td>
                         <td className="py-3 px-3 text-right whitespace-nowrap font-mono font-semibold tabular-nums text-xs">
-                          <span className={tx.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900'}>
+                          <span className={tx.type === 'INCOME' ? 'text-emerald-700' : 'text-slate-900'}>
                             {tx.type === 'INCOME' ? '+' : '-'}
                             {formatCurrency(tx.amount, currency)}
                           </span>
@@ -533,11 +643,18 @@ export const TransactionsView: React.FC = () => {
                         <td className="py-3 pl-3 pr-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1">
                             <button
+                              onClick={() => setInspectingTx(tx)}
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                              title="Inspect Details"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
                               onClick={() => openVerifyModal(tx)}
-                              className="px-2 py-1 rounded bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-medium text-[10px] border border-slate-200 transition-colors flex items-center gap-1 group/btn"
+                              className="px-2 py-1 rounded bg-slate-100 hover:bg-emerald-700 hover:text-white text-slate-700 font-medium text-[10px] border border-slate-200 transition-colors flex items-center gap-1 group/btn"
                               title="Audit SHA-256 On Blockchain"
                             >
-                              <ShieldCheck className="w-3 h-3 text-indigo-600 group-hover/btn:text-white" />
+                              <ShieldCheck className="w-3 h-3 text-emerald-700 group-hover/btn:text-white" />
                               <span>Verify</span>
                             </button>
                             <button
@@ -563,8 +680,9 @@ export const TransactionsView: React.FC = () => {
               </table>
             </div>
 
+            {/* Pagination Controls */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-4 text-xs">
-              <span className="text-slate-500">
+              <span className="text-slate-500 font-mono">
                 Page <strong className="text-slate-800">{pagination.page}</strong> of{' '}
                 <strong className="text-slate-800">{pagination.totalPages || 1}</strong>
               </span>
@@ -573,7 +691,7 @@ export const TransactionsView: React.FC = () => {
                 <button
                   disabled={pagination.page <= 1}
                   onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-colors flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-colors flex items-center gap-1 font-medium"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span>Prev</span>
@@ -581,7 +699,7 @@ export const TransactionsView: React.FC = () => {
                 <button
                   disabled={pagination.page >= pagination.totalPages}
                   onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-colors flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-colors flex items-center gap-1 font-medium"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -592,12 +710,133 @@ export const TransactionsView: React.FC = () => {
         )}
       </div>
 
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-in fade-in duration-200">
+      {/* Transaction Details Inspection Modal */}
+      {inspectingTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900">Transaction Record Details</h3>
+                  <p className="text-xs text-slate-500 font-mono">ID: {inspectingTx.id}</p>
+                </div>
+              </div>
+              <button onClick={() => setInspectingTx(null)} className="p-1.5 text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-medium">Recorded Description</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${inspectingTx.type === 'INCOME' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-800'}`}>
+                    {inspectingTx.type}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold text-slate-900">{inspectingTx.description}</h4>
+                {inspectingTx.cleanDescription && inspectingTx.cleanDescription !== inspectingTx.description && (
+                  <p className="text-[11px] text-slate-500 font-mono">Normalized: {inspectingTx.cleanDescription}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Total Amount</span>
+                  <span className="text-base font-bold font-mono tabular-nums text-slate-900 mt-0.5 block">
+                    {formatCurrency(inspectingTx.amount, currency)}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Accounting Date</span>
+                  <span className="text-base font-semibold font-mono tabular-nums text-slate-900 mt-0.5 block">
+                    {formatDate(inspectingTx.date)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Category</span>
+                  <span className="text-xs font-semibold text-slate-800 mt-1 block">{inspectingTx.category}</span>
+                </div>
+                <div className="p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Merchant / Channel</span>
+                  <span className="text-xs font-semibold text-slate-800 mt-1 block">{inspectingTx.merchant || 'Unspecified'}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Payment Method</span>
+                  <span className="text-xs font-semibold text-slate-800 mt-1 block">{inspectingTx.paymentMethod}</span>
+                </div>
+                <div className="p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">AI Classification</span>
+                  <span className="text-xs font-semibold text-emerald-800 font-mono mt-1 block">
+                    {inspectingTx.aiConfidence || 95}% Match
+                  </span>
+                </div>
+              </div>
+
+              {inspectingTx.notes && (
+                <div className="p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Notes / Reference</span>
+                  <p className="text-xs text-slate-700 mt-1">{inspectingTx.notes}</p>
+                </div>
+              )}
+
+              {/* Blockchain Anchor Details */}
+              <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-emerald-800 font-semibold text-xs">
+                    <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                    <span>Fabric Ledger Simulation Anchor</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-700 font-bold">
+                    Block #{inspectingTx.blockNumber}
+                  </span>
+                </div>
+                <p className="text-[10px] font-mono text-slate-600 break-all bg-white p-2 rounded-lg border border-emerald-100">
+                  {inspectingTx.blockchainHash || 'Pending consensus commit...'}
+                </p>
+                <div className="flex justify-end pt-1">
+                  <button
+                    onClick={() => {
+                      setInspectingTx(null);
+                      openVerifyModal(inspectingTx);
+                    }}
+                    className="text-xs text-emerald-800 hover:underline font-semibold flex items-center gap-1"
+                  >
+                    <span>Run Cryptographic Verification</span>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setInspectingTx(null)}
+                className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit Transaction Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
+            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
@@ -605,7 +844,7 @@ export const TransactionsView: React.FC = () => {
                     {editingTx ? 'Edit Transaction & Re-anchor' : 'Record New Transaction'}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Auto-categorized by AI and anchored to Hyperledger Fabric
+                    Auto-categorized by AI • Fabric-Compatible Enterprise Ledger Simulation
                   </p>
                 </div>
               </div>
@@ -623,7 +862,7 @@ export const TransactionsView: React.FC = () => {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="e.g. Nature Basket Groceries, Netflix Subscription, Salary"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition-colors"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors"
                 />
               </div>
 
@@ -639,7 +878,7 @@ export const TransactionsView: React.FC = () => {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-                      <Sparkles className={`w-4 h-4 ${aiPreview.confidence >= 90 ? 'text-emerald-600' : aiPreview.confidence >= 70 ? 'text-amber-600' : 'text-rose-600'}`} />
+                      <Sparkles className={`w-4 h-4 ${aiPreview.confidence >= 90 ? 'text-emerald-700' : aiPreview.confidence >= 70 ? 'text-amber-600' : 'text-rose-600'}`} />
                       <span>AI Classification:</span>
                       <span className="px-2 py-0.5 rounded bg-white font-mono font-bold text-slate-900 border border-slate-200 shadow-2xs">
                         {aiPreview.predictedCategory}
@@ -718,7 +957,7 @@ export const TransactionsView: React.FC = () => {
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                     placeholder="e.g. 2400"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 focus:bg-white"
                   />
                 </div>
 
@@ -727,7 +966,7 @@ export const TransactionsView: React.FC = () => {
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
                   >
                     <option value="EXPENSE">Expense Outflow</option>
                     <option value="INCOME">Income Inflow</option>
@@ -741,7 +980,7 @@ export const TransactionsView: React.FC = () => {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
                   >
                     {allCategories.map((c) => (
                       <option key={c} value={c}>
@@ -756,7 +995,7 @@ export const TransactionsView: React.FC = () => {
                   <select
                     value={formData.accountId}
                     onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
                   >
                     <option value="">Default / Unlinked</option>
                     {accounts.map((acc) => (
@@ -774,7 +1013,7 @@ export const TransactionsView: React.FC = () => {
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
                   >
                     <option value="Credit Card">Credit Card</option>
                     <option value="Debit Card">Debit Card</option>
@@ -792,7 +1031,7 @@ export const TransactionsView: React.FC = () => {
                     value={formData.merchant}
                     onChange={(e) => setFormData({ ...formData, merchant: e.target.value })}
                     placeholder="e.g. Swiggy, Netflix, Apex Inc"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
                   />
                 </div>
               </div>
@@ -805,7 +1044,7 @@ export const TransactionsView: React.FC = () => {
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
                   />
                 </div>
 
@@ -816,7 +1055,7 @@ export const TransactionsView: React.FC = () => {
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Optional memo or invoice #"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white"
                   />
                 </div>
               </div>
@@ -827,7 +1066,7 @@ export const TransactionsView: React.FC = () => {
                   id="recCheck"
                   checked={formData.isRecurring}
                   onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
-                  className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+                  className="w-4 h-4 accent-emerald-700 rounded cursor-pointer"
                 />
                 <label htmlFor="recCheck" className="text-xs text-slate-700 cursor-pointer">
                   Mark as recurring regular commitment (e.g. monthly bill or subscription)
@@ -835,9 +1074,9 @@ export const TransactionsView: React.FC = () => {
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center gap-2">
-                <Layers className="w-4 h-4 text-indigo-600 shrink-0" />
+                <Layers className="w-4 h-4 text-emerald-700 shrink-0" />
                 <span>
-                  Upon submission, a canonical SHA-256 fingerprint is immediately committed to the Hyperledger ledger block tree.
+                  Upon submission, a canonical SHA-256 fingerprint is immediately committed to the Fabric ledger simulation tree.
                 </span>
               </div>
 
@@ -851,7 +1090,7 @@ export const TransactionsView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-xs"
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-all shadow-xs"
                 >
                   {editingTx ? 'Save & Re-anchor Block' : 'Commit to Encrypted Vault'}
                 </button>
@@ -861,17 +1100,18 @@ export const TransactionsView: React.FC = () => {
         </div>
       )}
 
+      {/* Statement Batch Import Modal */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="relative w-full max-w-xl bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <Upload className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">Batch Statement Import</h3>
-                  <p className="text-xs text-slate-500">Import CSV or JSON format with automatic blockchain anchoring</p>
+                  <p className="text-xs text-slate-500">Import CSV or JSON format with automatic ledger anchoring</p>
                 </div>
               </div>
               <button onClick={() => setIsImportModalOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-700">
@@ -889,7 +1129,7 @@ export const TransactionsView: React.FC = () => {
                       `date,description,amount,category,type,paymentMethod\n2026-08-27,Blue Tokai Coffee Roast,420,Food,EXPENSE,Credit Card\n2026-08-28,Freelance Web Development,35000,Freelance,INCOME,Bank Transfer`
                     )
                   }
-                  className="text-indigo-600 hover:underline font-medium"
+                  className="text-emerald-700 hover:underline font-medium"
                 >
                   Paste Sample CSV
                 </button>
@@ -900,7 +1140,7 @@ export const TransactionsView: React.FC = () => {
                 value={importText}
                 onChange={(e) => setImportText(e.target.value)}
                 placeholder={`date,description,amount,category,type,paymentMethod\n2026-08-20,Groceries at Supermart,2450,Groceries,EXPENSE,UPI`}
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500 focus:bg-white transition-colors"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors"
               />
 
               {importStatus && (
@@ -928,7 +1168,7 @@ export const TransactionsView: React.FC = () => {
                   type="button"
                   disabled={isImporting || !importText.trim()}
                   onClick={handleBatchImport}
-                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-xs disabled:opacity-40 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-all shadow-xs disabled:opacity-40 flex items-center gap-2"
                 >
                   {isImporting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                   <span>{isImporting ? 'Processing Batch...' : 'Process & Anchor Hashes'}</span>

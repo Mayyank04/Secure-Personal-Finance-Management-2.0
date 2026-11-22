@@ -631,8 +631,13 @@ export interface MonthlyReportData {
 export interface DashboardData {
   currency: string;
   totalBalance: number;
+  totalAssets?: number;
+  totalLiabilities?: number;
+  netLiquidBalance?: number;
   monthlyIncome: number;
   monthlyExpenses: number;
+  netSavings?: number;
+  savingsRate?: number;
   totalSavings: number;
   totalBudget: number;
   budgetRemaining: number;
@@ -661,7 +666,10 @@ export interface DashboardData {
   anomaliesCount: number;
   recentTransactions: Transaction[];
   upcomingRecurring: RecurringPayment[];
+  activeSubscriptions?: Subscription[];
+  upcomingBills?: Bill[];
   savingsGoals: SavingsGoal[];
+  debtSummary?: any;
 }
 
 export type KycStatus = 'NOT_STARTED' | 'PENDING' | 'UNDER_REVIEW' | 'VERIFIED' | 'REJECTED';

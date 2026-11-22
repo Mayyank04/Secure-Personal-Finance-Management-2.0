@@ -369,7 +369,7 @@ export const AccountsView: React.FC = () => {
           </p>
           <button
             onClick={handleOpenCreateModal}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800"
           >
             <Plus className="w-4 h-4" />
             Add Account
@@ -470,7 +470,7 @@ export const AccountsView: React.FC = () => {
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+              <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700">
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
@@ -493,7 +493,7 @@ export const AccountsView: React.FC = () => {
 
           {loadingTx ? (
             <div className="p-8 text-center text-slate-400">
-              <RefreshCw className="w-5 h-5 animate-spin mx-auto text-indigo-500 mb-2" />
+              <RefreshCw className="w-5 h-5 animate-spin mx-auto text-emerald-600 mb-2" />
               <p className="text-xs">Fetching account ledger entries...</p>
             </div>
           ) : accountTransactions.length === 0 ? (
@@ -544,7 +544,7 @@ export const AccountsView: React.FC = () => {
                       <td className="py-2.5 px-3 text-center">
                         <button
                           onClick={() => openVerifyModal(tx)}
-                          className="font-mono text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100"
+                          className="font-mono text-[10px] text-emerald-700 hover:text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100"
                           title={tx.blockchainHash}
                         >
                           {tx.blockchainHash.slice(0, 10)}...
@@ -695,7 +695,7 @@ export const AccountsView: React.FC = () => {
                                     );
                                   }
                                 }}
-                                className="rounded text-indigo-600 focus:ring-indigo-500"
+                                className="rounded text-emerald-700 focus:ring-emerald-600"
                               />
                             </td>
                             <td className="py-2 px-3 font-mono">{item.date}</td>
@@ -783,7 +783,7 @@ export const AccountsView: React.FC = () => {
                   placeholder="e.g. HDFC Salary Account, Amazon Pay ICICI"
                   value={formState.name}
                   onChange={e => setFormState({ ...formState, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
 
@@ -795,7 +795,7 @@ export const AccountsView: React.FC = () => {
                   placeholder="e.g. HDFC Bank, ICICI Bank, State Bank of India"
                   value={formState.institution}
                   onChange={e => setFormState({ ...formState, institution: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
 
@@ -870,7 +870,7 @@ export const AccountsView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs"
+                  className="px-4 py-2 rounded-xl font-semibold bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs"
                 >
                   {editingAccount ? 'Save Changes' : 'Create Account'}
                 </button>

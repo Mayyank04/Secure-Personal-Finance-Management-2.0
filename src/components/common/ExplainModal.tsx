@@ -19,7 +19,7 @@ export const ExplainModal: React.FC<ExplainModalProps> = ({ data, onClose }) => 
       <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
@@ -42,14 +42,14 @@ export const ExplainModal: React.FC<ExplainModalProps> = ({ data, onClose }) => 
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-indigo-700 uppercase tracking-wider">
-              <BrainCircuit className="w-4 h-4 text-indigo-600" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 uppercase tracking-wider">
+              <BrainCircuit className="w-4 h-4 text-emerald-700" />
               <span>Data Signals & Baselines Used</span>
             </div>
             <ul className="space-y-2">
               {data.signals.map((sig, idx) => (
                 <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-600">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
                   <span>{sig}</span>
                 </li>
               ))}
@@ -57,11 +57,11 @@ export const ExplainModal: React.FC<ExplainModalProps> = ({ data, onClose }) => 
           </div>
 
           {data.action && (
-            <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-900 flex items-start gap-2.5">
-              <Info className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100 text-xs text-emerald-950 flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-indigo-950 font-semibold">Recommended User Action:</strong>
-                <p className="mt-0.5 text-indigo-800">{data.action}</p>
+                <strong className="text-emerald-950 font-semibold">Recommended User Action:</strong>
+                <p className="mt-0.5 text-emerald-900">{data.action}</p>
               </div>
             </div>
           )}

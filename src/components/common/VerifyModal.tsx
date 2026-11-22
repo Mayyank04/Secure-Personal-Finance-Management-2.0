@@ -87,7 +87,7 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
             </div>
             <div>
               <h3 className="text-base font-semibold text-slate-900">Cryptographic Transaction Verification</h3>
-              <p className="text-xs text-slate-500">Hyperledger Fabric Permissioned Ledger Proof</p>
+              <p className="text-xs text-slate-500">Fabric-Compatible Permissioned Ledger Simulation Proof</p>
             </div>
           </div>
           <button
@@ -101,7 +101,7 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
         <div className="p-6 space-y-5 overflow-y-auto">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
             <div>
-              <span className="text-xs font-mono text-indigo-700 uppercase tracking-wider font-semibold">
+              <span className="text-xs font-mono text-emerald-800 uppercase tracking-wider font-semibold">
                 {transaction.category}
               </span>
               <h4 className="text-sm font-semibold text-slate-900 mt-0.5">{transaction.description}</h4>
@@ -116,10 +116,10 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
           </div>
 
           {isVerifying ? (
-            <div className="p-6 rounded-2xl bg-indigo-50/50 border border-indigo-100 text-center space-y-3">
-              <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
+            <div className="p-6 rounded-2xl bg-emerald-50/40 border border-emerald-100 text-center space-y-3">
+              <RefreshCw className="w-8 h-8 text-emerald-700 animate-spin mx-auto" />
               <div>
-                <h4 className="text-sm font-semibold text-indigo-950">Computing Cryptographic Verification...</h4>
+                <h4 className="text-sm font-semibold text-emerald-950">Computing Cryptographic Verification...</h4>
                 <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                   Retrieving off-chain payload, normalizing canonical keys, calculating SHA-256 fingerprint, and comparing against Hyperledger block state...
                 </p>
@@ -176,7 +176,7 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
                   <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
                     <span>Anchored Block Height</span>
-                    <Layers className="w-3 h-3 text-indigo-600" />
+                    <Layers className="w-3 h-3 text-emerald-700" />
                   </div>
                   <div className="font-bold text-slate-900 text-sm">
                     Block #{result.blockNumber >= 0 ? result.blockNumber : 'N/A'}
@@ -198,7 +198,7 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
                   <div className="flex items-center justify-between text-slate-500 text-[10px] uppercase mb-1">
                     <span className="flex items-center gap-1.5 font-medium">
-                      <Database className="w-3 h-3 text-indigo-600" />
+                      <Database className="w-3 h-3 text-emerald-700" />
                       Off-Chain Recalculated Hash
                     </span>
                     <button
@@ -231,7 +231,7 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
               <div className="pt-1">
                 <button
                   onClick={() => setShowCanonicalJson(!showCanonicalJson)}
-                  className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-sans font-semibold"
+                  className="flex items-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-sans font-semibold"
                 >
                   <FileCode className="w-3.5 h-3.5" />
                   <span>{showCanonicalJson ? 'Hide Canonical JSON Payload' : 'Inspect Canonical Hash Input JSON'}</span>
@@ -245,7 +245,7 @@ export const VerifyModal: React.FC<VerifyModalProps> = ({ transaction, onClose }
               </div>
 
               <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-2.5 text-xs font-sans text-slate-600">
-                <Cpu className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                <Cpu className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                 <span>
                   <strong className="text-slate-900">Zero Raw Data on Chain:</strong> No transaction descriptions, merchant identities, or personal amounts are ever broadcasted to the blockchain. Only canonical cryptographic SHA-256 evidence is preserved.
                 </span>

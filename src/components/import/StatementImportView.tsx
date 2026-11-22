@@ -141,7 +141,7 @@ export const StatementImportView: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <FileSpreadsheet className="w-7 h-7 text-indigo-600" />
+            <FileSpreadsheet className="w-7 h-7 text-emerald-700" />
             Bank Statement & CSV Importer
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -176,7 +176,7 @@ export const StatementImportView: React.FC = () => {
             onDragOver={e => e.preventDefault()}
             onDrop={handleFileDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="p-8 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-3xl bg-white hover:bg-indigo-50/20 transition-all cursor-pointer text-center space-y-3"
+            className="p-8 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-3xl bg-white hover:bg-emerald-50/20 transition-all cursor-pointer text-center space-y-3"
           >
             <input
               type="file"
@@ -185,7 +185,7 @@ export const StatementImportView: React.FC = () => {
               accept=".csv,.txt"
               className="hidden"
             />
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl w-fit mx-auto">
+            <div className="p-3 bg-emerald-50 text-emerald-700 rounded-2xl w-fit mx-auto">
               <UploadCloud className="w-8 h-8" />
             </div>
             <div>
@@ -207,13 +207,13 @@ export const StatementImportView: React.FC = () => {
               value={rawCSV}
               onChange={e => setRawCSV(e.target.value)}
               placeholder="Date,Description,Amount,Type,Category&#10;2026-03-01,Supermarket,54.20,EXPENSE,Groceries"
-              className="w-full p-3 rounded-xl border border-slate-200 font-mono text-xs focus:ring-2 focus:ring-indigo-500"
+              className="w-full p-3 rounded-xl border border-slate-200 font-mono text-xs focus:ring-2 focus:ring-emerald-600"
             />
             <div className="flex justify-end">
               <button
                 onClick={() => handleParsePreview()}
                 disabled={!rawCSV.trim() || isPreviewing}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-emerald-700 text-white rounded-xl text-xs font-semibold hover:bg-emerald-800 disabled:opacity-50 flex items-center gap-2"
               >
                 {isPreviewing ? (
                   <>
@@ -234,7 +234,7 @@ export const StatementImportView: React.FC = () => {
         <div className="space-y-4">
           <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-indigo-600" />
+              <Building2 className="w-4 h-4 text-emerald-700" />
               Target Financial Account
             </h3>
             <p className="text-xs text-slate-500">
@@ -256,10 +256,10 @@ export const StatementImportView: React.FC = () => {
             <div className="pt-2 border-t border-slate-100 space-y-2 text-[11px] text-slate-500">
               <div className="flex items-start gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>Every imported transaction is verified and anchored on Hyperledger Fabric.</span>
+                <span>Every imported transaction is verified and anchored into the Fabric-compatible enterprise ledger simulation.</span>
               </div>
               <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                <Info className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                 <span>Exact duplicates with matching date, amount & merchant are automatically flagged.</span>
               </div>
             </div>
@@ -341,7 +341,7 @@ export const StatementImportView: React.FC = () => {
                               setSelectedRowIds(selectedRowIds.filter(id => id !== rowKey));
                             }
                           }}
-                          className="rounded text-indigo-600 focus:ring-indigo-500"
+                          className="rounded text-emerald-700 focus:ring-emerald-600"
                         />
                       </td>
                       <td className="py-2.5 px-3 font-mono text-slate-600">{row.date}</td>

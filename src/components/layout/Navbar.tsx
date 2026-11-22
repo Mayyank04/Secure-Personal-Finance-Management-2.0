@@ -86,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             onClick={() => setActiveTab('dashboard')}
             className="flex items-center gap-2.5 text-left group"
           >
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white shadow-xs">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-700 text-white shadow-xs">
               <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
             </div>
             <div>
@@ -118,14 +118,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
           <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
             <button
               onClick={() => setIsReceiptModalOpen(true)}
-              className="p-1.5 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/60 border border-slate-200/80 transition-colors"
+              className="p-1.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-emerald-50/60 border border-slate-200/80 transition-colors"
               title="Scan Receipt (OCR)"
             >
               <Camera className="w-4 h-4" />
             </button>
             <button
               onClick={() => setIsVoiceModalOpen(true)}
-              className="p-1.5 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/60 border border-slate-200/80 transition-colors"
+              className="p-1.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-emerald-50/60 border border-slate-200/80 transition-colors"
               title="Voice Expense Entry"
             >
               <Mic className="w-4 h-4" />
@@ -133,7 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             <div className="relative">
               <button
                 onClick={() => setShowQuickActions(!showQuickActions)}
-                className="p-1.5 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/60 border border-slate-200/80 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-emerald-50/60 border border-slate-200/80 transition-colors cursor-pointer"
                 title="Global Quick Actions (+)"
               >
                 <PlusCircle className="w-4 h-4" />
@@ -152,7 +152,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value as any)}
-              className="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 pr-7 text-xs font-medium text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer shadow-xs"
+              className="appearance-none bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 pr-7 text-xs font-medium text-slate-700 focus:outline-none focus:border-emerald-600 cursor-pointer shadow-xs"
             >
               <option value="INR">₹ INR</option>
               <option value="USD">$ USD</option>
@@ -183,8 +183,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               <Bell className="w-4 h-4" />
               {unreadNotifsCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-700"></span>
                 </span>
               )}
             </button>
@@ -193,11 +193,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 z-50">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
                   <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-indigo-600" />
+                    <Bell className="w-4 h-4 text-emerald-700" />
                     <span className="text-xs font-semibold text-slate-800">Alerts & System Notifications</span>
                   </div>
                   {unreadNotifsCount > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200">
                       {unreadNotifsCount} new
                     </span>
                   )}
@@ -218,14 +218,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                           }
                         }}
                         className={`p-3.5 text-left transition-colors cursor-pointer hover:bg-slate-50 flex items-start gap-3 ${
-                          !n.isRead ? 'bg-indigo-50/40' : ''
+                          !n.isRead ? 'bg-emerald-50/30' : ''
                         }`}
                       >
                         <div className="mt-0.5">
                           {n.type === 'UNUSUAL_SPENDING' ? (
                             <AlertTriangle className="w-4 h-4 text-amber-500" />
                           ) : n.type === 'BLOCKCHAIN_VERIFICATION' ? (
-                            <Lock className="w-4 h-4 text-indigo-600" />
+                            <Lock className="w-4 h-4 text-emerald-700" />
                           ) : (
                             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                           )}
@@ -248,7 +248,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                       setActiveTab('insights');
                       setShowNotifs(false);
                     }}
-                    className="text-[11px] font-medium text-indigo-600 hover:underline"
+                    className="text-[11px] font-medium text-emerald-700 hover:underline"
                   >
                     View All AI Intelligence Reports →
                   </button>
@@ -263,7 +263,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
               >
-                <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-xs font-bold text-indigo-700">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-xs font-bold text-emerald-800">
                   {user.name.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="hidden md:block text-left">
@@ -288,7 +288,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                     setAuthModalMode('signup');
                     setIsAuthModalOpen(true);
                   }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition-colors shadow-xs"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800 transition-colors shadow-xs"
                 >
                   Register
                 </button>
@@ -318,7 +318,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors text-left"
                   >
-                    <Shield className="w-4 h-4 text-indigo-600" />
+                    <Shield className="w-4 h-4 text-emerald-700" />
                     <span>Security & MFA Settings</span>
                   </button>
                   <button

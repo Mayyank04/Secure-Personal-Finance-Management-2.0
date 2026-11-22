@@ -195,11 +195,11 @@ export const BudgetsView: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-indigo-600 font-semibold uppercase tracking-wider">
+              <span className="text-[10px] font-mono text-emerald-700 font-semibold uppercase tracking-wider">
                 August 2026 Monthly Cap
               </span>
               {currentBudget.rolloverEnabled && (
-                <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-semibold border border-indigo-200">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-semibold border border-emerald-200">
                   Rollover Active (+₹4,200 from July)
                 </span>
               )}
@@ -230,7 +230,7 @@ export const BudgetsView: React.FC = () => {
                   ? 'bg-rose-500'
                   : totalUtilization > currentBudget.alertThresholds.normal
                   ? 'bg-amber-500'
-                  : 'bg-indigo-600'
+                  : 'bg-emerald-700'
               }`}
               style={{ width: `${Math.min(100, totalUtilization)}%` }}
             />
@@ -248,7 +248,7 @@ export const BudgetsView: React.FC = () => {
       <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200">
+            <div className="p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200">
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
@@ -266,7 +266,7 @@ export const BudgetsView: React.FC = () => {
             </div>
             <div>
               <span className="text-[10px] text-slate-400 block uppercase">Est. Month-End Total</span>
-              <span className="text-indigo-600 font-bold">{formatCurrency(projectedMonthEndTotal, currency)}</span>
+              <span className="text-emerald-700 font-bold">{formatCurrency(projectedMonthEndTotal, currency)}</span>
             </div>
             <div>
               <span className="text-[10px] text-slate-400 block uppercase">Projected Status</span>
@@ -366,7 +366,7 @@ export const BudgetsView: React.FC = () => {
                     <td className="py-2.5 text-right text-emerald-700 font-bold">{formatCurrency(m.income, currency)}</td>
                     <td className="py-2.5 text-right text-slate-900 font-bold">{formatCurrency(m.expenses, currency)}</td>
                     <td className="py-2.5 text-right text-slate-500">{formatCurrency(85000, currency)}</td>
-                    <td className="py-2.5 text-right text-indigo-600 font-bold">{formatCurrency(m.savings, currency)}</td>
+                    <td className="py-2.5 text-right text-emerald-700 font-bold">{formatCurrency(m.savings, currency)}</td>
                     <td className="py-2.5 text-center">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${
@@ -391,7 +391,7 @@ export const BudgetsView: React.FC = () => {
           <div className="relative w-full max-w-xl bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
                   <Sliders className="w-5 h-5" />
                 </div>
                 <div>
@@ -412,7 +412,7 @@ export const BudgetsView: React.FC = () => {
                   required
                   value={totalBudgetInput}
                   onChange={(e) => setTotalBudgetInput(Number(e.target.value))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500 focus:bg-white"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 focus:bg-white"
                 />
               </div>
 
@@ -425,7 +425,7 @@ export const BudgetsView: React.FC = () => {
                     max="80"
                     value={normalThreshold}
                     onChange={(e) => setNormalThreshold(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 focus:bg-white"
                   />
                 </div>
 
@@ -437,7 +437,7 @@ export const BudgetsView: React.FC = () => {
                     max="99"
                     value={highThreshold}
                     onChange={(e) => setHighThreshold(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 focus:bg-white"
                   />
                 </div>
               </div>
@@ -448,7 +448,7 @@ export const BudgetsView: React.FC = () => {
                   id="rollCheck"
                   checked={rolloverEnabled}
                   onChange={(e) => setRolloverEnabled(e.target.checked)}
-                  className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+                  className="w-4 h-4 accent-emerald-700 rounded cursor-pointer"
                 />
                 <label htmlFor="rollCheck" className="text-xs text-slate-700 cursor-pointer">
                   Enable Budget Rollover (carry over unspent cushion to next month)
@@ -471,7 +471,7 @@ export const BudgetsView: React.FC = () => {
                           updated[idx].allocatedAmount = Number(e.target.value);
                           setCategoryAllocations(updated);
                         }}
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500 focus:bg-white"
+                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 focus:bg-white"
                       />
                     </div>
                   ))}
@@ -488,7 +488,7 @@ export const BudgetsView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-xs"
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-all shadow-xs"
                 >
                   Save Budget Caps
                 </button>

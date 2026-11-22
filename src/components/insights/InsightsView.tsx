@@ -187,7 +187,7 @@ export const InsightsView: React.FC = () => {
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
               AI Financial Intelligence & Explainable ML
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
               GROUNDED XAI ENGINE
             </span>
           </div>
@@ -239,7 +239,7 @@ export const InsightsView: React.FC = () => {
               }}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-emerald-700 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
@@ -247,7 +247,7 @@ export const InsightsView: React.FC = () => {
               {tab.count !== undefined && (
                 <span
                   className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                    isActive ? 'bg-indigo-700 text-white' : 'bg-slate-100 text-slate-700'
+                    isActive ? 'bg-emerald-800 text-white' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   {tab.count}
@@ -256,7 +256,7 @@ export const InsightsView: React.FC = () => {
               {tab.badge && (
                 <span
                   className={`px-1.5 py-0.2 rounded text-[9px] font-mono ${
-                    isActive ? 'bg-indigo-800 text-indigo-100' : 'bg-slate-100 text-slate-600'
+                    isActive ? 'bg-emerald-900 text-emerald-100' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   {tab.badge}
@@ -269,13 +269,13 @@ export const InsightsView: React.FC = () => {
 
       {activeTab === 'anomalies' && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-start gap-3">
-            <BrainCircuit className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+          <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100 flex items-start gap-3">
+            <BrainCircuit className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
             <div>
-              <h3 className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-emerald-950 uppercase tracking-wider">
                 Statistical Anomaly Detection Pipeline
               </h3>
-              <p className="text-xs text-indigo-700 mt-1 leading-relaxed">
+              <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
                 Transactions are evaluated against your 90-day moving window using Z-Score and Median Absolute Deviation (MAD). Outliers with deviation &gt; 2.5σ or 3.0× category median are flagged for verification.
               </p>
             </div>
@@ -317,8 +317,8 @@ export const InsightsView: React.FC = () => {
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
                   <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
-                    <span className="flex items-center gap-1.5 text-indigo-700">
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="flex items-center gap-1.5 text-emerald-800">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
                       Statistical Signals & Feature Attribution (SHAP)
                     </span>
                     <span className="font-mono text-slate-500">Z-Score: {anom.zScore}σ</span>
@@ -329,7 +329,7 @@ export const InsightsView: React.FC = () => {
                       <div key={idx} className="p-2.5 rounded-xl bg-white border border-slate-200 text-[11px]">
                         <div className="flex justify-between text-slate-600">
                           <span className="truncate">{shap.feature}</span>
-                          <span className="font-mono text-indigo-600 font-semibold">{Math.round(shap.weight * 100)}%</span>
+                          <span className="font-mono text-emerald-700 font-semibold">{Math.round(shap.weight * 100)}%</span>
                         </div>
                         <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{shap.impact}</p>
                       </div>
@@ -353,7 +353,7 @@ export const InsightsView: React.FC = () => {
                         action: 'If this was an expected major purchase (e.g. equipment or travel), confirm it to adjust the model threshold.',
                       })
                     }
-                    className="text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-medium"
+                    className="text-emerald-700 hover:text-emerald-800 flex items-center gap-1 font-medium"
                   >
                     <HelpCircle className="w-3.5 h-3.5" />
                     <span>Why am I seeing this? (XAI)</span>
@@ -384,7 +384,7 @@ export const InsightsView: React.FC = () => {
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-200 shadow-xs">
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-indigo-600" />
+              <Calendar className="w-4 h-4 text-emerald-700" />
               <span className="text-xs font-bold text-slate-800">Forecast Prediction Window:</span>
             </div>
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
@@ -394,7 +394,7 @@ export const InsightsView: React.FC = () => {
                   onClick={() => setForecastHorizon(h)}
                   className={`px-3 py-1 text-xs font-mono font-bold rounded-lg transition-all ${
                     forecastHorizon === h
-                      ? 'bg-white text-indigo-700 shadow-xs'
+                      ? 'bg-white text-emerald-800 shadow-xs'
                       : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
@@ -427,7 +427,7 @@ export const InsightsView: React.FC = () => {
 
             <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs">
               <span className="text-xs text-slate-500">Forecast Confidence Band</span>
-              <h3 className="text-2xl font-bold text-indigo-600 font-mono mt-1">95.0%</h3>
+              <h3 className="text-2xl font-bold text-emerald-700 font-mono mt-1">95.0%</h3>
               <span className="text-[10px] text-slate-400 mt-1 block font-mono">ARIMA + Holt-Winters Hybrid</span>
             </div>
           </div>
@@ -440,7 +440,7 @@ export const InsightsView: React.FC = () => {
                 </h3>
                 <p className="text-[11px] text-slate-500">Expected spending with calculated upper and lower variance bounds</p>
               </div>
-              <span className="text-[10px] font-mono text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+              <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                 {forecast.dailyPoints?.length || forecast.forecast7Days?.length} Daily Trajectories
               </span>
             </div>
@@ -475,12 +475,12 @@ export const InsightsView: React.FC = () => {
           <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BrainCircuit className="w-5 h-5 text-indigo-600" />
+                <BrainCircuit className="w-5 h-5 text-emerald-700" />
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                   ML Model Evaluation & Validation Metrics (Architect Panel)
                 </h3>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200">
                 Cross-Validated (k=5)
               </span>
             </div>
@@ -503,7 +503,7 @@ export const InsightsView: React.FC = () => {
 
               <div className="p-3 rounded-xl bg-white border border-slate-200">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider">R² Coefficient</span>
-                <p className="text-xs font-mono font-bold text-indigo-600 mt-1">{forecast.modelMetrics.rSquared} (High Fit)</p>
+                <p className="text-xs font-mono font-bold text-emerald-700 mt-1">{forecast.modelMetrics.rSquared} (High Fit)</p>
               </div>
             </div>
 
@@ -529,7 +529,7 @@ export const InsightsView: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSimulating}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50"
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50"
               >
                 <Play className="w-3.5 h-3.5" />
                 <span>{isSimulating ? 'Simulating...' : 'Run Simulation'}</span>
@@ -626,7 +626,7 @@ export const InsightsView: React.FC = () => {
                     <div className="flex items-center gap-2 justify-center mt-1">
                       <span className="text-sm font-mono text-slate-500 line-through">{simulationResult.healthScoreBefore}</span>
                       <span className="text-xs text-slate-400">→</span>
-                      <span className="text-lg font-mono font-bold text-indigo-600">{simulationResult.healthScoreAfter}/100</span>
+                      <span className="text-lg font-mono font-bold text-emerald-700">{simulationResult.healthScoreAfter}/100</span>
                     </div>
                   </div>
                 </div>
@@ -673,7 +673,7 @@ export const InsightsView: React.FC = () => {
                   Grounded in historical expenditure trends to optimize category allocation without modifying budgets automatically.
                 </p>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200">
                 {budgetRecs.length} Categories Analyzed
               </span>
             </div>
@@ -741,7 +741,7 @@ export const InsightsView: React.FC = () => {
                 <div key={gRec.goalId} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-indigo-600" />
+                      <Target className="w-4 h-4 text-emerald-700" />
                       <h4 className="text-xs font-bold text-slate-900">{gRec.title}</h4>
                       <span
                         className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${
@@ -760,7 +760,7 @@ export const InsightsView: React.FC = () => {
                     <span className="text-xs font-mono font-bold text-slate-900 block">
                       Target: {formatCurrency(gRec.targetAmount, currency)}
                     </span>
-                    <span className="text-[10px] text-indigo-600 font-mono block">
+                    <span className="text-[10px] text-emerald-700 font-mono block">
                       Required: {formatCurrency(gRec.requiredMonthlyContribution, currency)}/mo (vs current {formatCurrency(gRec.currentMonthlyContribution, currency)})
                     </span>
                   </div>
@@ -861,10 +861,10 @@ export const InsightsView: React.FC = () => {
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
               <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Projected EOM Balance</span>
-              <p className="text-xl font-bold text-indigo-600 font-mono mt-1">
+              <p className="text-xl font-bold text-emerald-700 font-mono mt-1">
                 {formatCurrency(cashFlow?.projectedEndOfMonthBalance || 192800, currency)}
               </p>
-              <span className="text-[10px] text-indigo-600 font-medium mt-1 block">Confidence: {cashFlow?.confidenceScore || 91}%</span>
+              <span className="text-[10px] text-emerald-700 font-medium mt-1 block">Confidence: {cashFlow?.confidenceScore || 91}%</span>
             </div>
           </div>
 
@@ -945,10 +945,10 @@ export const InsightsView: React.FC = () => {
               <div>
                 <div className="flex justify-between text-xs font-medium mb-1">
                   <span className="text-slate-700">Weekend (Sat – Sun)</span>
-                  <span className="font-mono text-indigo-600">44% (₹37,800)</span>
+                  <span className="font-mono text-emerald-700">44% (₹37,800)</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-600 rounded-full" style={{ width: '44%' }} />
+                  <div className="h-full bg-emerald-700 rounded-full" style={{ width: '44%' }} />
                 </div>
               </div>
             </div>
@@ -988,10 +988,10 @@ export const InsightsView: React.FC = () => {
 
       {activeTab === 'coach' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="p-6 rounded-3xl bg-linear-to-r from-indigo-50 via-white to-purple-50 border border-indigo-100 shadow-xs">
+          <div className="p-6 rounded-3xl bg-slate-50 border border-emerald-100 shadow-xs">
             <div className="flex items-start justify-between">
               <div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-100 text-emerald-900 border border-emerald-200">
                   BEHAVIORAL ENGINE
                 </span>
                 <h2 className="text-base font-bold text-slate-900 mt-2">
@@ -1001,9 +1001,9 @@ export const InsightsView: React.FC = () => {
                   Based on your August 2026 transactions, your spending velocity is 14% lower than last month, while your savings rate is at 38% of net income (target: 30%).
                 </p>
               </div>
-              <div className="p-3 rounded-2xl bg-white border border-indigo-200 text-indigo-600 shadow-xs text-center">
+              <div className="p-3 rounded-2xl bg-white border border-emerald-200 text-emerald-700 shadow-xs text-center">
                 <span className="text-[10px] font-bold uppercase text-slate-400 block">Health Score</span>
-                <span className="text-2xl font-bold font-mono text-indigo-600">88/100</span>
+                <span className="text-2xl font-bold font-mono text-emerald-700">88/100</span>
               </div>
             </div>
           </div>
@@ -1016,7 +1016,7 @@ export const InsightsView: React.FC = () => {
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                       {ins.type.replace('_', ' ')}
                     </span>
                     <span
@@ -1046,9 +1046,9 @@ export const InsightsView: React.FC = () => {
                         action: ins.suggestedAction,
                       })
                     }
-                    className="text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-medium"
+                    className="text-emerald-700 hover:text-emerald-800 flex items-center gap-1 font-medium"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
                     <span>Explain Reasoning</span>
                   </button>
 
@@ -1066,7 +1066,7 @@ export const InsightsView: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <FileCheck className="w-5 h-5 text-indigo-600" />
+                  <FileCheck className="w-5 h-5 text-emerald-700" />
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                     Phase 3 AI Validation Test Bench & Grounding Audit
                   </h3>
@@ -1079,7 +1079,7 @@ export const InsightsView: React.FC = () => {
               <button
                 onClick={handleRunTestBench}
                 disabled={isRunningTestBench}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50 self-start"
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50 self-start"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRunningTestBench ? 'animate-spin' : ''}`} />
                 <span>{isRunningTestBench ? 'Executing Suite...' : 'Re-Run All 11 Tests'}</span>
@@ -1100,9 +1100,9 @@ export const InsightsView: React.FC = () => {
                   <span className="text-[10px] font-semibold text-rose-700 uppercase">Failed</span>
                   <p className="text-xl font-bold font-mono text-rose-700 mt-0.5">{testBench.summary.failed}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-center">
-                  <span className="text-[10px] font-semibold text-indigo-700 uppercase">Success Rate</span>
-                  <p className="text-xl font-bold font-mono text-indigo-700 mt-0.5">
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                  <span className="text-[10px] font-semibold text-emerald-800 uppercase">Success Rate</span>
+                  <p className="text-xl font-bold font-mono text-emerald-800 mt-0.5">
                     {Math.round((testBench.summary.passed / (testBench.summary.total || 1)) * 100)}%
                   </p>
                 </div>
@@ -1155,8 +1155,8 @@ export const InsightsView: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="text-[11px] text-indigo-700 bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100 flex items-start gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                  <div className="text-[11px] text-emerald-800 bg-emerald-50/40 p-2.5 rounded-xl border border-emerald-100 flex items-start gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
                     <span><strong>Grounded Evidence Signal:</strong> {test.groundedSignal}</span>
                   </div>
                 </div>

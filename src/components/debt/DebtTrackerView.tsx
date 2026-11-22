@@ -299,7 +299,7 @@ export const DebtTrackerView: React.FC = () => {
           </p>
           <button
             onClick={handleOpenCreateModal}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800"
           >
             <Plus className="w-4 h-4" />
             Add Loan
@@ -317,12 +317,12 @@ export const DebtTrackerView: React.FC = () => {
             return (
               <div
                 key={loan.id}
-                className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+                      <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700">
                         <Icon className="w-5 h-5" />
                       </div>
                       <div>
@@ -360,11 +360,11 @@ export const DebtTrackerView: React.FC = () => {
                     <div className="mt-2.5">
                       <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
                         <span>Paid: ₹{(loan.principal - loan.outstandingBalance).toLocaleString('en-IN')}</span>
-                        <span className="font-semibold text-indigo-600">{payoffPct}% Principal Cleared</span>
+                        <span className="font-semibold text-emerald-700">{payoffPct}% Principal Cleared</span>
                       </div>
                       <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
                         <div
-                          className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                          className="h-full bg-emerald-700 rounded-full transition-all duration-500"
                           style={{ width: `${payoffPct}%` }}
                         ></div>
                       </div>
@@ -379,7 +379,7 @@ export const DebtTrackerView: React.FC = () => {
                       </div>
                       <div>
                         <div className="text-slate-400">Interest Rate</div>
-                        <div className="font-bold font-mono text-indigo-700 mt-0.5">
+                        <div className="font-bold font-mono text-emerald-800 mt-0.5">
                           {loan.interestRate}%
                         </div>
                       </div>
@@ -410,7 +410,7 @@ export const DebtTrackerView: React.FC = () => {
                       setEmiAmount(loan.emi.toString());
                       setPayAccountId(accounts[0]?.id || '');
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs transition-colors"
                   >
                     <Check className="w-3.5 h-3.5" />
                     Record EMI Payment
@@ -427,7 +427,7 @@ export const DebtTrackerView: React.FC = () => {
           <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
                   <Check className="w-5 h-5" />
                 </div>
                 <div>
@@ -484,7 +484,7 @@ export const DebtTrackerView: React.FC = () => {
               <button
                 onClick={handleConfirmPayEmi}
                 disabled={isSubmittingEmi || !emiAmount}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-2 shadow-xs"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800 flex items-center gap-2 shadow-xs"
               >
                 {isSubmittingEmi ? (
                   <>
@@ -524,7 +524,7 @@ export const DebtTrackerView: React.FC = () => {
                   placeholder="e.g. HDFC Home Loan, Axis Auto Finance"
                   value={formState.loanName}
                   onChange={e => setFormState({ ...formState, loanName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
 
@@ -659,7 +659,7 @@ export const DebtTrackerView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs"
+                  className="px-4 py-2 rounded-xl font-semibold bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs"
                 >
                   {editingLoan ? 'Save Changes' : 'Register Loan'}
                 </button>

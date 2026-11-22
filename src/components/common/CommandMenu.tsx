@@ -167,20 +167,20 @@ export const CommandMenu: React.FC = () => {
                     <button
                       key={i}
                       onClick={action.action}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-indigo-50/50 hover:border-indigo-100 border border-transparent transition-all flex items-center justify-between group"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-emerald-50/50 hover:border-emerald-100 border border-transparent transition-all flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 group-hover:bg-emerald-700 group-hover:text-white transition-colors">
                           <Icon className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600">
+                          <p className="text-xs font-semibold text-slate-800 group-hover:text-emerald-700">
                             {action.label}
                           </p>
                           <p className="text-[11px] text-slate-400">{action.subtitle}</p>
                         </div>
                       </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all" />
+                      <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-all" />
                     </button>
                   );
                 })}
@@ -205,8 +205,8 @@ export const CommandMenu: React.FC = () => {
                       }}
                       className="text-left p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all flex items-center gap-2.5 group"
                     >
-                      <Icon className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
-                      <span className="text-xs font-medium text-slate-700 group-hover:text-indigo-600">
+                      <Icon className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-700" />
+                      <span className="text-xs font-medium text-slate-700 group-hover:text-emerald-700">
                         {nav.label}
                       </span>
                     </button>

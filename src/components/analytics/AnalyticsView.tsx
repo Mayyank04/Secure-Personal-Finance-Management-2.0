@@ -56,7 +56,7 @@ export const AnalyticsView: React.FC = () => {
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
             Financial Analytics & Capital Velocity
           </h1>
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
             ANALYTICS ENGINE
           </span>
         </div>
@@ -75,7 +75,7 @@ export const AnalyticsView: React.FC = () => {
           </div>
           <div className="flex items-center gap-3 text-xs">
             <span className="flex items-center gap-1.5 text-slate-600">
-              <span className="w-2.5 h-2.5 rounded-sm bg-indigo-600"></span> Fixed
+              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-700"></span> Fixed
             </span>
             <span className="flex items-center gap-1.5 text-slate-600">
               <span className="w-2.5 h-2.5 rounded-sm bg-amber-500"></span> Discretionary
@@ -117,7 +117,7 @@ export const AnalyticsView: React.FC = () => {
                   <span className="font-mono text-slate-900 font-semibold">{formatCurrency(cat.amount, currency)} ({cat.percentage}%)</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
-                  <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${cat.percentage}%` }} />
+                  <div className="h-full bg-emerald-700 rounded-full" style={{ width: `${cat.percentage}%` }} />
                 </div>
               </div>
             ))}
@@ -139,7 +139,7 @@ export const AnalyticsView: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] text-slate-500 uppercase tracking-wider">Emergency Runway Buffer</span>
-              <h4 className="text-xl font-bold text-indigo-600 font-mono mt-1">4.2 Months</h4>
+              <h4 className="text-xl font-bold text-emerald-700 font-mono mt-1">4.2 Months</h4>
               <p className="text-[11px] text-slate-500 mt-1">
                 Liquid cash reserves cover 4.2 months of fixed recurring expenditures.
               </p>

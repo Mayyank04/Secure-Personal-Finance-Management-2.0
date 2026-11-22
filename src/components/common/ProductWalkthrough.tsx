@@ -109,7 +109,7 @@ export const ProductWalkthrough: React.FC<ProductWalkthroughProps> = ({ isOpen, 
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-900">Interactive Product Walkthrough</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                   {currentStep.badge}
                 </span>
               </div>

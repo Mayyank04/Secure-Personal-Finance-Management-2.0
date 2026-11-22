@@ -94,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
             }`}
           >
             <div className="flex items-center gap-2.5 truncate">
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
               <span className="truncate">{item.label}</span>
             </div>
           </button>
@@ -119,8 +119,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
       >
         <div className="p-4 flex items-center justify-between border-b border-slate-200 lg:hidden">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-indigo-600" />
-            <span className="font-bold text-slate-900 text-sm">AegisFinance</span>
+            <ShieldCheck className="w-5 h-5 text-emerald-700" />
+            <span className="font-bold text-slate-900 text-sm">CipherLedger AI</span>
           </div>
           <button onClick={onClose} className="p-1 text-slate-500 hover:text-slate-800">
             <X className="w-5 h-5" />
@@ -160,8 +160,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
         <div className="p-3 border-t border-slate-200 bg-slate-50">
           <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
             <div className="flex items-center justify-between text-[11px] font-semibold text-slate-800">
-              <span className="flex items-center gap-1.5 text-indigo-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+              <span className="flex items-center gap-1.5 text-emerald-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-700 animate-pulse"></span>
                 Fabric Peer v2.5
               </span>
               <span className="font-mono text-[10px] text-slate-400">2/2 Peers</span>

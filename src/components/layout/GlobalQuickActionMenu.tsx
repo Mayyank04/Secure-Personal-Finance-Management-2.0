@@ -68,7 +68,7 @@ export const GlobalQuickActionMenu: React.FC<GlobalQuickActionMenuProps> = ({
       title: 'Add Transaction',
       description: 'Record an income or expense with AI category prediction',
       icon: PlusCircle,
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+      color: 'text-emerald-700 bg-emerald-50 border-emerald-200',
       action: () => setIsAddTxModalOpen(true),
     },
     {
@@ -138,7 +138,7 @@ export const GlobalQuickActionMenu: React.FC<GlobalQuickActionMenuProps> = ({
       title: 'Currency Converter',
       description: 'Live & simulated multi-currency foreign exchange rates',
       icon: Globe,
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+      color: 'text-emerald-700 bg-emerald-50 border-emerald-200',
       action: () => onOpenCurrencyModal && onOpenCurrencyModal(),
     },
   ];
@@ -173,9 +173,9 @@ export const GlobalQuickActionMenu: React.FC<GlobalQuickActionMenuProps> = ({
                 <Icon className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center justify-between">
+                <div className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition-colors flex items-center justify-between">
                   <span>{item.title}</span>
-                  <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-all -translate-x-1 group-hover:translate-x-0" />
+                  <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-all -translate-x-1 group-hover:translate-x-0" />
                 </div>
                 <div className="text-[10px] text-slate-500 truncate">{item.description}</div>
               </div>

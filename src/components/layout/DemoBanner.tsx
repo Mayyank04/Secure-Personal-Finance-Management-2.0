@@ -25,11 +25,11 @@ export const DemoBanner: React.FC = () => {
     <div className="bg-slate-100/90 border-b border-slate-200 px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 relative z-30">
       <div className="flex items-center gap-2.5">
         <span className="flex h-2 w-2 relative">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-600 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-700"></span>
         </span>
         <div className="flex items-center gap-1.5 font-medium text-slate-700">
-          <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-mono text-[10px] font-semibold border border-indigo-200">
+          <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 font-mono text-[10px] font-semibold border border-emerald-200">
             DEMO MODE
           </span>
           <span className="text-slate-700">Synthetic Demo Dataset (March – August 2026)</span>
@@ -63,7 +63,7 @@ export const DemoBanner: React.FC = () => {
       {showDetails && (
         <div className="w-full mt-2 p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm text-slate-600 text-xs space-y-1.5">
           <div className="flex items-center justify-between text-slate-800 font-medium">
-            <span className="flex items-center gap-1.5 text-indigo-600">
+            <span className="flex items-center gap-1.5 text-emerald-700">
               <Shield className="w-3.5 h-3.5" />
               Production Architecture & Evaluation Guide
             </span>

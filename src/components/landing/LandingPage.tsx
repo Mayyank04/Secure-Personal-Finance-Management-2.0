@@ -17,11 +17,11 @@ export const LandingPage: React.FC<{
   const { openAuthModal } = useAuth();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-indigo-500/20">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-emerald-500/20">
       <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-emerald-700 flex items-center justify-center shadow-xs">
               <ShieldCheck className="w-4 h-4 text-white stroke-[2.2]" />
             </div>
             <div>
@@ -46,7 +46,7 @@ export const LandingPage: React.FC<{
             </button>
             <button
               onClick={onEnterApp}
-              className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium shadow-xs transition-colors flex items-center gap-1.5"
             >
               <span>Launch Application</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -72,7 +72,7 @@ export const LandingPage: React.FC<{
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <button
               onClick={onEnterApp}
-              className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium shadow-xs transition-colors flex items-center gap-2"
+              className="px-5 py-2.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium shadow-xs transition-colors flex items-center gap-2"
             >
               <span>Open Financial Dashboard</span>
               <ArrowRight className="w-4 h-4" />
@@ -139,7 +139,7 @@ export const LandingPage: React.FC<{
             <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
               <span className="text-slate-500 text-[10px] block">AI & REASONING</span>
               <span className="text-slate-900 font-semibold text-xs block mt-1">Deterministic + LLM</span>
-              <span className="text-indigo-600 text-[10px]">Grounded Inference</span>
+              <span className="text-emerald-700 text-[10px]">Grounded Inference</span>
             </div>
 
             <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
@@ -171,7 +171,7 @@ export const LandingPage: React.FC<{
               Privacy Policy
             </button>
             <span className="text-slate-300">•</span>
-            <button onClick={onEnterApp} className="text-slate-900 font-semibold hover:text-indigo-600 transition-colors">
+            <button onClick={onEnterApp} className="text-slate-900 font-semibold hover:text-emerald-700 transition-colors">
               Launch App
             </button>
           </div>

@@ -287,7 +287,7 @@ export const SubscriptionsView: React.FC = () => {
           </p>
           <button
             onClick={handleOpenCreateModal}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800"
           >
             <Plus className="w-4 h-4" />
             Add Subscription
@@ -302,7 +302,7 @@ export const SubscriptionsView: React.FC = () => {
             return (
               <div
                 key={sub.id}
-                className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between">
@@ -347,7 +347,7 @@ export const SubscriptionsView: React.FC = () => {
 
                     <div className="text-right">
                       <div className="text-[11px] text-slate-500 font-medium">Annual Equivalent</div>
-                      <div className="text-xs font-bold font-mono text-indigo-700 mt-0.5">
+                      <div className="text-xs font-bold font-mono text-emerald-800 mt-0.5">
                         ₹{sub.annualCost.toLocaleString('en-IN')}/yr
                       </div>
                     </div>
@@ -441,7 +441,7 @@ export const SubscriptionsView: React.FC = () => {
                   placeholder="e.g. Netflix Premium, Spotify Family, GitHub Pro"
                   value={formState.name}
                   onChange={e => setFormState({ ...formState, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-600"
                 />
               </div>
 
@@ -540,7 +540,7 @@ export const SubscriptionsView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs"
+                  className="px-4 py-2 rounded-xl font-semibold bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs"
                 >
                   {editingSub ? 'Save Changes' : 'Register Subscription'}
                 </button>

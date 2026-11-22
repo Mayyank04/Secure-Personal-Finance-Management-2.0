@@ -500,13 +500,13 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
       <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
               <Mic className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-semibold text-slate-900">Voice Expense Entry</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
                   NLP Parser
                 </span>
               </div>
@@ -554,7 +554,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
               <span
                 className={`font-semibold ${
                   speechState === 'listening'
-                    ? 'text-indigo-600'
+                    ? 'text-emerald-700'
                     : speechState === 'starting'
                     ? 'text-amber-600'
                     : speechState === 'unsupported' || speechState === 'not-allowed' || speechState === 'network-error'
@@ -596,8 +596,8 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
           )}
 
           {infoMsg && !errorMsg && (
-            <div className="mb-4 p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200 text-indigo-800 text-xs flex items-start gap-2.5">
-              <Info className="w-4 h-4 shrink-0 mt-0.5 text-indigo-600" />
+            <div className="mb-4 p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2.5">
+              <Info className="w-4 h-4 shrink-0 mt-0.5 text-emerald-700" />
               <div className="flex-1">
                 <span>{infoMsg}</span>
               </div>
@@ -616,7 +616,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                     className={`relative w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all cursor-pointer ${
                       isRecording
                         ? 'bg-rose-600 hover:bg-rose-700 text-white ring-4 ring-rose-200 scale-105'
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-100 hover:scale-105 active:scale-95'
+                        : 'bg-emerald-700 hover:bg-emerald-800 text-white ring-4 ring-indigo-100 hover:scale-105 active:scale-95'
                     }`}
                     title={isRecording ? 'Click to stop recording' : 'Click to start microphone'}
                   >
@@ -684,7 +684,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                       if (errorMsg) setErrorMsg(null);
                     }}
                     placeholder="Transcript will appear here as you speak, or select a sample phrase below..."
-                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                   />
                 </div>
               </div>
@@ -694,7 +694,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Sample Voice Phrases (Click to Test)
                   </span>
-                  <span className="text-[11px] text-indigo-600 font-medium flex items-center gap-1">
+                  <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
                     <Info className="w-3 h-3" />
                     Works Without Mic
                   </span>
@@ -704,13 +704,13 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                     <button
                       key={i}
                       onClick={() => handleSelectSamplePhrase(prompt)}
-                      className="w-full text-left p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-indigo-50/40 hover:border-indigo-200 text-xs text-slate-700 transition-all flex items-center justify-between group cursor-pointer"
+                      className="w-full text-left p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-emerald-50/40 hover:border-emerald-200 text-xs text-slate-700 transition-all flex items-center justify-between group cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
-                        <Volume2 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                        <span className="group-hover:text-indigo-600 font-medium">"{prompt}"</span>
+                        <Volume2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="group-hover:text-emerald-700 font-medium">"{prompt}"</span>
                       </div>
-                      <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                      <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-transform shrink-0" />
                     </button>
                   ))}
                 </div>
@@ -742,7 +742,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                     step="0.01"
                     value={amount}
                     onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 text-sm font-semibold text-slate-900 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 text-sm font-semibold text-slate-900 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
                   />
                 </div>
 
@@ -753,7 +753,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                   <select
                     value={type}
                     onChange={(e) => setType(e.target.value as TransactionType)}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
                   >
                     <option value="EXPENSE">EXPENSE</option>
                     <option value="INCOME">INCOME</option>
@@ -768,7 +768,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                     type="text"
                     value={merchant}
                     onChange={(e) => setMerchant(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
                   />
                 </div>
 
@@ -779,7 +779,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as TransactionCategory)}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -796,7 +796,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
                   >
                     {paymentMethods.map((pm) => (
                       <option key={pm} value={pm}>
@@ -814,7 +814,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
                   />
                 </div>
               </div>
@@ -832,9 +832,9 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5 text-xs text-slate-600">
-                <ShieldCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
                 <span>
-                  Will be recorded on the private database and anchored to Hyperledger Fabric block ledger.
+                  Will be recorded on the private database and anchored to Fabric-compatible permissioned ledger simulation.
                 </span>
               </div>
             </div>
@@ -855,7 +855,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                 type="button"
                 onClick={() => handleProcessTranscript()}
                 disabled={isParsing || !transcript.trim()}
-                className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
+                className="px-5 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
               >
                 {isParsing ? (
                   <>
@@ -895,7 +895,7 @@ export const VoiceExpenseModal: React.FC<VoiceExpenseModalProps> = ({
                   type="button"
                   onClick={handleConfirmTransaction}
                   disabled={isSaving || amount <= 0}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
                 >
                   {isSaving ? (
                     <>
